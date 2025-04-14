@@ -2,7 +2,7 @@
 #
 # The PyMca X-Ray Fluorescence Toolkit
 #
-# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2025 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF by the Software group.
@@ -362,6 +362,7 @@ class HDF5Stack1D(DataObject.DataObject):
                     if len(xpathList) == 1:
                         xpath = xpathList[0]
                         xDataset = tmpHdf[xpath][()]
+                        xDatasetList = [xDataset]
                         self.x = [xDataset]
                 if h5py.version.version < '2.0':
                     #prevent automatic closing keeping a reference
