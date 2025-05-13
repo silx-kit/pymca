@@ -750,8 +750,7 @@ class HDF5Stack1D(DataObject.DataObject):
                                 for i in range(yDataset.shape[0]):
                                     self.data[i] += yDataset[i] / mDataset
                         else:
-                            for i in range(yDataset.shape[0]):
-                                self.data[i:i+1] += yDataset[i:i+1]
+                            self.data += yDataset
         else:
             self.info["McaIndex"] = mcaIndex
             if _time:
