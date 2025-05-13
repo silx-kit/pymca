@@ -1,5 +1,5 @@
 #/*##########################################################################
-# Copyright (C) 2004-2024 V.A. Sole, ESRF - D. Dale CHESS
+# Copyright (C) 2004-2025 V.A. Sole, ESRF - D. Dale CHESS
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF.
@@ -188,8 +188,11 @@ class H5NodeProxy(object):
                     finalList = sort_h5items(items, sorting_list=self.__sorting_list)
                     for i in range(len(finalList)):
                         # avoid an error at silx level with the linechecking "if finalList[i][1] and "
-                        finalListIsTrue = True
                         dataset = finalList[i][1]
+                        if dataset is None:
+                            finalListIsTrue = False
+                        else:
+                            finalListIsTrue = True
                         if hasattr(dataset, "shape"):
                             if not len(dataset.shape):
                                 # it can still be a string
