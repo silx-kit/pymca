@@ -728,6 +728,13 @@ class HDF5Stack1D(DataObject.DataObject):
                                     xpath = scan + xSelection
                                     xDataset = hdf[xpath][()]
                                     xDatasetList.append(xDataset)
+                        try:
+                            yDataset = hdf[path][()]
+                            IN_MEMORY = True
+                        except (MemoryError, ValueError):
+                            _logger.info("Dynamic loading of images")
+                            yDataset = hdf[path]
+                            IN_MEMORY = False                     
                         if mSelection is not None:
                             nMonitorData = mDataset.size
                             case = -1
@@ -750,7 +757,11 @@ class HDF5Stack1D(DataObject.DataObject):
                                 for i in range(yDataset.shape[0]):
                                     self.data[i] += yDataset[i] / mDataset
                         else:
-                            self.data += yDataset
+                            if IN_MEMORY:
+                                self.data += yDataset
+                            else:
+                                for i in range(yDataset.shape[0]):
+                                    self.data[i:i+1] += yDataset[i:i+1]
         else:
             self.info["McaIndex"] = mcaIndex
             if _time:
