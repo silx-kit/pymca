@@ -2,7 +2,7 @@
 #
 # The PyMca X-Ray Fluorescence Toolkit
 #
-# Copyright (c) 2018-2023 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2025 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF.
@@ -436,7 +436,12 @@ def getPositionersGroup(h5file, path):
         instrument = instrument[0]
         for key in instrument.keys():
             if key in ["positioners", b"positioners"]:
-                positioners = instrument[key]
+                try:
+                    positioners = instrument[key]
+                except KeyError:
+                    positioners = None
+                    _logger.info("BrokenLink %s %s" % (instrument, key))
+                    return positioners
                 if not isGroup(positioners):
                     positioners = None
     if positioners is None:
@@ -468,7 +473,12 @@ def getStartingPositionersGroup(h5file, path):
         instrument = instrument[0]
         for key in instrument.keys():
             if key in ["positioners_start", b"positioners_start"]:
-                positioners = instrument[key]
+                try:
+                    positioners = instrument[key]
+                except KeyError:
+                    positioners = None
+                    _logger.info("BrokenLink %s %s" % (instrument, key))
+                    return positioners
                 if not isGroup(positioners):
                     positioners = None
     if positioners is None:
