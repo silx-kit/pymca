@@ -356,6 +356,8 @@ class OutputBuffer(MutableMapping):
         """
         if data is not None:
             buffer = numpy.asarray(data, dtype=dtype)
+            if id(buffer) in set(map(id, self._buffers.values())):
+                buffer = buffer.copy()
             if fill_value is not None:
                 buffer[:] = fill_value
         elif fill_value is None:
