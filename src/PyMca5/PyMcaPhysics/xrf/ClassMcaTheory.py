@@ -1062,12 +1062,14 @@ class McaTheory(object):
         if self.__toBeConfigured:
             _logger.debug("setData RESTORE ORIGINAL CONFIGURATION")
             self.configure(self.__originalConfiguration)
+
         if 'x' in kw:
             x=kw['x']
         elif len(var) >1:
             x=var[0]
         else:
             x=None
+
         if 'y' in kw:
             y=kw['y']
         elif len(var) > 1:
@@ -1076,12 +1078,14 @@ class McaTheory(object):
             y=var[0]
         else:
             y=None
+
         if 'sigmay' in kw:
             sigmay=kw['sigmay']
         elif len(var) >2:
             sigmay=var[2]
         else:
             sigmay=None
+
         if y is None:
             return 1
         else:
@@ -1114,26 +1118,27 @@ class McaTheory(object):
         elif self.config["concentrations"].get("useautotime", False):
             self.config["concentrations"]["time"] = timeFactor
 
-        xmin = self.config['fit']['xmin']
-        if not self.config['fit']['use_limit']:
-            if 'xmin' in kw:
-                xmin=kw['xmin']
-                if xmin is not None:
-                    self.config['fit']['xmin'] = xmin
-                else:
-                    xmin=min(self.xdata)
+        if self.config['fit']['use_limit']:
+            xmin = self.config['fit']['xmin']
+        else:
+            xmin = kw.get('xmin')
+            if xmin is not None:
+                self.config['fit']['xmin'] = xmin
             elif len(self.xdata):
-                xmin=min(self.xdata)
-        xmax = self.config['fit']['xmax']
-        if not self.config['fit']['use_limit']:
-            if 'xmax' in kw:
-                xmax=kw['xmax']
-                if xmax is not None:
-                    self.config['fit']['xmax'] = xmax
-                else:
-                    xmax=max(self.xdata)
+                xmin = min(self.xdata)
+            else:
+                xmin = 0
+
+        if self.config['fit']['use_limit']:
+            xmax = self.config['fit']['xmax']
+        else:
+            xmax = kw.get('xmax')
+            if xmax is not None:
+                self.config['fit']['xmax'] = xmax
             elif len(self.xdata):
-                    xmax=max(self.xdata)
+                xmax = max(self.xdata)
+            else:
+                xmax = 0
 
         self.lastxmin = xmin
         self.lastxmax = xmax
