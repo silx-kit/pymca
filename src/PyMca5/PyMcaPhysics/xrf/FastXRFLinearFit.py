@@ -144,7 +144,7 @@ class FastXRFLinearFit(object):
             # MCA trimming: [iXMin:iXMax]
             iXMin, iXMax = self._fitMcaTrimInfo(x=x)
             sliceChan = slice(iXMin, iXMax)
-            nObs = iXMax-iXMin
+            nObs = iXMax-iXMin+1
 
             # Least-squares parameters
             if weightPolicy == 2:
