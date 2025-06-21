@@ -810,8 +810,7 @@ class FastXRFLinearFit(object):
             # Bad pixels: use peak area with the most negative values
             negList.sort()
             negList.reverse()
-            badParameters = []
-            badParameters.append(negList[0][1])
+            badParameters = [negList[0][1]]
             badMask = negList[0][2]
 
             # Combine with masks of all other peak areas
@@ -819,8 +818,8 @@ class FastXRFLinearFit(object):
             # This is done to prevent endless loops:
             # if two or more parameters have common negative pixels
             # and one of them remains negative when forcing other one to zero
-            for iFree, (nNeg, iFree, negMask) in enumerate(negList):
-                if iFree not in badParameters and nNeg:
+            for nNeg, iFree, negMask in negList[1:]:
+                if nNeg:
                     combMask = badMask & negMask
                     if combMask.sum():
                         badParameters.append(iFree)
