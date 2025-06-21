@@ -781,10 +781,10 @@ class FastXRFLinearFit(object):
         """Refit pixels with negative peak areas (remove the parameters from the model)
         """
         nFree = len(freeNames)
-        iIter = 1
-        nIter = 2 * (nFree - nFreeBkg) + iIter
-        negativePresent = True
-        while negativePresent:
+        nPeakAreas = nFree - nFreeBkg
+        maxIter = 2 * (nPeakAreas + 1)
+
+        for iIter in range(1, maxIter + 1):
             # Pixels with negative peak areas
             negList = []
             for iFree in range(nFreeBkg, nFree):
@@ -795,17 +795,16 @@ class FastXRFLinearFit(object):
 
             # No refit needed when no negative peak areas
             if not negList:
-                negativePresent = False
-                continue
+                break
 
             # Set negative peak areas to zero when
             # the maximal iterations is reached
-            if iIter > nIter:
+            if iIter == maxIter:
                 for nNeg, iFree, negMask in negList:
                     results[iFree][negMask] = 0.0
                     _logger.warning("%d pixels of parameter %s forced to zero",
                                     nNeg, freeNames[iFree])
-                continue
+                break
 
             # Bad pixels: use peak area with the most negative values
             negList.sort()
@@ -836,7 +835,6 @@ class FastXRFLinearFit(object):
                                   skipNames=badNames,
                                   results=results,
                                   nmin=nmin, **kwargs)
-            iIter += 1
 
     def _fitDeriveMassFractions(self, config=None, results=None, nFreeBkg=None,
                                 autotime=None, liveTimeFactor=None):
