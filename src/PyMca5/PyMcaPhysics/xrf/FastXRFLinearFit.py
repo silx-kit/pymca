@@ -782,9 +782,9 @@ class FastXRFLinearFit(object):
         """
         nFree = len(freeNames)
         nPeakAreas = nFree - nFreeBkg
-        maxIter = 2 * (nPeakAreas + 1)
+        nrefitMax = 2 * nPeakAreas + 1
 
-        for iIter in range(1, maxIter + 1):
+        for refitIter in range(1, nrefitMax + 2):
             # Pixels with negative peak areas
             negList = []
             for iFree in range(nFreeBkg, nFree):
@@ -799,7 +799,7 @@ class FastXRFLinearFit(object):
 
             # Set negative peak areas to zero when
             # the maximal iterations is reached
-            if iIter == maxIter:
+            if refitIter > nrefitMax:
                 for nNeg, iFree, negMask in negList:
                     results[iFree][negMask] = 0.0
                     _logger.warning("%d pixels of parameter %s forced to zero",
@@ -829,7 +829,7 @@ class FastXRFLinearFit(object):
             badNames = [freeNames[iFree] for iFree in badParameters]
             nmin = 0.0025 * badMask.size
             _logger.debug("Refit iteration #{}. Fixed to zero: {}"
-                          .format(iIter, badNames))
+                          .format(refitIter, badNames))
             self._fitLstSqReduced(data=data, mask=badMask,
                                   skipParams=badParameters,
                                   skipNames=badNames,
