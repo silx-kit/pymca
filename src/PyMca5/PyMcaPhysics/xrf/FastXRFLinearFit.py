@@ -129,6 +129,9 @@ class FastXRFLinearFit(object):
             else:
                 yref = ysum
 
+            # Force fit limits to be used, whether the user enabled it or not.
+            config['fit']['use_limit'] = 1
+
             # Get the basis of the linear models (i.e. derivative to peak areas)
             dtypeCalculcation = self._fitDtypeCalculation(data)
             self._mcaTheory.setData(x=x, y=yref, xmin=xmin, xmax=xmax)
