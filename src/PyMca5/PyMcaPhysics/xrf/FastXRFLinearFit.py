@@ -808,8 +808,7 @@ class FastXRFLinearFit(object):
                 continue
 
             # Bad pixels: use peak area with the most negative values
-            negList.sort()
-            negList.reverse()
+            negList.sort(reverse=True)
             badParameters = [negList[0][1]]
             badMask = negList[0][2]
 
