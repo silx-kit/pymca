@@ -818,11 +818,10 @@ class FastXRFLinearFit(object):
             # if two or more parameters have common negative pixels
             # and one of them remains negative when forcing other one to zero
             for nNeg, iFree, negMask in negList[1:]:
-                if nNeg:
-                    combMask = badMask & negMask
-                    if combMask.sum():
-                        badParameters.append(iFree)
-                        badMask = combMask
+                combMask = badMask & negMask
+                if combMask.sum():
+                    badParameters.append(iFree)
+                    badMask = combMask
 
             # Fit with a reduced model (skipped parameters are fixed at zero)
             badNames = [freeNames[iFree] for iFree in badParameters]
