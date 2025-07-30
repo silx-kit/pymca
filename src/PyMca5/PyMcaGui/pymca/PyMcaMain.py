@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #/*##########################################################################
-# Copyright (C) 2004-2023 European Synchrotron Radiation Facility
+# Copyright (C) 2004-2025 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF.
@@ -1307,10 +1307,16 @@ class PyMcaMain(PyMcaMdi.PyMcaMdi):
     def __rgbCorrelator(self):
         if self.__correlator is None:
             self.__correlator = []
-        fileTypeList = ["Batch Result Files (*dat)",
-                        "EDF Files (*edf)",
-                        "EDF Files (*ccd)",
-                        "All Files (*)"]
+        fileTypeList = [
+            "HDF5 Files *.h5 *.nxs *.hdf *.hdf5",
+            "ASCII Files *dat",
+            "EDF Files *edf",
+            "EDF Files *ccd",
+            "CSV Files *csv",
+            "TIFF Files *tiff *tif",
+            "TextImage Files *txt",
+            "All Files *",
+        ]
         message = "Open ONE Batch result .dat file or SEVERAL EDF files"
         filelist = self.__getStackOfFiles(fileTypeList, message)
         if filelist:

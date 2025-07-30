@@ -691,9 +691,11 @@ class FileView(qt.QTreeView):
 
 
 class HDF5Widget(FileView):
-    def __init__(self, model, parent=None):
+    def __init__(self, model, parent=None, multi_selection=False):
         FileView.__init__(self, model, parent)
         self.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
+        if multi_selection:
+            self.setSelectionMode(qt.QAbstractItemView.ExtendedSelection)
         self.setAutoScroll(False)
 
         self._adjust()
@@ -853,13 +855,14 @@ class Hdf5SelectionDialog(qt.QDialog):
                     'framedata', 'rawheaderdata']            # fabioh5
 
     def __init__(self, parent=None,
-                 filename=None, message=None, itemtype="any"):
+                 filename=None, message=None, itemtype="any", multi_selection=False):
         """
 
         :param filename: Name of the HDF5 file
         :param value: If True returns dataset value instead of just the dataset.
             This must be False if itemtype is not "dataset".
         :param str itemtype: "dataset" or "group" or "any" (default)
+        :param bool multi_selection: If True the output selection can be a list
         """
         message = message if message is not None else 'Select your item'
         self.itemtype = itemtype if itemtype is not None else "any"
@@ -880,7 +883,7 @@ class Hdf5SelectionDialog(qt.QDialog):
         mainLayout.setContentsMargins(0, 0, 0, 0)
         mainLayout.setSpacing(0)
         self.fileModel = FileModel()
-        self.fileView = HDF5Widget(self.fileModel)
+        self.fileView = HDF5Widget(self.fileModel, multi_selection=multi_selection)
         self.filename = filename
 
         self.fileView.sigHDF5WidgetSignal.connect(self._hdf5WidgetSlot)
@@ -905,7 +908,7 @@ class Hdf5SelectionDialog(qt.QDialog):
         mainLayout.addWidget(buttonContainer)
 
         self.resize(400, 200)
-        self.selectedItemUri = None
+        self.selectedItemUri = []
         """URI of selected HDF5 item, with format 'filename::item_name'
         """
 
@@ -931,8 +934,35 @@ class Hdf5SelectionDialog(qt.QDialog):
                 self.accept()
 
     def onOk(self):
-        self.selectedItemUri = self._lastEvent['file'] + "::" + self._lastEvent['name']
-        self.accept()
+        selectedIndexes = self.fileView.selectedIndexes()
+        # list have multiple duplicates even for one selection
+        selectedUris = set()
+
+        for index in selectedIndexes:
+            item = self.fileModel.getProxyFromIndex(index)
+            itemType = getattr(item, 'type', '').lower()
+            isExpectedType = self.itemtype.lower() == "any" or \
+                             (itemType in self.datasetTypes and self.itemtype == "dataset") or \
+                             (itemType not in self.datasetTypes and self.itemtype == "group")
+            if isExpectedType:
+                uri = item.file.filename + "::" + item.name
+                selectedUris.add(uri)
+
+        self.selectedItemUri = list(selectedUris)
+        # to be back compatible with single selection
+        if len(self.selectedItemUri) == 1:
+            self.selectedItemUri = self.selectedItemUri[0]
+        if self.selectedItemUri:
+            self.accept()
+        else:
+            msg = qt.QMessageBox(self)
+            msg.setIcon(qt.QMessageBox.Critical)
+            msg.setText(
+                "Selection Error."
+                )
+            msg.exec()
+            self.selectedItemUri = None
+        print(self.selectedItemUri)
 
     def exec(self):
         with h5open(self.filename) as hdf5File:
@@ -1005,8 +1035,8 @@ def getGroupUri(parent=None, filename=None, message=None):
     selectedHdf5Uri = hdf5Dialog.selectedItemUri
     return selectedHdf5Uri
 
-def getUri(parent=None, filename=None, message=None):
-    hdf5Dialog = Hdf5SelectionDialog(parent, filename, message, "any")
+def getUri(parent=None, filename=None, message=None, multi_selection=False):
+    hdf5Dialog = Hdf5SelectionDialog(parent, filename, message, "any", multi_selection)
     ret = hdf5Dialog.exec()
     if not ret:
         return None

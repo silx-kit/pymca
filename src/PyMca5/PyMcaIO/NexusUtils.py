@@ -2,7 +2,7 @@
 #
 # The PyMca X-Ray Fluorescence Toolkit
 #
-# Copyright (c) 2019-2024 European Synchrotron Radiation Facility
+# Copyright (c) 2019-2025 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF by the Software group.
@@ -637,6 +637,13 @@ def selectDatasets(root, match=None):
     :param match: restrict selection (callable, 'max_ndim', 'mostcommon_ndim')
     :returns list(h5py.Dataset):
     """
+    # accept the list to hande multiple selection for h5 file
+    if isinstance(root, (list, tuple)):
+        datasets = []
+        for single_root in root:
+            datasets.extend(selectDatasets(single_root, match=match))
+        return datasets
+
     if match == 'max_ndim':
         match, post = None, match
     elif match == 'mostcommon_ndim':

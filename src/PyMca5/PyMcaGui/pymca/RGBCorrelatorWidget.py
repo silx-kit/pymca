@@ -749,6 +749,12 @@ class RGBCorrelatorWidget(qt.QWidget):
         for label in labelList:
             self.removeImage(label)
 
+        # if all images removed then it is possible to choose different size.
+        if len(self._imageList) == 0:
+            self.__imageShape = None
+            self.__imageLength = None
+            self._updateSizeLabel()
+
     def removeImage(self, label):
         if label not in self._imageList:
             return
@@ -966,12 +972,12 @@ class RGBCorrelatorWidget(qt.QWidget):
         filedialog.setAcceptMode(qt.QFileDialog.AcceptMode.AcceptOpen)
         filedialog.setWindowIcon(qt.QIcon(qt.QPixmap(IconDict["gioconda16"])))
         formatlist = [
+            "HDF5 Files *.h5 *.nxs *.hdf *.hdf5",
             "ASCII Files *dat",
             "EDF Files *edf",
             "EDF Files *ccd",
             "CSV Files *csv",
             "TIFF Files *tiff *tif",
-            "HDF5 Files *.h5 *.nxs *.hdf *.hdf5",
             "TextImage Files *txt",
             "All Files *",
         ]
@@ -1100,13 +1106,20 @@ class RGBCorrelatorWidget(qt.QWidget):
         # Prompt for missing HDF5 path
         if not h5path:
             tmp = HDF5Widget.getUri(
-                parent=self, filename=filename, message="Select Group or Dataset"
+                parent=self, filename=filename, message="Select Group or Dataset", multi_selection=True
             )
             if not tmp:
                 return
-            tmp = tmp.split("::")
-            if len(tmp) == 2:
-                h5path = tmp[1]
+            self.bad_images_size = 0
+            if isinstance(tmp, list):
+                for item in tmp:
+                    self._addHf5File(item)
+                    if self.bad_images_size:
+                        break
+            else:
+                tmp = tmp.split("::")
+                if len(tmp) == 2:
+                    h5path = tmp[1]
         if not h5path:
             return
         # Add datasets from HDF5 path
@@ -1133,6 +1146,7 @@ class RGBCorrelatorWidget(qt.QWidget):
                     )
                 )
                 msg.exec()
+                self.bad_images_size = 1
                 self._addHf5File(filename, ignoreStDev=ignoreStDev)
             elif len({dset.size for dset in datasets}) > 1:
                 msg = qt.QMessageBox(self)
