@@ -629,8 +629,8 @@ if sys.platform.startswith("darwin"):
         ".dylibs"
     )
     if os.path.exists(h5py_dylibs_old):
-        print(f"Renaming {h5py_dylibs_old} -> {h5py_dylibs_new}")
         os.rename(h5py_dylibs_old, h5py_dylibs_new)
+        print(f"Renamed {h5py_dylibs_old} -> {h5py_dylibs_new}")
     else:
         print(f"Warning: {h5py_dylibs_old} not found, skipping rename")
 
