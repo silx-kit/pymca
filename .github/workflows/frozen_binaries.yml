@@ -209,16 +209,18 @@ jobs:
           path: ./downloaded-artifacts
 
       - name: Move .app to /Applications
-        run: sudo mv ./downloaded-artifacts/PyMca5.9.4.app /Applications/
+        run: |
+          sudo mv ./downloaded-artifacts/PyMca5.9.4.app /Applications/
+          ls -l /Applications/PyMca5.9.4.app/Contents/MacOS
 
       - name: Verify .app existence
         run: test -d /Applications/PyMca5.9.4.app
 
       - name: Run the app to check it launches
-        run: /Applications/PyMca5.9.4.app/Contents/MacOS/PyMca5.9.4
+        run: /Applications/PyMca5.9.4.app/Contents/MacOS/PyMcaMain
 
       - name: Run a basic check on the app executable
-        run: /Applications/PyMca5.9.4.app/Contents/MacOS/PyMca5.9.4 --version
+        run: /Applications/PyMca5.9.4.app/Contents/MacOS/PyMcaMain --version
 
       - name: Cleanup
         run: sudo rm -rf /Applications/PyMca5.9.4.app
