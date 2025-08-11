@@ -277,6 +277,20 @@ jobs:
       - name: Make main binary executable
         run: chmod +x /Applications/PyMca5.9.4.app/Contents/MacOS/PyMcaMain
 
+      - name: Rename __dot__dylibs folders to .dylibs
+        run: |
+          find /Applications/PyMca5.9.4.app -depth -type d -name '__dot__dylibs' | while IFS= read -r dir; do
+            parent_dir=$(dirname "$dir")
+            target="$parent_dir/.dylibs"
+            
+            if [ -e "$target" ]; then
+              echo "⚠️ Skipping: $target already exists."
+            else
+              mv "$dir" "$target"
+              echo "✅ Renamed: $dir → $target"
+            fi
+          done
+
       - name: Run the app to check it launches
         run: /Applications/PyMca5.9.4.app/Contents/MacOS/PyMcaMain
 
