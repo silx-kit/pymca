@@ -67,6 +67,7 @@ else:
         'h5py._objects',
     ]
     my_binaries += collect_dynamic_libs('h5py')
+    my_binaries += collect_dynamic_libs('hdf5')
 
 excludes = []
 

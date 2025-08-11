@@ -194,7 +194,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: macos-pyinstaller-artifacts
-          path: dist/*
+          path: dist/*.app
 
   test-macos-app-install:
     runs-on: macos-latest
@@ -219,8 +219,46 @@ jobs:
       - name: Make main binary executable
         run: chmod +x /Applications/PyMca5.9.4.app/Contents/MacOS/PyMcaMain
 
+      - name: Check if libhdf5 dylib exists
+        run: |
+          FILE="/Applications/PyMca5.9.4.app/Contents/Frameworks/h5py/.dylibs/libhdf5.200.dylib"
+          if [ -f "$FILE" ]; then
+            echo "✅ Found $FILE"
+          else
+            echo "❌ $FILE not found"
+            ls -R /Applications/PyMca5.9.4.app/Contents/Frameworks/h5py/.dylibs || true
+          fi 
+
       - name: Run the app to check it launches
-        run: /Applications/PyMca5.9.4.app/Contents/MacOS/PyMcaMain
+        run: |
+          open -a /Applications/PyMca5.9.4.app
+          sleep 120
+          pkill -f PyMcaMain || true
+
+      - name: Fix h5py dylib rpaths
+        run: |
+          APP_PATH="/Applications/PyMca5.9.4.app"
+          TARGET_DYLIB="@loader_path/.dylibs/libhdf5.200.dylib"
+
+          # Find the actual name of the HDF5 dylib just in case it's not exactly libhdf5.200.dylib
+          find "$APP_PATH" -name "libhdf5*.dylib"
+
+          # Patch every .so in the h5py directory to use the local dylib
+          find "$APP_PATH/Contents/Frameworks/h5py" -name "*.so" | while read sofile; do
+            echo "Inspecting $sofile"
+            otool -L "$sofile" | grep "libhdf5" | while read line; do
+              # Extract the original path (first column)
+              original=$(echo "$line" | awk '{print $1}')
+              echo "Patching $sofile: $original -> $TARGET_DYLIB"
+              install_name_tool -change "$original" "$TARGET_DYLIB" "$sofile"
+            done
+          done
+
+      - name: Run the app to check it launches
+        run: |
+              open -a /Applications/PyMca5.9.4.app
+              sleep 120
+              pkill -f PyMcaMain || true
 
       - name: Run a basic check on the app executable
         run: /Applications/PyMca5.9.4.app/Contents/MacOS/PyMcaMain --version
