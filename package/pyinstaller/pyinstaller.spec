@@ -50,15 +50,23 @@ hiddenimports += collect_submodules('fisx')
 hiddenimports += collect_submodules('PyMca5.PyMcaGui.PyMcaQt')
 hiddenimports += collect_submodules('PyMca5.PyMcaGui.pymca')
 
+my_binaries = []
+
 if sys.platform.startswith("win"):
     # hiddenimports += collect_submodules('multiprocessing')
     hiddenimports += collect_submodules('numpy')
     hiddenimports += ['numpy.core._multiarray_umath', 'numpy.core.multiarray']
 
-    numpy_binaries = collect_dynamic_libs('numpy')
+    my_binaries += collect_dynamic_libs('numpy')
 
 else:
-    numpy_binaries = []
+    hiddenimports += [
+        'h5py',
+        'h5py.defs',
+        'h5py._errors',
+        'h5py._objects',
+    ]
+    my_binaries += collect_dynamic_libs('h5py')
 
 excludes = []
 
@@ -123,7 +131,7 @@ for i in range(len(script_l)):
     script_a.append(Analysis(
                             [script_n[i]],
                             pathex=[],
-                            binaries=numpy_binaries,
+                            binaries=my_binaries,
                             datas=datas,
                             hiddenimports=hiddenimports,
                             hookspath=[],
