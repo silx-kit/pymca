@@ -219,40 +219,40 @@ jobs:
       - name: Make main binary executable
         run: chmod +x /Applications/PyMca5.9.4.app/Contents/MacOS/PyMcaMain
 
-#      - name: Check if libhdf5 dylib exists
+#      - name: Run the app to check it launches
 #        run: |
-#          FILE="/Applications/PyMca5.9.4.app/Contents/Frameworks/h5py/.dylibs/libhdf5.200.dylib"
-#          if [ -f "$FILE" ]; then
-#            echo "✅ Found $FILE"
-#          else
-#            echo "❌ $FILE not found"
-#            ls -R /Applications/PyMca5.9.4.app/Contents/Frameworks/h5py/.dylibs || true
-#          fi
+#          open -a /Applications/PyMca5.9.4.app
+#          sleep 120
+#          pkill -f PyMcaMain || true
 
-      - name: Run the app to check it launches
+      - name: Fix h5py dylib rpaths
         run: |
-          open -a /Applications/PyMca5.9.4.app
-          sleep 120
-          pkill -f PyMcaMain || true
+          APP_PATH="/Applications/PyMca5.9.4.app"
+          TARGET_DYLIB="@loader_path/.dylibs/libhdf5.200.dylib"
 
-#      - name: Fix h5py dylib rpaths
-#        run: |
-#          APP_PATH="/Applications/PyMca5.9.4.app"
-#          TARGET_DYLIB="@loader_path/.dylibs/libhdf5.200.dylib"
-#
-#          # Find the actual name of the HDF5 dylib just in case it's not exactly libhdf5.200.dylib
-#          find "$APP_PATH" -name "libhdf5*.dylib"
-#
-#          # Patch every .so in the h5py directory to use the local dylib
-#          find "$APP_PATH/Contents/Frameworks/h5py" -name "*.so" | while read sofile; do
-#            echo "Inspecting $sofile"
-#            otool -L "$sofile" | grep "libhdf5" | while read line; do
-#              # Extract the original path (first column)
-#              original=$(echo "$line" | awk '{print $1}')
-#              echo "Patching $sofile: $original -> $TARGET_DYLIB"
-#              install_name_tool -change "$original" "$TARGET_DYLIB" "$sofile"
-#            done
-#          done
+          # Find the actual name of the HDF5 dylib just in case it's not exactly libhdf5.200.dylib
+          find "$APP_PATH" -name "libhdf5*.dylib"
+
+          # Patch every .so in the h5py directory to use the local dylib
+          find "$APP_PATH/Contents/Frameworks/h5py" -name "*.so" | while read sofile; do
+            echo "Inspecting $sofile"
+            otool -L "$sofile" | grep "libhdf5" | while read line; do
+              # Extract the original path (first column)
+              original=$(echo "$line" | awk '{print $1}')
+              echo "Patching $sofile: $original -> $TARGET_DYLIB"
+              install_name_tool -change "$original" "$TARGET_DYLIB" "$sofile"
+            done
+          done
+
+      - name: Check if libhdf5 dylib exists
+        run: |
+          FILE="/Applications/PyMca5.9.4.app/Contents/Frameworks/h5py/.dylibs/libhdf5.200.dylib"
+          if [ -f "$FILE" ]; then
+            echo "✅ Found $FILE"
+          else
+            echo "❌ $FILE not found"
+            ls -R /Applications/PyMca5.9.4.app/Contents/Frameworks/h5py/.dylibs || true
+          fi
 
       - name: Check h5py dylibs exist
         run: |
