@@ -292,7 +292,44 @@ jobs:
           done
 
       - name: Run the app to check it launches
-        run: /Applications/PyMca5.9.4.app/Contents/MacOS/PyMcaMain
+        run: |
+          set -e
+      
+          echo "Launching PyMcaMain..."
+      
+          # Start the app in the background
+          /Applications/PyMca5.9.4.app/Contents/MacOS/PyMcaMain &
+          APP_PID=$!
+      
+          echo "App started with PID $APP_PID"
+      
+          # Wait up to 3 minutes (180 seconds) for it to crash or hang
+          for i in {1..180}; do
+            if ! ps -p $APP_PID > /dev/null; then
+              echo "App exited early. Checking exit code..."
+              wait $APP_PID
+              EXIT_CODE=$?
+              if [ $EXIT_CODE -ne 0 ]; then
+                echo "App exited with error code $EXIT_CODE"
+                exit $EXIT_CODE
+              else
+                echo "App exited cleanly before 5 minutes."
+                exit 0
+              fi
+            fi
+            sleep 1
+          done
+      
+          echo "App ran for 5 minutes without crashing. Killing it now..."
+          kill $APP_PID || true
+          wait $APP_PID || true
+          echo "App test complete."
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-pyinstaller-artifacts-dashdotfix
+          path: /Applications/*
 
       - name: Cleanup
         run: sudo rm -rf /Applications/PyMca5.9.4.app
