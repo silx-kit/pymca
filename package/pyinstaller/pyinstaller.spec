@@ -76,14 +76,14 @@ else:
 #
 #    my_binaries += hdf5_libs
 
-    hiddenimports += collect_submodules('h5py')
-    hiddenimports += [
-        'h5py',
-        'h5py.defs',
-        'h5py._errors',
-        'h5py._objects',
-    ]
-    my_binaries += collect_dynamic_libs('h5py')
+    #hiddenimports += collect_submodules('h5py')
+    #hiddenimports += [
+    #    'h5py',
+    #    'h5py.defs',
+    #    'h5py._errors',
+    #    'h5py._objects',
+    #]
+    #my_binaries += collect_dynamic_libs('h5py')
     #my_binaries += collect_dynamic_libs('hdf5')
     #my_binaries += [('/usr/local/opt/hdf5/lib/libhdf5.200.dylib', 'h5py/.dylibs')]
     print('this is a Mac, so shut up and listen')
@@ -612,6 +612,33 @@ if sys.platform.startswith("darwin"):
     if os.path.exists(dest):
         shutil.rmtree(dest)
     os.rename(source, dest)
+
+    # Rename __dot__dylibs to .dylibs inside the bundled h5py package
+    h5py_dylibs_old = os.path.join(
+        dest,
+        "Contents",
+        "Resources",
+        "lib",
+        "python3.12",
+        "site-packages",
+        "h5py",
+        "__dot__dylibs"
+    )
+    h5py_dylibs_new = os.path.join(
+        dest,
+        "Contents",
+        "Resources",
+        "lib",
+        "python3.12",
+        "site-packages",
+        "h5py",
+        ".dylibs"
+    )
+    if os.path.exists(h5py_dylibs_old):
+        print(f"Renaming {h5py_dylibs_old} -> {h5py_dylibs_new}")
+        os.rename(h5py_dylibs_old, h5py_dylibs_new)
+    else:
+        print(f"Warning: {h5py_dylibs_old} not found, skipping rename")
 
     # relocate the special modules
     special_modules_dir = os.path.join(dest, "Contents", "MacOS", "special_modules")
