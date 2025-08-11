@@ -628,11 +628,11 @@ if sys.platform.startswith("darwin"):
         "h5py",
         ".dylibs"
     )
-    if os.path.exists(h5py_dylibs_old):
-        os.rename(h5py_dylibs_old, h5py_dylibs_new)
-        print(f"Renamed {h5py_dylibs_old} -> {h5py_dylibs_new}")
-    else:
-        print(f"Warning: {h5py_dylibs_old} not found, skipping rename")
+#    if os.path.exists(h5py_dylibs_old):
+#        os.rename(h5py_dylibs_old, h5py_dylibs_new)
+#        print("Renamed __dot__ to . in h5py")
+#    else:
+#        print("__dot__ not found, skipping rename")
 
     # relocate the special modules
     special_modules_dir = os.path.join(dest, "Contents", "MacOS", "special_modules")
