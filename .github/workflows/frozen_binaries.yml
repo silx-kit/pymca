@@ -255,11 +255,11 @@ jobs:
             ls -R /Applications/PyMca5.9.4.app/Contents/Frameworks/h5py/.dylibs || true
           fi
 
-      - name: Check h5py dylibs exist
-        run: |
-          ls -l /Applications/PyMca5.9.4.app/Contents/Frameworks/h5py/.dylibs || echo "No dylibs folder"
-          find /Applications/PyMca5.9.4.app/Contents/Frameworks/h5py/.dylibs -name "*.dylib" || echo "No dylibs found"
-          otool -L /usr/local/opt/hdf5/lib/libhdf5.200.dylib
+#      - name: Check h5py dylibs exist
+#        run: |
+#          ls -l /Applications/PyMca5.9.4.app/Contents/Frameworks/h5py/.dylibs || echo "No dylibs folder"
+#          find /Applications/PyMca5.9.4.app/Contents/Frameworks/h5py/.dylibs -name "*.dylib" || echo "No dylibs found"
+#          otool -L /usr/local/opt/hdf5/lib/libhdf5.200.dylib
 
       - name: Run the app to check it launches
         run: /Applications/PyMca5.9.4.app/Contents/MacOS/PyMcaMain
