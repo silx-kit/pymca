@@ -61,20 +61,20 @@ if sys.platform.startswith("win"):
 
 else:
     import h5py
-    possible_dirs = [
-        os.path.join(os.path.dirname(h5py.__file__), '.dylibs'),
-        '/usr/local/lib',  # Homebrew typical location
-        '/opt/homebrew/lib',  # Apple Silicon Homebrew
-        os.path.join(os.path.dirname(h5py.__file__), 'hdf5'),
-    ]
-    hdf5_libs = []
-    for d in possible_dirs:
-        if os.path.isdir(d):
-            dylibs = glob.glob(os.path.join(d, 'libhdf5*.dylib'))
-            for dylib in dylibs:
-                hdf5_libs.append((dylib, os.path.join('h5py', '.dylibs', os.path.basename(dylib))))
-
-    my_binaries += hdf5_libs
+#    possible_dirs = [
+#        os.path.join(os.path.dirname(h5py.__file__), '.dylibs'),
+#        '/usr/local/lib',  # Homebrew typical location
+#        '/opt/homebrew/lib',  # Apple Silicon Homebrew
+#        os.path.join(os.path.dirname(h5py.__file__), 'hdf5'),
+#    ]
+#    hdf5_libs = []
+#    for d in possible_dirs:
+#        if os.path.isdir(d):
+#            dylibs = glob.glob(os.path.join(d, 'libhdf5*.dylib'))
+#            for dylib in dylibs:
+#                hdf5_libs.append((dylib, os.path.join('h5py', '.dylibs', os.path.basename(dylib))))
+#
+#    my_binaries += hdf5_libs
 
     hiddenimports += collect_submodules('h5py')
     hiddenimports += [
