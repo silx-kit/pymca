@@ -60,13 +60,13 @@ if sys.platform.startswith("win"):
     my_binaries += collect_dynamic_libs('numpy')
 
 else:
-    #hiddenimports += [
-    #    'h5py',
-    #    'h5py.defs',
-    #    'h5py._errors',
-    #    'h5py._objects',
-    #]
-    #my_binaries += collect_dynamic_libs('h5py')
+    hiddenimports += [
+        'h5py',
+        'h5py.defs',
+        'h5py._errors',
+        'h5py._objects',
+    ]
+    my_binaries += collect_dynamic_libs('h5py')
     #my_binaries += collect_dynamic_libs('hdf5')
     #my_binaries += [('/usr/local/opt/hdf5/lib/libhdf5.200.dylib', 'h5py/.dylibs')]
     print('this is a Mac, so shut up and listen')
