@@ -76,16 +76,16 @@ else:
 #
 #    my_binaries += hdf5_libs
 
-    #hiddenimports += collect_submodules('h5py')
-    #hiddenimports += [
-    #    'h5py',
-    #    'h5py.defs',
-    #    'h5py._errors',
-    #    'h5py._objects',
-    #]
-    #my_binaries += collect_dynamic_libs('h5py')
-    #my_binaries += collect_dynamic_libs('hdf5')
-    #my_binaries += [('/usr/local/opt/hdf5/lib/libhdf5.200.dylib', 'h5py/.dylibs')]
+   # hiddenimports += collect_submodules('h5py')
+   # hiddenimports += [
+   #     'h5py',
+   #     'h5py.defs',
+   #     'h5py._errors',
+   #     'h5py._objects',
+   # ]
+   # my_binaries += collect_dynamic_libs('h5py')
+#    my_binaries += collect_dynamic_libs('hdf5')
+#    my_binaries += [('/usr/local/opt/hdf5/lib/libhdf5.200.dylib', 'h5py/.dylibs')]
     print('this is a Mac, so shut up and listen')
 
 excludes = []
@@ -617,20 +617,14 @@ if sys.platform.startswith("darwin"):
     h5py_dylibs_old = os.path.join(
         dest,
         "Contents",
-        "Resources",
-        "lib",
-        "python3.12",
-        "site-packages",
+        "Frameworks",
         "h5py",
         "__dot__dylibs"
     )
     h5py_dylibs_new = os.path.join(
         dest,
         "Contents",
-        "Resources",
-        "lib",
-        "python3.12",
-        "site-packages",
+        "Frameworks",
         "h5py",
         ".dylibs"
     )
