@@ -67,7 +67,10 @@ else:
         'h5py._objects',
     ]
     my_binaries += collect_dynamic_libs('h5py')
-    my_binaries += collect_dynamic_libs('hdf5')
+    # my_binaries += collect_dynamic_libs('hdf5')
+    my_binaries += collect_dynamic_libs('h5py')
+    my_binaries += [('/usr/local/opt/hdf5/lib/libhdf5.200.dylib', 'h5py/.dylibs')]
+    print('this is a Mac, so shut up and listen')
 
 excludes = []
 
