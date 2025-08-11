@@ -14,45 +14,101 @@ env:
 jobs:
 # Fat binaries
 
-  windows_pyinstaller_python39: #also works with cp311 and pyside6
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ windows-latest ]
-        python-version: [ "3.11" ]
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip setuptools wheel
-          pip install qtconsole==5.4.1
-          pip install matplotlib
-          pip install --pre --extra-index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
-          pip install Cython
-          pip install wheel
-          pip install numpy
-          pip install PySide6
-          pip install h5py
-          pip install fisx
-          pip install hdf5plugin
-          pip install silx
-          pip install PyOpenGL
-          pip install PyInstaller
-          pip install git+https://github.com/vasole/bcflight.git
-
-      - name: Install NSIS
-        run: choco install nsis -y
-
-      - name: Build with PyInstaller
-        run:
-          python build-pyinstaller.py
-
+#  windows_pyinstaller_python39: #also works with cp311 and pyside6
+#    runs-on: ${{ matrix.os }}
+#    strategy:
+#      matrix:
+#        os: [ windows-latest ]
+#        python-version: [ "3.11" ]
+#
+#    steps:
+#      - uses: actions/checkout@v2
+#
+#      - uses: actions/setup-python@v2
+#        with:
+#          python-version: ${{ matrix.python-version }}
+#
+#      - name: Install dependencies
+#        run: |
+#          python -m pip install --upgrade pip setuptools wheel
+#          pip install qtconsole==5.4.1
+#          pip install matplotlib
+#          pip install --pre --extra-index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
+#          pip install Cython
+#          pip install wheel
+#          pip install numpy
+#          pip install PySide6
+#          pip install h5py
+#          pip install fisx
+#          pip install hdf5plugin
+#          pip install silx
+#          pip install PyOpenGL
+#          pip install PyInstaller
+#          pip install git+https://github.com/vasole/bcflight.git
+#
+#      - name: Install NSIS
+#        run: choco install nsis -y
+#
+#      - name: Build with PyInstaller
+#        run:
+#          python build-pyinstaller.py
+#
+##      - name: Print dist* directories content with PowerShell
+##        shell: pwsh
+##        run: |
+##          Get-ChildItem -Directory -Name dist* | ForEach-Object {
+##            Write-Host "Contents of $_ :"
+##            Get-ChildItem -Path $_ -Recurse
+##          }
+#
+#      - name: Upload artifacts
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: windows-pyinstaller-artifacts
+#          path: dist/PyMca*/**
+#
+#  windows_cxfreeze_python39:
+#    runs-on: ${{ matrix.os }}
+#    strategy:
+#      matrix:
+#        os: [ windows-latest ]
+#        python-version: [ "3.9" ]
+#
+#    steps:
+#      - name: Checkout code
+#        uses: actions/checkout@v2
+#
+#      - name: Setup Python
+#        uses: actions/setup-python@v2
+#        with:
+#          python-version: ${{ matrix.python-version }}
+#
+#      - name: Install dependencies
+#        run: |
+#          pip install numpy==1.24.4
+#          pip install PyQt5
+#          pip install h5py
+#          pip install fisx
+#          pip install matplotlib==3.5.3
+#          pip install hdf5plugin
+#          pip install git+https://github.com/silx-kit/silx.git
+#          pip install PyOpenGL
+#          pip install qtconsole==5.4.1
+#          pip install lief==0.12.3
+#          pip install cx_Freeze==6.14.7
+#          pip install --pre --extra-index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
+#          pip install Cython
+#          pip install wheel
+#          pip install git+https://github.com/vasole/bcflight.git
+#
+#      - name: Install NSIS
+#        run: choco install nsis -y
+#
+#      - name: Build with cx_Freeze
+#        shell: cmd
+#        run:
+#          python build-cxfreeze.py
+#
 #      - name: Print dist* directories content with PowerShell
 #        shell: pwsh
 #        run: |
@@ -60,68 +116,12 @@ jobs:
 #            Write-Host "Contents of $_ :"
 #            Get-ChildItem -Path $_ -Recurse
 #          }
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-pyinstaller-artifacts
-          path: dist/PyMca*/**
-
-  windows_cxfreeze_python39:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ windows-latest ]
-        python-version: [ "3.9" ]
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Setup Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install dependencies
-        run: |
-          pip install numpy==1.24.4
-          pip install PyQt5
-          pip install h5py
-          pip install fisx
-          pip install matplotlib==3.5.3
-          pip install hdf5plugin
-          pip install git+https://github.com/silx-kit/silx.git
-          pip install PyOpenGL
-          pip install qtconsole==5.4.1
-          pip install lief==0.12.3
-          pip install cx_Freeze==6.14.7
-          pip install --pre --extra-index-url https://test.pypi.org/simple/ --trusted-host test.pypi.org --only-binary Pymca_release_test Pymca_release_test
-          pip install Cython
-          pip install wheel
-          pip install git+https://github.com/vasole/bcflight.git
-
-      - name: Install NSIS
-        run: choco install nsis -y
-
-      - name: Build with cx_Freeze
-        shell: cmd
-        run:
-          python build-cxfreeze.py
-
-      - name: Print dist* directories content with PowerShell
-        shell: pwsh
-        run: |
-          Get-ChildItem -Directory -Name dist* | ForEach-Object {
-            Write-Host "Contents of $_ :"
-            Get-ChildItem -Path $_ -Recurse
-          }
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-cxfreeze-artifacts
-          path: dist/*
+#
+#      - name: Upload artifacts
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: windows-cxfreeze-artifacts
+#          path: dist/*
 
 ##################################################
 
@@ -195,6 +195,33 @@ jobs:
         with:
           name: macos-pyinstaller-artifacts
           path: dist/*
+
+  test-macos-app-install:
+    runs-on: macos-latest
+    needs: macos11_pyinstaller_python312
+    if: ${{ success() }}
+    steps:
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-pyinstaller-artifacts
+          path: ./downloaded-artifacts
+
+      - name: Move .app to /Applications
+        run: sudo mv ./downloaded-artifacts/PyMca5.9.4.app /Applications/
+
+      - name: Verify .app existence
+        run: test -d /Applications/PyMca5.9.4.app
+
+      - name: Run the app to check it launches
+        run: /Applications/PyMca5.9.4.app/Contents/MacOS/PyMca5.9.4
+
+      - name: Run a basic check on the app executable
+        run: /Applications/PyMca5.9.4.app/Contents/MacOS/PyMca5.9.4 --version
+
+      - name: Cleanup
+        run: sudo rm -rf /Applications/PyMca5.9.4.app
 
 ####################################################################################################
   #    build_installers:
