@@ -216,6 +216,9 @@ jobs:
       - name: Verify .app existence
         run: test -d /Applications/PyMca5.9.4.app
 
+      - name: Make main binary executable
+        run: chmod +x /Applications/PyMca5.9.4.app/Contents/MacOS/PyMcaMain
+
       - name: Run the app to check it launches
         run: /Applications/PyMca5.9.4.app/Contents/MacOS/PyMcaMain
 
