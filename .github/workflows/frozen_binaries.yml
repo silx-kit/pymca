@@ -227,8 +227,9 @@ jobs:
 
       - name: Fix h5py dylib rpaths
         run: |
+          set -e
           APP_PATH="/Applications/PyMca5.9.4.app"
-          TARGET_DYLIB="@loader_path/.dylibs/libhdf5.200.dylib"
+          TARGET_DYLIB="@loader_path/__dot__dylibs/libhdf5.200.dylib"
 
           # Find the actual name of the HDF5 dylib just in case it's not exactly libhdf5.200.dylib
           find "$APP_PATH" -name "libhdf5*.dylib"
