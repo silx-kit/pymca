@@ -165,6 +165,7 @@ jobs:
           pip install pyparsing==3.1.1
           pip install python_dateutil==2.8.2
           pip install --no-cache --trusted-host www.silx.org http://www.silx.org/pub/wheelhouse/universal2/matplotlib-3.8.2-cp312-cp312-macosx_11_0_universal2.whl
+          pip install h5py
           pip install hdf5plugin
           pip install PySide6==6.6.0
           pip install lxml==4.9.3
@@ -225,35 +226,35 @@ jobs:
 #          sleep 120
 #          pkill -f PyMcaMain || true
 
-      - name: Fix h5py dylib rpaths
-        run: |
-          set -e
-          APP_PATH="/Applications/PyMca5.9.4.app"
-          TARGET_DYLIB="@loader_path/__dot__dylibs/libhdf5.200.dylib"
+#      - name: Fix h5py dylib rpaths
+#        run: |
+#          set -e
+#          APP_PATH="/Applications/PyMca5.9.4.app"
+#          TARGET_DYLIB="@loader_path/__dot__dylibs/libhdf5.200.dylib"
+#
+#          # Find the actual name of the HDF5 dylib just in case it's not exactly libhdf5.200.dylib
+#          find "$APP_PATH" -name "libhdf5*.dylib"
+#
+#          # Patch every .so in the h5py directory to use the local dylib
+#          find "$APP_PATH/Contents/Frameworks/h5py" -name "*.so" | while read sofile; do
+#            echo "Inspecting $sofile"
+#            otool -L "$sofile" | grep "libhdf5" | while read line; do
+#              # Extract the original path (first column)
+#              original=$(echo "$line" | awk '{print $1}')
+#              echo "Patching $sofile: $original -> $TARGET_DYLIB"
+#              install_name_tool -change "$original" "$TARGET_DYLIB" "$sofile"
+#            done
+#          done
 
-          # Find the actual name of the HDF5 dylib just in case it's not exactly libhdf5.200.dylib
-          find "$APP_PATH" -name "libhdf5*.dylib"
-
-          # Patch every .so in the h5py directory to use the local dylib
-          find "$APP_PATH/Contents/Frameworks/h5py" -name "*.so" | while read sofile; do
-            echo "Inspecting $sofile"
-            otool -L "$sofile" | grep "libhdf5" | while read line; do
-              # Extract the original path (first column)
-              original=$(echo "$line" | awk '{print $1}')
-              echo "Patching $sofile: $original -> $TARGET_DYLIB"
-              install_name_tool -change "$original" "$TARGET_DYLIB" "$sofile"
-            done
-          done
-
-      - name: Check if libhdf5 dylib exists
-        run: |
-          FILE="/Applications/PyMca5.9.4.app/Contents/Frameworks/h5py/.dylibs/libhdf5.200.dylib"
-          if [ -f "$FILE" ]; then
-            echo "✅ Found $FILE"
-          else
-            echo "❌ $FILE not found"
-            ls -R /Applications/PyMca5.9.4.app/Contents/Frameworks/h5py/.dylibs || true
-          fi
+#      - name: Check if libhdf5 dylib exists
+#        run: |
+#          FILE="/Applications/PyMca5.9.4.app/Contents/Frameworks/h5py/.dylibs/libhdf5.200.dylib"
+#          if [ -f "$FILE" ]; then
+#            echo "✅ Found $FILE"
+#          else
+#            echo "❌ $FILE not found"
+#            ls -R /Applications/PyMca5.9.4.app/Contents/Frameworks/h5py/.dylibs || true
+#          fi
 
 #      - name: Check h5py dylibs exist
 #        run: |
@@ -263,9 +264,6 @@ jobs:
 
       - name: Run the app to check it launches
         run: /Applications/PyMca5.9.4.app/Contents/MacOS/PyMcaMain
-
-      - name: Run a basic check on the app executable
-        run: /Applications/PyMca5.9.4.app/Contents/MacOS/PyMcaMain --version
 
       - name: Cleanup
         run: sudo rm -rf /Applications/PyMca5.9.4.app
