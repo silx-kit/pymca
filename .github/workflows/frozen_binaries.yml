@@ -192,96 +192,12 @@ jobs:
             fi
           done | sort
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-pyinstaller-artifacts-app
-          path: dist/*.app
-          retention-days: 1
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-pyinstaller-artifacts-dmg
-          path: dist/*.dmg
-          retention-days: 1
-
-  test-macos-app-install:
-    runs-on: macos-latest
-    needs: macos11_pyinstaller_python312
-    if: ${{ success() }}
-    steps:
-
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: macos-pyinstaller-artifacts
-          path: ./downloaded-artifacts
-
-#      ### dmg
-#
-#      - name: Mount the DMG
-#        run: |
-#          hdiutil attach ./downloaded-artifacts/PyMca5.9.4.dmg -mountpoint /Volumes/PyMcaApp
-#
-#      - name: Copy .app to /Applications
-#        run: |
-#          sudo cp -R "/Volumes/PyMcaApp/PyMca5.9.4.app" /Applications/
-#          ls -l /Applications/PyMca5.9.4.app/Contents/MacOS
-#          ls -l /Applications/PyMca5.9.4.app/Contents/Frameworks/h5py
-#
-#      - name: Verify .app existence
-#        run: test -d /Applications/PyMca5.9.4.app
-#
-#      - name: Make main binary executable
-#        run: chmod +x /Applications/PyMca5.9.4.app/Contents/MacOS/PyMcaMain
-#
-#      - name: Run the app to check it launches
-#        run: |
-#          set -e
-#
-#          echo "Launching PyMcaMain..."
-#
-#          # Start the app in the background
-#          /Applications/PyMca5.9.4.app/Contents/MacOS/PyMcaMain &
-#          APP_PID=$!
-#
-#          echo "App started with PID $APP_PID"
-#
-#          # Wait up to 120 seconds for it to crash or hang
-#          for i in {1..120}; do
-#            if ! ps -p $APP_PID > /dev/null; then
-#              echo "App exited early. Checking exit code..."
-#              wait $APP_PID
-#              EXIT_CODE=$?
-#              if [ $EXIT_CODE -ne 0 ]; then
-#                echo "App exited with error code $EXIT_CODE"
-#                exit $EXIT_CODE
-#              else
-#                echo "App exited cleanly before 2 minutes."
-#                exit 0
-#              fi
-#            fi
-#            sleep 1
-#          done
-#
-#          echo "App ran for 5 minutes without crashing. Killing it now..."
-#          kill $APP_PID || true
-#          wait $APP_PID || true
-#          echo "App test complete."
-#
-#      - name: Cleanup
-#        run: sudo rm -rf /Applications/PyMca5.9.4.app
-
-      ### app
+      ### correct and test app file
 
       - name: Move .app to /Applications
         run: |
-          sudo mv ./downloaded-artifacts/PyMca5.9.4.app /Applications/
+          sudo mv ./dist/PyMca5.9.4.app /Applications/
           ls -l /Applications/PyMca5.9.4.app/Contents/MacOS
-
-      - name: Verify .app existence
-        run: test -d /Applications/PyMca5.9.4.app
 
       - name: Make main binary executable
         run: chmod +x /Applications/PyMca5.9.4.app/Contents/MacOS/PyMcaMain
@@ -291,7 +207,7 @@ jobs:
           find /Applications/PyMca5.9.4.app -depth -type d -name '__dot__dylibs' | while IFS= read -r dir; do
             parent_dir=$(dirname "$dir")
             target="$parent_dir/.dylibs"
-            
+
             if [ -e "$target" ]; then
               echo "⚠️ Skipping: $target already exists."
             else
@@ -311,15 +227,15 @@ jobs:
       - name: Run the app to check it launches
         run: |
           set -e
-      
+
           echo "Launching PyMcaMain..."
-      
+
           # Start the app in the background
           /Applications/PyMca5.9.4.app/Contents/MacOS/PyMcaMain &
           APP_PID=$!
-      
+
           echo "App started with PID $APP_PID"
-      
+
           # Wait up to 120 seconds for it to crash or hang
           for i in {1..120}; do
             if ! ps -p $APP_PID > /dev/null; then
@@ -331,59 +247,42 @@ jobs:
                 exit $EXIT_CODE
               else
                 echo "App exited cleanly before 2 minutes."
-                exit 0
+                exit 1
               fi
             fi
             sleep 1
           done
-      
-          echo "App ran for 5 minutes without crashing. Killing it now..."
+
+          echo "App ran for 2 minutes without crashing. Killing it now..."
           kill $APP_PID || true
           wait $APP_PID || true
           echo "App test complete."
-      
+
       - name: Copy .app out /Applications
         run: |
-          sudo mkdir -p myfolder
-          sudo cp -R "/Applications/PyMca5.9.4.app" myfolder/
-
-      - name: Debug artifact location
-        run: |
-          ls -l myfolder
-          ls -l myfolder/PyMca5.9.4.app
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-pyinstaller-artifacts-dashdotfix
-          path: myfolder/*
-          include-hidden-files: true
-          retention-days: 1
-
-      - name: Create DMG from fixed .app
-        run: |
-          sudo mkdir -p dmg_temp
-          hdiutil create -volname "PyMca5.9.4" -srcfolder myfolder -ov -format UDZO dmg_temp/PyMca5.9.4.dmg
+          sudo mkdir -p myappfolder
+          sudo cp -R "/Applications/PyMca5.9.4.app" myappfolder/
 
       - name: Cleanup
         run: |
           sudo rm -rf /Applications/PyMca5.9.4.app
-          sudo rm -rf myfolder/PyMca5.9.4.app
 
-      ### try to use this dmg
+#      - name: Upload artifacts
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: macos-pyinstaller-artifacts-app
+#          path: dist/*.app
+#          retention-days: 1
+
+      ### dmg test
 
       - name: Mount the DMG
         run: |
-          hdiutil attach dmg_temp/PyMca5.9.4.dmg -mountpoint /Volumes/PyMcaApp
+          hdiutil attach dist/PyMca5.9.4.dmg -mountpoint /Volumes/PyMcaApp
 
       - name: Copy .app to /Applications
         run: |
           sudo cp -R "/Volumes/PyMcaApp/PyMca5.9.4.app" /Applications/
-          ls -l /Applications/PyMca5.9.4.app/Contents/MacOS
-          ls -l /Applications/PyMca5.9.4.app/Contents/Frameworks/h5py
-
-      - name: Verify .app existence
-        run: test -d /Applications/PyMca5.9.4.app
 
       - name: Make main binary executable
         run: chmod +x /Applications/PyMca5.9.4.app/Contents/MacOS/PyMcaMain
@@ -422,60 +321,26 @@ jobs:
           wait $APP_PID || true
           echo "App test complete."
 
+      - name: Cleanup
+        run: |
+          sudo rm -rf /Applications/PyMca5.9.4.app
+
+      # upload .dmg
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: macos-pyinstaller-artifacts-dashdotfix-dmg
-          path: dmg_temp/*
-          include-hidden-files: true
+          name: macos-pyinstaller-artifacts-dmg
+          path: dist/*.dmg
           retention-days: 1
 
-      - name: Cleanup
-        run: |
-          sudo rm -rf /Applications/PyMca5.9.4.app  dmg_temp
-
-
-#      - name: Run the app to check it launches
-#        run: |
-#          open -a /Applications/PyMca5.9.4.app
-#          sleep 120
-#          pkill -f PyMcaMain || true
-
-#      - name: Fix h5py dylib rpaths
-#        run: |
-#          set -e
-#          APP_PATH="/Applications/PyMca5.9.4.app"
-#          TARGET_DYLIB="@loader_path/__dot__dylibs/libhdf5.200.dylib"
-#
-#          # Find the actual name of the HDF5 dylib just in case it's not exactly libhdf5.200.dylib
-#          find "$APP_PATH" -name "libhdf5*.dylib"
-#
-#          # Patch every .so in the h5py directory to use the local dylib
-#          find "$APP_PATH/Contents/Frameworks/h5py" -name "*.so" | while read sofile; do
-#            echo "Inspecting $sofile"
-#            otool -L "$sofile" | grep "libhdf5" | while read line; do
-#              # Extract the original path (first column)
-#              original=$(echo "$line" | awk '{print $1}')
-#              echo "Patching $sofile: $original -> $TARGET_DYLIB"
-#              install_name_tool -change "$original" "$TARGET_DYLIB" "$sofile"
-#            done
-#          done
-
-#      - name: Check if libhdf5 dylib exists
-#        run: |
-#          FILE="/Applications/PyMca5.9.4.app/Contents/Frameworks/h5py/.dylibs/libhdf5.200.dylib"
-#          if [ -f "$FILE" ]; then
-#            echo "✅ Found $FILE"
-#          else
-#            echo "❌ $FILE not found"
-#            ls -R /Applications/PyMca5.9.4.app/Contents/Frameworks/h5py/.dylibs || true
-#          fi
-
-#      - name: Check h5py dylibs exist
-#        run: |
-#          ls -l /Applications/PyMca5.9.4.app/Contents/Frameworks/h5py/.dylibs || echo "No dylibs folder"
-#          find /Applications/PyMca5.9.4.app/Contents/Frameworks/h5py/.dylibs -name "*.dylib" || echo "No dylibs found"
-#          otool -L /usr/local/opt/hdf5/lib/libhdf5.200.dylib
+      # upload .app as well
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-pyinstaller-artifacts-dashdotfix
+          path: myappfolder/PyMca5.9.4.app/
+          include-hidden-files: true
+          retention-days: 1
 
 
 
