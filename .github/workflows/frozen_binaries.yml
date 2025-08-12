@@ -327,16 +327,23 @@ jobs:
           wait $APP_PID || true
           echo "App test complete."
       
+      - name: Copy .app out /Applications
+        run: |
+          sudo mkdir -p /myfolder
+          sudo cp -R "/Volumes/PyMcaApp/PyMca5.9.4.app" /myfolder/
+          ls -l /myfolder/PyMca5.9.4.app
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: macos-pyinstaller-artifacts-dashdotfix
-          path: /Applications/*.app
+          path: /myfolder/*.app
           retention-days: 1
 
       - name: Cleanup
-        run: sudo rm -rf /Applications/PyMca5.9.4.app
+        run: |
+          sudo rm -rf /Applications/PyMca5.9.4.app
+          sudo rm -rf /myfolder/PyMca5.9.4.app
 
 #      - name: Run the app to check it launches
 #        run: |
