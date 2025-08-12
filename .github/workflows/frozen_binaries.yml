@@ -326,12 +326,13 @@ jobs:
           kill $APP_PID || true
           wait $APP_PID || true
           echo "App test complete."
+      
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: macos-pyinstaller-artifacts-dashdotfix
-          path: /Applications/PyMca5.9.4.app
+          path: /Applications/*.app
           retention-days: 1
 
       - name: Cleanup
