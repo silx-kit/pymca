@@ -350,6 +350,7 @@ jobs:
         with:
           name: macos-pyinstaller-artifacts-dashdotfix
           path: myfolder/*
+          include-hidden-files: true
           retention-days: 1
 
       - name: Create DMG from fixed .app
@@ -419,6 +420,7 @@ jobs:
         with:
           name: macos-pyinstaller-artifacts-dashdotfix-dmg
           path: dmg_temp/*
+          include-hidden-files: true
           retention-days: 1
 
       - name: Cleanup
