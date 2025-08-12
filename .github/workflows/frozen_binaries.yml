@@ -196,7 +196,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: macos-pyinstaller-artifacts
-          path: dist/*.app
+          path: dist/*
           retention-days: 1
 
   test-macos-app-install:
@@ -289,7 +289,15 @@ jobs:
               echo "⚠️ Skipping: $target already exists."
             else
               mv "$dir" "$target"
-              echo "✅ Renamed: $dir → $target"
+              if [ -d "$target" ]; then
+                if [ "$(ls -A "$target")" ]; then
+                  echo "✅ Renamed and verified: $dir → $target (not empty)"
+                else
+                  echo "⚠️ Renamed: $dir → $target but it's empty"
+                fi
+              else
+                echo "❌ Rename failed: $dir → $target does not exist"
+              fi
             fi
           done
 
