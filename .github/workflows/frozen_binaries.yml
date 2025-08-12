@@ -241,8 +241,8 @@ jobs:
 #
 #          echo "App started with PID $APP_PID"
 #
-#          # Wait up to 3 minutes (180 seconds) for it to crash or hang
-#          for i in {1..180}; do
+#          # Wait up to 120 seconds for it to crash or hang
+#          for i in {1..120}; do
 #            if ! ps -p $APP_PID > /dev/null; then
 #              echo "App exited early. Checking exit code..."
 #              wait $APP_PID
@@ -251,7 +251,7 @@ jobs:
 #                echo "App exited with error code $EXIT_CODE"
 #                exit $EXIT_CODE
 #              else
-#                echo "App exited cleanly before 5 minutes."
+#                echo "App exited cleanly before 2 minutes."
 #                exit 0
 #              fi
 #            fi
@@ -305,8 +305,8 @@ jobs:
       
           echo "App started with PID $APP_PID"
       
-          # Wait up to 3 minutes (180 seconds) for it to crash or hang
-          for i in {1..180}; do
+          # Wait up to 120 seconds for it to crash or hang
+          for i in {1..120}; do
             if ! ps -p $APP_PID > /dev/null; then
               echo "App exited early. Checking exit code..."
               wait $APP_PID
@@ -315,7 +315,7 @@ jobs:
                 echo "App exited with error code $EXIT_CODE"
                 exit $EXIT_CODE
               else
-                echo "App exited cleanly before 5 minutes."
+                echo "App exited cleanly before 2 minutes."
                 exit 0
               fi
             fi
@@ -329,32 +329,36 @@ jobs:
       
       - name: Copy .app out /Applications
         run: |
-          sudo mkdir -p "$HOME/myfolder"
-          sudo cp -R "/Applications/PyMca5.9.4.app" "$HOME/myfolder/"
+          sudo mkdir -p myfolder
+          sudo cp -R "/Applications/PyMca5.9.4.app" myfolder/
           ls -l "$HOME/myfolder/PyMca5.9.4.app"
+
+      - name: Debug artifact location
+        run: |
+          ls -l myfolder
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: macos-pyinstaller-artifacts-dashdotfix
-          path: $HOME/myfolder/*.app
+          path: myfolder/*
           retention-days: 1
 
       - name: Create DMG from fixed .app
         run: |
-          mkdir $HOME/dmg_temp
-          hdiutil create -volname "PyMca5.9.4" -srcfolder $HOME/myfolder -ov -format UDZO $HOME/dmg_temp/PyMca5.9.4.dmg
+          sudo mkdir -p dmg_temp
+          hdiutil create -volname "PyMca5.9.4" -srcfolder myfolder -ov -format UDZO dmg_temp/PyMca5.9.4.dmg
 
       - name: Cleanup
         run: |
           sudo rm -rf /Applications/PyMca5.9.4.app
-          sudo rm -rf $HOME/myfolder/PyMca5.9.4.app
+          sudo rm -rf myfolder/PyMca5.9.4.app
 
       ### try to use this dmg
 
       - name: Mount the DMG
         run: |
-          hdiutil attach $HOME/dmg_temp/PyMca5.9.4.dmg -mountpoint /Volumes/PyMcaApp
+          hdiutil attach dmg_temp/PyMca5.9.4.dmg -mountpoint /Volumes/PyMcaApp
 
       - name: Copy .app to /Applications
         run: |
@@ -380,8 +384,8 @@ jobs:
 
           echo "App started with PID $APP_PID"
 
-          # Wait up to 3 minutes (180 seconds) for it to crash or hang
-          for i in {1..180}; do
+          # Wait up to 120 seconds for it to crash or hang
+          for i in {1..120}; do
             if ! ps -p $APP_PID > /dev/null; then
               echo "App exited early. Checking exit code..."
               wait $APP_PID
@@ -390,7 +394,7 @@ jobs:
                 echo "App exited with error code $EXIT_CODE"
                 exit $EXIT_CODE
               else
-                echo "App exited cleanly before 5 minutes."
+                echo "App exited cleanly before 2 minutes."
                 exit 0
               fi
             fi
@@ -406,12 +410,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: macos-pyinstaller-artifacts-dashdotfix-dmg
-          path: $HOME/dmg_temp/*.dmg
+          path: dmg_temp/*
           retention-days: 1
 
       - name: Cleanup
         run: |
-          sudo rm -rf /Applications/PyMca5.9.4.app $HOME/myfolder $HOME/dmg_temp
+          sudo rm -rf /Applications/PyMca5.9.4.app  dmg_temp
 
 
 #      - name: Run the app to check it launches
