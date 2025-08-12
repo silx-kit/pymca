@@ -329,21 +329,21 @@ jobs:
       
       - name: Copy .app out /Applications
         run: |
-          sudo mkdir -p /myfolder
-          sudo cp -R "/Volumes/PyMcaApp/PyMca5.9.4.app" /myfolder/
-          ls -l /myfolder/PyMca5.9.4.app
+          sudo mkdir -p "$HOME/myfolder"
+          sudo cp -R "/Applications/PyMca5.9.4.app" "$HOME/myfolder/"
+          ls -l "$HOME/myfolder/PyMca5.9.4.app"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: macos-pyinstaller-artifacts-dashdotfix
-          path: /myfolder/*.app
+          path: $HOME/myfolder/*.app
           retention-days: 1
 
       - name: Cleanup
         run: |
           sudo rm -rf /Applications/PyMca5.9.4.app
-          sudo rm -rf /myfolder/PyMca5.9.4.app
+          sudo rm -rf $HOME/myfolder/PyMca5.9.4.app
 
 #      - name: Run the app to check it launches
 #        run: |
