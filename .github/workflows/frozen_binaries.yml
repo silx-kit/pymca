@@ -331,11 +331,11 @@ jobs:
         run: |
           sudo mkdir -p myfolder
           sudo cp -R "/Applications/PyMca5.9.4.app" myfolder/
-          ls -l "$HOME/myfolder/PyMca5.9.4.app"
 
       - name: Debug artifact location
         run: |
           ls -l myfolder
+          ls -l myfolder/PyMca5.9.4.app
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
