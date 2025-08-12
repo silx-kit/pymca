@@ -340,10 +340,79 @@ jobs:
           path: $HOME/myfolder/*.app
           retention-days: 1
 
+      - name: Create DMG from fixed .app
+        run: |
+          mkdir $HOME/dmg_temp
+          hdiutil create -volname "PyMca5.9.4" -srcfolder $HOME/myfolder -ov -format UDZO $HOME/dmg_temp/PyMca5.9.4.dmg
+
       - name: Cleanup
         run: |
           sudo rm -rf /Applications/PyMca5.9.4.app
           sudo rm -rf $HOME/myfolder/PyMca5.9.4.app
+
+      ### try to use this dmg
+
+      - name: Mount the DMG
+        run: |
+          hdiutil attach $HOME/dmg_temp/PyMca5.9.4.dmg -mountpoint /Volumes/PyMcaApp
+
+      - name: Copy .app to /Applications
+        run: |
+          sudo cp -R "/Volumes/PyMcaApp/PyMca5.9.4.app" /Applications/
+          ls -l /Applications/PyMca5.9.4.app/Contents/MacOS
+          ls -l /Applications/PyMca5.9.4.app/Contents/Frameworks/h5py
+
+      - name: Verify .app existence
+        run: test -d /Applications/PyMca5.9.4.app
+
+      - name: Make main binary executable
+        run: chmod +x /Applications/PyMca5.9.4.app/Contents/MacOS/PyMcaMain
+
+      - name: Run the app to check it launches
+        run: |
+          set -e
+
+          echo "Launching PyMcaMain..."
+
+          # Start the app in the background
+          /Applications/PyMca5.9.4.app/Contents/MacOS/PyMcaMain &
+          APP_PID=$!
+
+          echo "App started with PID $APP_PID"
+
+          # Wait up to 3 minutes (180 seconds) for it to crash or hang
+          for i in {1..180}; do
+            if ! ps -p $APP_PID > /dev/null; then
+              echo "App exited early. Checking exit code..."
+              wait $APP_PID
+              EXIT_CODE=$?
+              if [ $EXIT_CODE -ne 0 ]; then
+                echo "App exited with error code $EXIT_CODE"
+                exit $EXIT_CODE
+              else
+                echo "App exited cleanly before 5 minutes."
+                exit 0
+              fi
+            fi
+            sleep 1
+          done
+
+          echo "App ran for 5 minutes without crashing. Killing it now..."
+          kill $APP_PID || true
+          wait $APP_PID || true
+          echo "App test complete."
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-pyinstaller-artifacts-dashdotfix-dmg
+          path: $HOME/dmg_temp/*.dmg
+          retention-days: 1
+
+      - name: Cleanup
+        run: |
+          sudo rm -rf /Applications/PyMca5.9.4.app $HOME/myfolder $HOME/dmg_temp
+
 
 #      - name: Run the app to check it launches
 #        run: |

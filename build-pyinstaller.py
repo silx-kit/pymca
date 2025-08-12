@@ -1,18 +1,12 @@
 import os
 import sys
 
-mac_options = ""
-if sys.platform == "darwin":
-    mac_options = "--windowed --noupx"
-    print('it is Mac, so shut up and do it')
 
 cwd = os.path.abspath(os.getcwd())
-cmd = r"cd %s; pyinstaller --clean pyinstaller.spec --noconfirm --workpath %s --distpath %s %s" % (
-               os.path.join(".", "package", "pyinstaller"),
+cmd = r"cd %s; pyinstaller --clean pyinstaller.spec --noconfirm --workpath %s --distpath %s" % \
+              (os.path.join(".", "package", "pyinstaller"),
                os.path.join(".", "build-" + sys.platform),
-               os.path.join(".", "dist-" + sys.platform),
-               mac_options
-        )
+               os.path.join(".", "dist-" + sys.platform))
 
 if sys.platform.startswith("darwin"):
     if "arm64" in sys.argv:
