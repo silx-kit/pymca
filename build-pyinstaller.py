@@ -3,7 +3,7 @@ import sys
 
 mac_options = ""
 if sys.platform == "darwin":
-    mac_options = "--windowed --no-strip --noupx"
+    mac_options = "--windowed --noupx"
     print('it is Mac, so shut up and do it')
 
 cwd = os.path.abspath(os.getcwd())
