@@ -6,6 +6,7 @@ name: Windows (cx_freeze - installer)
 on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+  workflow_call:
 
 env:
   PROJECT: Pymca_release_test
