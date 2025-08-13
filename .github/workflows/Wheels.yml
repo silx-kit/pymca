@@ -167,6 +167,15 @@ jobs:
           name: ${{ runner.os }}-dist
           path: dist/*.tar.gz
 
+      # also upload to release
+      - name: Upload dmg to GitHub Release
+        if: github.event_name == 'release' && runner.os == 'Linux'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/*.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Upload wheel as artifact
         if: runner.os != 'Linux'
         uses: actions/upload-artifact@v4
