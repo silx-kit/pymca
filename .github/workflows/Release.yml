@@ -1,0 +1,22 @@
+name: Release
+
+on:
+  release:
+    types: [ published ]
+  workflow_dispatch:
+
+jobs:
+  run-build-upload:
+    uses: ./.github/workflows/Wheels.yml
+
+  trigger-windows1:
+    needs: run-build-upload
+    uses: ./.github/workflows/WindowsExe.yml
+
+  trigger-windows2:
+    needs: run-build-upload
+    uses: ./.github/workflows/WindowsInstaller.yml
+
+  trigger-mac:
+    needs: run-build-upload
+    uses: ./.github/workflows/MacOS.yml
