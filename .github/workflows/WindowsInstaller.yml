@@ -81,12 +81,30 @@ jobs:
         shell: pwsh
         run: |
           # Define expected install path
-          $basePath = "$env:ProgramFiles*"
+          $basePaths = @(
+              "${env:ProgramFiles}",
+              "${env:ProgramFiles(x86)}"
+          )
+          $exeName = "PyMcaMain.exe"
+          $appPath = $null
           
           #find exe (naming of folder with version)
-          $appPath = Get-ChildItem -Path $basePath -Filter "PyMcaMain.exe" -Recurse | Select-Object -First 1 -ExpandProperty FullName
-          if ($null -eq $appPath) {
-              Write-Error "Executable not found."
+          foreach ($base in $basePaths) {
+              # Only search inside folders starting with PyMca*
+              $candidateDirs = Get-ChildItem -Path $base -Directory -Filter "PyMca*" -ErrorAction SilentlyContinue
+          
+              foreach ($dir in $candidateDirs) {
+                  $possiblePath = Join-Path $dir.FullName $exeName
+                  if (Test-Path $possiblePath) {
+                      $appPath = $possiblePath
+                      break
+                  }
+              }
+          
+              if ($appPath) { break }
+          }
+          if (-not $appPath) {
+              Write-Error "Executable '$exeName' not found in Program Files."
               exit 1
           }
           Write-Host "Found executable at $appPath"
