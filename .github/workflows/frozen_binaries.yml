@@ -56,8 +56,15 @@ jobs:
       - name: Run the app to check it launches (Windows PowerShell)
         shell: pwsh
         run: |      
+          #find exe (naming of folder with version)
+          $exePath = Get-ChildItem -Path "dist" -Filter "PyMcaMain.exe" -Recurse | Select-Object -First 1 -ExpandProperty FullName
+          if ($null -eq $exePath) {
+              Write-Error "Executable not found."
+              exit 1
+          }
+          
           # Start the app as a background job
-          $process = Start-Process -FilePath "dist\PyMca*\PyMcaMain.exe" -PassThru
+          $process = Start-Process -FilePath $exePath -PassThru
       
           Write-Host "App started with PID $($process.Id)"
       
@@ -165,8 +172,15 @@ jobs:
         shell: pwsh
         run: |
           # Define expected install path
-          $appPath = "$env:ProgramFiles\PyMca\PyMcaMain.exe"
-      
+          $basePath = "$env:ProgramFiles*"
+          
+          #find exe (naming of folder with version)
+          $appPath = Get-ChildItem -Path $basePath -Filter "PyMcaMain.exe" -Recurse | Select-Object -First 1 -ExpandProperty FullName
+          if ($null -eq $appPath) {
+              Write-Error "Executable not found."
+              exit 1
+          }
+          
           if (-not (Test-Path $appPath)) {
             Write-Error "App was not installed to expected path: $appPath"
             exit 1
