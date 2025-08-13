@@ -8,6 +8,8 @@ on:
 jobs:
   run-build-upload:
     uses: ./.github/workflows/Wheels.yml
+    secrets:
+      TESTPYPI_PASSWORD: ${{ secrets.TESTPYPI_PASSWORD }}
 
   trigger-windows1:
     needs: run-build-upload
