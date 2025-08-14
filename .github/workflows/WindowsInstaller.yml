@@ -153,12 +153,13 @@ jobs:
         with:
           name: windows-installer-cxfreeze
           path: dist/*
+          retention-days: 1
 
-      # also upload to release
-      - name: Upload installer to GitHub Release
-        if: github.event_name == 'release'
-        uses: softprops/action-gh-release@v1
-        with:
-          files: dist/*.exe
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#      # also upload to release
+#      - name: Upload installer to GitHub Release
+#        if: github.event_name == 'release'
+#        uses: softprops/action-gh-release@v1
+#        with:
+#          files: dist/*.exe
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

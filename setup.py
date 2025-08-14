@@ -924,7 +924,7 @@ if use_gui():
 setup_requires = ["numpy"]
 
 distrib = setup(name="Pymca_release_test",
-                version='5.9.5.dev11',
+                version=__version__,
                 description=description,
                 author="V. Armando Sole",
                 license="MIT",

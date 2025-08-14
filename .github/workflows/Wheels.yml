@@ -1,19 +1,14 @@
-# This is a basic workflow to help you get started with Actions
 
 name: Create and upload wheels
 
-# Controls when the action will run. 
 on:
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
   workflow_call:
     secrets:
       TESTPYPI_PASSWORD:
         required: true
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   build_and_test:
     name: "Python ${{ matrix.python-version }} on ${{ matrix.os }} ${{ matrix.name-suffix }}"
     runs-on: ${{ matrix.os }}
@@ -45,11 +40,39 @@ jobs:
             QT_BINDING: PySide6
             XVFB_RUN: ""
 
-          - name-suffix: "PyQt6 wheel"
+          - name-suffix: "PySide6 wheel"
+            os: macos-latest
+            python-version: 3.11
+            BUILD_COMMAND: --wheel
+            QT_BINDING: PySide6
+            XVFB_RUN: ""
+
+          - name-suffix: "PySide6 wheel"
+            os: macos-latest
+            python-version: 3.10
+            BUILD_COMMAND: --wheel
+            QT_BINDING: PySide6
+            XVFB_RUN: ""
+
+          - name-suffix: "PySide6 wheel"
+            os: macos-latest
+            python-version: 3.9
+            BUILD_COMMAND: --wheel
+            QT_BINDING: PySide6
+            XVFB_RUN: ""
+
+          - name-suffix: "PySide6 wheel"
             os: windows-latest
             python-version: "3.13"
             BUILD_COMMAND: --wheel
-            QT_BINDING: PyQt6
+            QT_BINDING: PySide6
+            XVFB_RUN: ""
+
+          - name-suffix: "PySide6 wheel"
+            os: windows-latest
+            python-version: "3.12"
+            BUILD_COMMAND: --wheel
+            QT_BINDING: PySide6
             XVFB_RUN: ""
 
           - name-suffix: "PySide6 wheel"
@@ -59,11 +82,11 @@ jobs:
             QT_BINDING: PySide6
             XVFB_RUN: ""
 
-          - name-suffix: "PyQt5 wheel"
+          - name-suffix: "PySide6 wheel"
             os: windows-latest
             python-version: "3.10"
             BUILD_COMMAND: --wheel
-            QT_BINDING: PyQt5
+            QT_BINDING: PySide6
             XVFB_RUN: ""
 
           - name-suffix: "PyQt5 wheel"
@@ -73,9 +96,7 @@ jobs:
             QT_BINDING: PyQt5
             XVFB_RUN: ""
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
@@ -125,7 +146,6 @@ jobs:
           pip install --upgrade wheel
           pip install --upgrade numpy
           pip install --upgrade build
-          # put cython
           pip install cython
 
       - name: Install runtime dependencies
@@ -166,15 +186,16 @@ jobs:
         with:
           name: ${{ runner.os }}-dist
           path: dist/*.tar.gz
+          retention-days: 1
 
       # also upload to release
-      - name: Upload dmg to GitHub Release
-        if: github.event_name == 'release' && runner.os == 'Linux'
-        uses: softprops/action-gh-release@v1
-        with:
-          files: dist/*.tar.gz
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#      - name: Upload dmg to GitHub Release
+#        if: github.event_name == 'release' && runner.os == 'Linux'
+#        uses: softprops/action-gh-release@v1
+#        with:
+#          files: dist/*.tar.gz
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload wheel as artifact
         if: runner.os != 'Linux'
@@ -182,12 +203,13 @@ jobs:
         with:
           name: ${{ runner.os }}-python${{ matrix.python-version }}-${{ matrix.QT_BINDING }}-dist
           path: dist/*.whl
+          retention-days: 1
 
   upload_to_testpypi:
     name: Upload all wheels to TestPyPI
     runs-on: macos-latest
     needs: build_and_test
-    if: ${{ success() }}
+    if: ${{ success() && github.event_name == 'release' }}
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -216,9 +238,6 @@ jobs:
 #          done
 
       - name: Upgrade
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.TESTPYPI_PASSWORD }}
         run: |
           python -m pip install --upgrade pip
           python -m pip install --upgrade twine

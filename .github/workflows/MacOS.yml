@@ -213,14 +213,14 @@ jobs:
           path: dist/*.dmg
           retention-days: 1
 
-      # also upload to release
-      - name: Upload dmg to GitHub Release
-        if: github.event_name == 'release'
-        uses: softprops/action-gh-release@v1
-        with:
-          files: dist/*.dmg
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#      # also upload to release
+#      - name: Upload dmg to GitHub Release
+#        if: github.event_name == 'release'
+#        uses: softprops/action-gh-release@v1
+#        with:
+#          files: dist/*.dmg
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # upload .app as well
       - name: Upload artifacts

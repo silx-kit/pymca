@@ -1,0 +1,40 @@
+
+name: Upload release
+
+on:
+  workflow_call:
+
+jobs:
+  upload_to_testpypi:
+    name: Upload all wheels to TestPyPI
+    runs-on: ubuntu-latest # do switch to anything else
+    if: ${{github.event_name == 'release' }}
+    steps:
+
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ runner.os }}-dist
+          path: dist
+
+      - name: Download Mac artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-pyinstaller-artifacts-dmg
+          path: dist
+
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-installer-cxfreeze
+          path: dist
+
+      - name: List all downloaded files
+        run: ls -R dist
+
+      - name: Upload to GitHub Release (tar.gz, dmg, exe)
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

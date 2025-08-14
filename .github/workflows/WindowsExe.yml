@@ -15,7 +15,7 @@ env:
 jobs:
 # Fat binaries
 
-  windows_pyinstaller_python39: #also works with cp311 and pyside6
+  windows_pyinstaller_python39: #also works with cp311 and pyside6 as well as oldest cp39 pyqt5
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -107,3 +107,4 @@ jobs:
         with:
           name: windows-executable-pyinstaller
           path: dist/PyMca*/**
+          retention-days: 1

@@ -22,3 +22,20 @@ jobs:
   trigger-mac:
     needs: run-build-upload
     uses: ./.github/workflows/MacOS.yml
+
+  upload-release:
+    needs:
+      - trigger-windows1
+      - trigger-windows2
+      - trigger-mac
+    uses: ./.github/workflows/UploadRelease.yml
+
+  upload-pypi:
+    needs:
+      - trigger-windows1
+      - trigger-windows2
+      - trigger-mac
+    uses: ./.github/workflows/PyPI.yml
+
+
+
