@@ -44,7 +44,7 @@ jobs:
           # Check if the version line was modified in the last commit
           changed=$(git diff HEAD^ HEAD -- src/PyMca5/__init__.py | grep '__version__' || true)
 
-          if [[ -n "$changed" ]]; then
+          if [[ "${{ github.event_name }}" != "workflow_dispatch" && -n "$changed" ]]; then
             echo "Version changed"
             echo "should_release=true" >> $GITHUB_OUTPUT
           elif [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.mode }}" == "force" ]]; then
