@@ -30,7 +30,7 @@ jobs:
       should_release: ${{ steps.check-change.outputs.should_release }}
       version: ${{ steps.check-change.outputs.version }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0 #to have all commits
 
