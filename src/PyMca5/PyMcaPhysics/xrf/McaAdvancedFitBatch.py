@@ -2,7 +2,7 @@
 #
 # The PyMca X-Ray Fluorescence Toolkit
 #
-# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2025 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF.
@@ -44,6 +44,8 @@ from PyMca5.PyMcaIO import AifiraMap
 from PyMca5.PyMcaIO import EDFStack
 from PyMca5.PyMcaIO import LispixMap
 from PyMca5.PyMcaIO import NumpyStack
+from PyMca5.PyMcaIO import BrukerBCF
+
 try:
     import h5py
     from PyMca5.PyMcaIO import HDF5Stack1D
@@ -338,6 +340,10 @@ class McaAdvancedFitBatch(object):
                                                    scanlist=scanlist)
 
             ffile = self.__tryEdf(inputfile)
+            if ffile is None:
+                if BrukerBCF.HAS_BCF_SUPPORT:
+                    if BrukerBCF.isBrukerBCFFile(inputfile):
+                        ffile = BrukerBCF.BrukerBCF(inputfile)
             if ffile is None:
                 ffile = self.__tryLucia(inputfile)
             if ffile is None:
