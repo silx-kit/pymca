@@ -51,7 +51,12 @@ class QDispatcher(qt.QWidget):
         self.mainLayout.setContentsMargins(0, 0, 0, 0)
         self.mainLayout.setSpacing(0)
         self.sourceList = []
-        fileTypeList = ["Spec Files (*mca)",
+        fileTypeList = []
+        if QDataSource.NEXUS:
+            fileTypeList.append("HDF5 Files (*.nxs *.hdf *.h5 *.hdf5)")
+            if "silx" in sys.modules:
+                fileTypeList.append("HDF5-like Files (*)")
+        fileTypeList += ["Spec Files (*mca)",
                         "Spec Files (*dat)",
                         "Spec Files (*spec)",
                         "SPE Files (*SPE *spe)",
@@ -60,10 +65,6 @@ class QDispatcher(qt.QWidget):
                         "TIFF Files (*.tif *.tiff *.TIF *.TIFF)",
                         "CSV Files (*csv)",
                         "JCAMP-DX Files (*.jdx *.JDX *.dx *.DX)"]
-        if QDataSource.NEXUS:
-            fileTypeList.append("HDF5 Files (*.nxs *.hdf *.h5 *.hdf5)")
-            if "silx" in sys.modules:
-                fileTypeList.append("HDF5-like Files (*)")
         fileTypeList.append("All Files (*)")
 
         self.sourceSelector = QSourceSelector.QSourceSelector(self,
