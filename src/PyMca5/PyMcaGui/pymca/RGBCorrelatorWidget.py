@@ -925,6 +925,7 @@ class RGBCorrelatorWidget(qt.QWidget):
             if os.path.exists(self.outputDir):
                 initdir = self.outputDir
         formatlist = [
+            "HDF5 Files *.h5 *.nxs *.hdf *.hdf5",
             "ASCII Files *.dat",
             "EDF Files *.edf",
             "EDF(Float32) Files *.edf",
@@ -932,7 +933,6 @@ class RGBCorrelatorWidget(qt.QWidget):
             "Single TIFF(Mono) Files *.tif",
             "Several TIFF(Float32 Mono) Files *.tif",
             "Several TIFF(Mono) Files *.tif",
-            "HDF5 Files *.h5 *.nxs *.hdf *.hdf5",
             "CSV(, separated) Files *.csv",
             "CSV(; separated) Files *.csv",
             "CSV(tab separated) Files *.csv",
@@ -964,12 +964,12 @@ class RGBCorrelatorWidget(qt.QWidget):
                 initdir = self.outputDir
 
         formatlist = [
+            "HDF5 Files *.h5 *.nxs *.hdf *.hdf5",
             "ASCII Files *.dat",
             "EDF Files *.edf",
             "EDF(Float32) Files *.edf",
             "TIFF(Float32 Mono) Files *.tif",
             "TIFF(Mono) Files *.tif",
-            "HDF5 Files *.h5 *.nxs *.hdf *.hdf5",
             "CSV(, separated) Files *.csv",
             "CSV(; separated) Files *.csv",
             "CSV(tab separated) Files *.csv",

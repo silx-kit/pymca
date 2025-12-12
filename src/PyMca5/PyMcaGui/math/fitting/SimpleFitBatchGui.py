@@ -100,10 +100,11 @@ class SimpleFitBatchParameters(qt.QWidget):
             self._inputDir = PyMcaDirs.inputDir
         elif os.path.exists(self._inputDir):
             PyMcaDirs.inputDir = self._inputDir
-        filetypes  = ["Mca Files (*.mca)",
-                      "Edf Files (*.edf)"]
+        filetypes = []
         if HDF5SUPPORT:
-            filetypes.append("HDF5 Files(*.nxs *.h5 *.hdf)")
+            filetypes.append("HDF5 Files(*.nxs *.h5 *.hdf *.hdf5)")
+        filetypes  += ["Mca Files (*.mca)",
+                      "Edf Files (*.edf)"]
         filetypes.append("SPEC Files (*.spec)")
         filetypes.append("SPEC Files (*.dat)")
         filetypes.append("All files (*)")

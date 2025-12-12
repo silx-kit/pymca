@@ -626,9 +626,10 @@ class McaBatchGUI(qt.QWidget):
             self.inputDir =  os.getcwd()
         wdir = self.inputDir
         wfilter = self.inputFilter
-        filetypes  = "McaFiles (*.mca)\nEdfFiles (*.edf)\n"
+        filetypes = ""
         if HDF5SUPPORT:
             filetypes += "HDF5 (*.nxs *.h5 *.hdf *.hdf5)\n"
+        filetypes += "McaFiles (*.mca)\nEdfFiles (*.edf)\n"
         filetypes += "SpecFiles (*.spec)\nSpecFiles (*.dat)\nAll files (*)"
         filetypelist = filetypes.split("\n")
         filelist, filefilter = PyMcaFileDialogs.getFileList(self,

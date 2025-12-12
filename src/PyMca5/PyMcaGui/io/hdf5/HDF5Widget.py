@@ -991,7 +991,7 @@ def _getFilenameDialog(parent=None):
     """Open a dialog to select a file in a filesystem tree view.
     Return the selected filename."""
     from PyMca5.PyMcaGui.io import PyMcaFileDialogs
-    fileTypeList = ['HDF5 Files (*.h5 *.nxs *.hdf)',
+    fileTypeList = ['HDF5 Files (*.h5 *.nxs *.hdf *.hdf5)',
                     'HDF5 Files (*)']
     message = "Open HDF5 file"
     filenamelist, ffilter = PyMcaFileDialogs.getFileList(parent=parent,

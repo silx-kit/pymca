@@ -159,9 +159,10 @@ class StackNormalizationPlugin(StackPluginBase.StackPluginBase):
 
     def _loadExternalData(self):
         getfilter = True
-        fileTypeList = ["EDF Files (*edf *ccd *tif)"]
+        fileTypeList = []
         if HDF5:
             fileTypeList.append('HDF5 Files (*.h5 *.nxs *.hdf *.hdf5)')
+        fileTypeList.append("EDF Files (*edf *ccd *tif)")
         fileTypeList.append('ASCII Files (*)') 
         fileTypeList.append("EDF Files (*)")
         message = "Open data file"

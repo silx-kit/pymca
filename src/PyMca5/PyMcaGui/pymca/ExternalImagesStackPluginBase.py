@@ -57,15 +57,15 @@ class ExternalImagesStackPluginBase(StackPluginBase.StackPluginBase):
         StackPluginBase.StackPluginBase.__init__(self, stackWindow, **kw)
 
     def _loadImageFiles(self):
-        fileTypeList = ["PNG Files (*png)",
+        fileTypeList = ['HDF5 Files (*.h5 *.nxs *.hdf *.hdf5)',
+                        "PNG Files (*png)",
                         "JPEG Files (*jpg *jpeg)",
                         "IMAGE Files (*)",
                         "DAT Files (*dat)",
                         "CSV Files (*csv)",
                         "EDF Files (*edf)",
                         "EDF Files (*ccd)",
-                        "EDF Files (*)",
-                        'HDF5 Files (*.h5 *.nxs *.hdf *.hdf5)']
+                        "EDF Files (*)"]
         filenamelist, filefilter = PyMcaFileDialogs.getFileList(parent=None,
                                     filetypelist=fileTypeList,
                                     message="Open image file",
