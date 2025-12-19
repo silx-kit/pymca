@@ -447,7 +447,7 @@ class SimpleFit(object):
         niter = self._fitConfiguration['fit']['stripiterations']
         if niter > 0:
             _logger.debug("CALCULATING STRIP")
-            _logger.debug("iterations = ", niter)
+            _logger.debug("iterations = %s", niter)
             _logger.debug("constant   = %s",
                           self._fitConfiguration['fit']['stripconstant'])
             _logger.debug("width      = %s",
