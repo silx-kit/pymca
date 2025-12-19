@@ -2,7 +2,7 @@
 #
 # The PyMca X-Ray Fluorescence Toolkit
 #
-# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2025 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF.
@@ -69,7 +69,7 @@ FitParamHeaders= ["FIT", "DETECTOR","BEAM","PEAKS", "PEAK SHAPE", "ATTENUATORS",
 
 class FitParamWidget(FitParamForm):
     attenuators= ["Filter 0", "Filter 1", "Filter 2", "Filter 3", "Filter 4", "Filter 5",
-                   "Filter 6","Filter 7","BeamFilter0", "BeamFilter1","Detector", "Matrix"]
+                   "Filter 6","Filter 7","BeamFilter0", "BeamFilter1", "BeamFilter2","Detector", "Matrix"]
     def __init__(self, parent=None):
         FitParamForm.__init__(self, parent)
         self._channels = None
@@ -616,12 +616,9 @@ class FitParamWidget(FitParamForm):
                 else:
                     current['AlphaScatteringFlag'] = 0
                 self.matrixGeometry.setParameters(current)
-            elif att.upper() == "BEAMFILTER0":
+            elif att.upper().startswith("BEAMFILTER"):
                 attpar= self.__get("attenuators", att, [0, "-", 0., 0.], None)
-                row = self.attTable.rowCount() - 4
-            elif att.upper() == "BEAMFILTER1":
-                attpar= self.__get("attenuators", att, [0, "-", 0., 0.], None)
-                row = self.attTable.rowCount() - 3
+                row = self.attTable.rowCount() - 2 - (3 - int(att[-1])) # maximum 3 BeamFilter
             elif att.upper() == "DETECTOR":
                 attpar= self.__get("attenuators", att, [0, "-", 0., 0.], None)
                 row = self.attTable.rowCount() - 2
@@ -645,7 +642,7 @@ class FitParamWidget(FitParamForm):
                 attpar.append(1.0)
             self.attTable.setText(row, 3, str(attpar[2]))
             self.attTable.setText(row, 4, str(attpar[3]))
-            if att.upper() not in ["MATRIX", "DETECTOR", "BEAMFILTER1", "BEAMFILTER2"]:
+            if not (att.upper() in ["MATRIX", "DETECTOR"] or att.upper().startswith("BEAMFILTER")):
                 self.attTable.setText(row, 5, str(attpar[4]))
             else:
                 self.attTable.setText(row, 5, "1.0")

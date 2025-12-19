@@ -2,7 +2,7 @@
 #
 # The PyMca X-Ray Fluorescence Toolkit
 #
-# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2025 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF.
@@ -94,11 +94,11 @@ class AttenuatorsTab(qt.QWidget):
                 if rheight > 40:
                     self.table.setMinimumHeight(10*rheight)
                 else:
-                    self.table.setMinimumHeight(13*rheight)
+                    self.table.setMinimumHeight(14*rheight)
             else:
                 self.editor = MaterialEditor.MaterialEditor(graph=graph)
-                self.table.setMinimumHeight(13*rheight)
-            self.table.setMaximumHeight(13*rheight)
+                self.table.setMinimumHeight(14*rheight)
+            self.table.setMaximumHeight(14*rheight)
         self.userAttenuators = TransmissionTableGui.TransmissionTableGui()
         self.mainTab.addTab(self.editor, "Material Editor")
         self.mainTab.addTab(self.userAttenuators, "User Attenuators")
@@ -322,9 +322,12 @@ class AttenuatorsTableWidget(QTable):
     def __init__(self, parent=None, name="Attenuators Table",
                  attenuators=None, matrixmode=None, compoundmode=None,
                  layerindex=0, funnyfilters=False):
+
+        beamFilters0 = ["BeamFilter1", "BeamFilter2", "BeamFilter3"] # this needs to be synchronized with FitParam.py
         attenuators0 = ["Atmosphere", "Air", "Window", "Contact", "DeadLayer",
-                       "Filter5", "Filter6", "Filter7", "BeamFilter1",
-                       "BeamFilter2", "Detector", "Matrix"]
+                       "Filter5", "Filter6", "Filter7"] + beamFilters0 +  ["Detector", "Matrix"]
+        self.__attenuators0 = attenuators0
+        self.__beamFilters0 = beamFilters0
 
         QTable.__init__(self, parent)
         self.setWindowTitle(name)
@@ -385,12 +388,12 @@ class AttenuatorsTableWidget(QTable):
 
         self.sigValueChanged[int,int].connect(self.mySlot)
 
-    def __build(self, nfilters=12):
+    def __build(self, nfilters=13):
         n = 0
         if (not self.matrixMode) and (not self.compoundMode):
-            n = 4
+            n = len(self.__beamFilters0) + 2
             #self.setNumRows(nfilters+n)
-            self.setRowCount(12)
+            self.setRowCount(len(self.__attenuators0))
         else:
             self.setRowCount(nfilters)
         rheight = self.horizontalHeader().sizeHint().height()
@@ -457,10 +460,11 @@ class AttenuatorsTableWidget(QTable):
             #self.setItem(idx,2,combo)
             combo.sigMaterialComboBoxSignal.connect(self._comboSlot)
 
-        for i in range(2):
+        nBeamFilters = len(self.__beamFilters0)
+        for i in range(nBeamFilters):
             #BeamFilter(i)
             item = qt.QCheckBox(self)
-            idx = self.rowCount() - (4 - i)
+            idx = self.rowCount() - (n - i)
             self.setCellWidget(idx, 0, item)
             text = "BeamFilter%d" % i
             item.setText(text)
