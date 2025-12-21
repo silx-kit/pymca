@@ -692,8 +692,9 @@ def numpyPCA(stack, index=-1, ncomponents=10, binning=None,
                     tmpData = (tmpData[:, ::binning] - avgSpectrum) / standardDeviation
                 else:
                     tmpData = tmpData[:, ::binning]
+                tmpData = tmpData.reshape(nChannels)
                 for j in range(ncomponents):
-                    images[j, i] = numpy.dot(tmpData, eigenvectors[j])[0]
+                    images[j, i] = numpy.dot(tmpData, eigenvectors[j])
             # reshape the images
             images.shape = ncomponents, nPixels
         elif len(oldShape) == 3:
@@ -706,8 +707,9 @@ def numpyPCA(stack, index=-1, ncomponents=10, binning=None,
                         tmpData = (tmpData[:, ::binning] - avgSpectrum) / standardDeviation
                     else:
                         tmpData = tmpData[:, ::binning]
+                    tmpData = tmpData.reshape(nChannels)
                     for j in range(ncomponents):
-                        images[j, i] = numpy.dot(tmpData, eigenvectors[j])[0]
+                        images[j, i] = numpy.dot(tmpData, eigenvectors[j])
                     i += 1
             # reshape the images
             images.shape = ncomponents, oldShape[0], oldShape[1]
