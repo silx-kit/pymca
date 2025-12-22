@@ -328,7 +328,7 @@ def _getROILineProfileCurve(image, roiStart, roiEnd, roiWidth,
             tmpMatrix[offset:(offset + nPoints), 1] = colRow[0, :]
             offset += nPoints
         ydata = SpecfitFuns.interpol((x0, y0), image, tmpMatrix)
-        ydata.shape = len(iterValues), nPoints
+        ydata = ydata.reshape(len(iterValues), nPoints)
         ydata = ydata.sum(axis=0)
         # deal with the oversampling
         ydata /= oversampling

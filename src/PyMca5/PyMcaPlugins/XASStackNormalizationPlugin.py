@@ -321,7 +321,7 @@ class XASStackNormalizationPlugin(StackPluginBase.StackPluginBase):
                     edges[i] = ed
                     jumps[i] = jmp
             self._progress = 100
-            data.shape = oldShape
+            data = data.reshape(*oldShape)
         elif mcaIndex == 0:
             data = data.reshape(oldShape[0], -1)
             edges = numpy.zeros(data.shape[-1], numpy.float32)

@@ -156,7 +156,7 @@ class PyMcaHKLImageWindow(PyMcaImageWindow.PyMcaImageWindow):
                                gamma=gamma,
                                delta=delta,
                                mu=mu)
-        HKL.shape = -1
+        HKL = numpy.ravel(HKL)
         text += "H = %.3f " % HKL[0]
         text += "K = %.3f " % HKL[1]
         text += "L = %.3f " % HKL[2]

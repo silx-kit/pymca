@@ -291,7 +291,7 @@ class QStackWidget(StackBase.StackBase,
                 shape = dialog.getImageShape()
                 dialog.close()
                 del dialog
-                self._stack.data.shape = [shape[0], shape[1], oldshape[2]]
+                self._stack.data = self._stack.data.reshape(shape[0], shape[1], oldshape[2])
                 self.stackWidget.setImageData(None)
                 self.roiWidget.setImageData(None)
                 StackBase.StackBase.setStack(self, self._stack, **kw)
@@ -701,8 +701,7 @@ class QStackWidget(StackBase.StackBase,
                         for secondary in self._secondaryList:
                             info = secondary.getStackInfo()
                             if "McaLiveTime" in info:
-                                info["McaLiveTime"].shape = \
-                                   primaryStackDataObject.info["McaLiveTime"].shape
+                                info["McaLiveTime"] = info["McaLiveTime"].reshape(*primaryStackDataObject.info["McaLiveTime"].shape)
                                 primaryStackDataObject.info["McaLiveTime"] += \
                                         info["McaLiveTime"]
                             else:
@@ -1243,7 +1242,7 @@ class QStackWidget(StackBase.StackBase,
             if self._stackImageData is not None:
                 if mask.shape != self._stackImageData.shape:
                     _logger.info("Reshaping mask")
-                    mask.shape = self._stackImageData.shape
+                    mask = mask.reshape(*self._stackImageData.shape)
         self._selectionMask = mask
         if instance_id == id(self):
             return

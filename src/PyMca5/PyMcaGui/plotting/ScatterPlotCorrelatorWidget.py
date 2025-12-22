@@ -133,9 +133,9 @@ class ScatterPlotCorrelatorWidget(MaskScatterWidget.MaskScatterWidget):
         else:
             return
         x = x0[:]
-        x.shape = -1
+        x = numpy.ravel(x)
         y = y0[:]
-        y.shape = -1
+        y = numpy.ravel(y)
         xLabel = self._itemLabels[ddict[xKey][0]]
         yLabel = self._itemLabels[ddict[yKey][0]]
         # active curve handling is disabled

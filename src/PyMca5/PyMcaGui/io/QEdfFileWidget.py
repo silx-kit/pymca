@@ -987,7 +987,7 @@ class QEdfFileWidget(qt.QWidget):
                                 (colormap[2],colormap[3]),
                                 (0,255), 1)
 
-        pixmap.shape = [data.shape[0], data.shape[1], 4]
+        pixmap = pixmap.reshape(data.shape[0], data.shape[1], 4)
         if not goodData:
             pixmap[finiteData < 1] = 255
         return pixmap

@@ -258,7 +258,7 @@ if __name__ == "__main__":
     #the spectrum for setup
     y = data.sum(axis=0)
     oldShape = data.shape
-    data.shape = 1,oldShape[0], oldShape[1]
+    data = data.reshape(1, oldShape[0], oldShape[1])
     app = qt.QApplication([])
     w = StackSimpleFitWindow()
     w.setSpectrum(x, y)

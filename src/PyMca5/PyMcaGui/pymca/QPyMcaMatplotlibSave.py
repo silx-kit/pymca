@@ -957,7 +957,7 @@ class QPyMcaMatplotlibImage(FigureCanvas):
 def test():
     app = qt.QApplication([])
     a=numpy.arange(256.)
-    a.shape = 8, 32
+    a = a.reshape(8, 32)
     w = SaveImageSetup(None, a)
     ddict = w.getParameters()
     ddict["colorbar"] = "vertical"

@@ -211,7 +211,7 @@ class PyMcaNexusWidget(QNexusWidget.QNexusWidget):
                 n = 1
                 for dim in shape[:-2]:
                     n = n * dim
-                stack.shape = n, shape[-2], shape[-1]
+                stack = stack.reshape(n, shape[-2], shape[-1])
                 if len(axesList):
                     if xData.size != n:
                         xData = None
@@ -221,7 +221,7 @@ class PyMcaNexusWidget(QNexusWidget.QNexusWidget):
                 for dim in shape[:-1]:
                     n = n * dim
                 if nDim != 3:
-                    stack.shape = 1, n, shape[-1]
+                    stack = stack.reshape(1, n, shape[-1])
                 if len(axesList):
                     if xData.size != shape[-1]:
                         xData = None

@@ -110,7 +110,7 @@ def replaceStackWithSnip1DBackground(stack, width, roi_min=None, roi_max=None,  
         for i in range(data.shape[0]):
             data[i,roi_min:roi_max] = snip1d(data[i,roi_min:roi_max],
                                               width, smoothing)
-        data.shape = oldShape
+        data = data.reshape(*oldShape)
 
     elif mcaIndex == 0:
         data = data.reshape(oldShape[0], -1)

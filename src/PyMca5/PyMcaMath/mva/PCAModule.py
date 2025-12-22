@@ -81,7 +81,7 @@ def lanczosPCA(stack, ncomponents=10, binning=None, legacy=True, **kw):
 
     if len(data.shape) == 3:
         r, c, N = data.shape
-        data.shape = r * c, N
+        data = data.reshape(r * c, N)
     else:
         r, N = data.shape
         c = 1
@@ -126,7 +126,7 @@ def lanczosPCA(stack, ncomponents=10, binning=None, legacy=True, **kw):
         images[i, :] = dotblas.dot(data,
                                    (eigenvectors[i].vr).astype(data.dtype))
     data = None
-    images.shape = ncomponents, r, c
+    images = images.reshape(ncomponents, r, c)
     if legacy:
         return images, eigenvalues, vectors
     else:
@@ -177,7 +177,7 @@ def lanczosPCA2(stack, ncomponents=10, binning=None, legacy=True, **kw):
         reminder = npixels % BINNING
         if reminder:
             data = data[0:BINNING * int(npixels / BINNING), :]
-        data.shape = data.shape[0] / BINNING, BINNING, data.shape[1]
+        data = data.reshape(int(data.shape[0] / BINNING), BINNING, data.shape[1])
         data = numpy.swapaxes(data, 1, 2)
         data = numpy.sum(data, axis=-1)
         rc = int(r * c / BINNING)
@@ -232,7 +232,7 @@ def lanczosPCA2(stack, ncomponents=10, binning=None, legacy=True, **kw):
         vectors[i, :] = nuovispettri[-1 - i, :]
         images[i, :] = dotblas.dot(newmat,
                                    evects[-1 - i].astype(dataorig.dtype))
-    images.shape = ncomponents, r, c
+    images = images.reshape(ncomponents, r, c)
     return images, evals, vectors
     if legacy:
         return images, eigenvalues, vectors
@@ -293,7 +293,7 @@ def multipleArrayPCA(stackList0, ncomponents=10, binning=None, legacy=True, scal
         shape = stackList[i].shape
         eigenvectorLength += shape[-1]
         shapeList.append(shape)
-        stackList[i].shape = npixels, -1
+        stackList[i] = stackList[i].reshape(npixels, -1)
         avg = numpy.sum(stackList[i], 0) / (1.0 * npixels)
         numpy.subtract(stackList[i], avg, stackList[i])
         avgList.append(avg)
@@ -389,12 +389,12 @@ def multipleArrayPCA(stackList0, ncomponents=10, binning=None, legacy=True, scal
     #restore shapes and values
     for i in range(len(stackList)):
         numpy.add(stackList[i], avgList[i], stackList[i])
-        stackList[i].shape = shapeList[i]
+        stackList[i] = stackList[i].reshape(*shapeList[i])
 
     if c is None:
-        images.shape = ncomponents, r, 1
+        images = images.reshape(ncomponents, r, 1)
     else:
-        images.shape = ncomponents, r, c
+        images = images.reshape(ncomponents, r, c)
 
     if legacy:
         return images, eigenvalues, eigenvectors
@@ -421,7 +421,7 @@ def expectationMaximizationPCA(stack, ncomponents=10, binning=None, legacy=True,
         data = stack
     if len(data.shape) == 3:
         r, c, N = data.shape
-        data.shape = r * c, N
+        data = data.reshape(r * c, N)
     else:
         r, N = data.shape
         c = 1
@@ -480,7 +480,7 @@ def expectationMaximizationPCA(stack, ncomponents=10, binning=None, legacy=True,
     numpy.add(data, avg, data)
 
     #reshape the images
-    images.shape = ncomponents, r, c
+    images = images.reshape(ncomponents, r, c)
     if legacy:
         return images, eigenvalues, eigenvectors
     else:
@@ -607,7 +607,7 @@ def mdpPCA(stack, ncomponents=10, binning=None, dtype='float64', svd='True',
     if ncomponents > N:
         if binning == 1:
             if data.shape != oldShape:
-                data.shape = oldShape
+                data = data.reshape(*oldShape)
         raise ValueError("Number of components too high.")
     #end of common part
 
@@ -629,7 +629,7 @@ def mdpPCA(stack, ncomponents=10, binning=None, dtype='float64', svd='True',
                                      binning)
                     tmpData = numpy.sum(tmpData, axis=-1)
                 else:
-                    tmpData.shape = step * shape[1], shape[2]
+                    tmpData = tmpData.reshape(step * shape[1], shape[2])
                 if spectral_mask is None:
                     pca.train(tmpData)
                 else:
@@ -642,7 +642,7 @@ def mdpPCA(stack, ncomponents=10, binning=None, dtype='float64', svd='True',
             for i in range(last, r):
                 print("Training data %d out of %d" % (i + 1, r))
                 tmpData = data[i, :, :]
-                tmpData.shape = shape[1], shape[2] // binning, binning
+                tmpData = tmpData.reshape(shape[1], shape[2] // binning, binning)
                 tmpData = numpy.sum(tmpData, axis=-1)
                 if spectral_mask is None:
                     pca.train(tmpData)
@@ -740,7 +740,7 @@ def mdpPCA(stack, ncomponents=10, binning=None, dtype='float64', svd='True',
             eigenvectors[i, spectral_mask > 0] = pca.v.T[i]
 
     #reshape the images
-    images.shape = ncomponents, r, c
+    images = images.reshape(ncomponents, r, c)
     if legacy:
         return images, eigenvalues, eigenvectors
     else:
@@ -770,7 +770,7 @@ def mdpICA(stack, ncomponents=10, binning=None, dtype='float64',
     if len(data.shape) == 3:
         r, c, N = data.shape
         if isinstance(data, numpy.ndarray):
-            data.shape = r * c, N
+            data = data.reshape(r * c, N)
     else:
         r, N = data.shape
         c = 1
@@ -786,7 +786,7 @@ def mdpICA(stack, ncomponents=10, binning=None, dtype='float64',
     if ncomponents > N:
         if binning == 1:
             if data.shape != oldShape:
-                data.shape = oldShape
+                data = data.reshape(*oldShape)
         raise ValueError("Number of components too high.")
 
     if 1:
@@ -807,12 +807,12 @@ def mdpICA(stack, ncomponents=10, binning=None, dtype='float64',
                               (i + 1, i + step, r))
                         tmpData = data[i:(i + step), :, :]
                         if binning > 1:
-                            tmpData.shape = (step * shape[1],
+                            tmpData = tmpData.reshape((step * shape[1],
                                              shape[2] // binning,
-                                             binning)
+                                             binning))
                             tmpData = numpy.sum(tmpData, axis=-1)
                         else:
-                            tmpData.shape = step * shape[1], shape[2]
+                            tmpData = tmpData.reshape(step * shape[1], shape[2])
                         if spectral_mask is None:
                             ica.train(tmpData)
                         else:
@@ -825,7 +825,7 @@ def mdpICA(stack, ncomponents=10, binning=None, dtype='float64',
                     for i in range(last, r):
                         print("Training data %d out of %d" % (i + 1, r))
                         tmpData = data[i, :, :]
-                        tmpData.shape = shape[1], shape[2] // binning, binning
+                        tmpData = tmpData.reshape(shape[1], shape[2] // binning, binning)
                         tmpData = numpy.sum(tmpData, axis=-1)
                         if spectral_mask is None:
                             ica.train(tmpData)
@@ -920,9 +920,9 @@ def mdpICA(stack, ncomponents=10, binning=None, dtype='float64',
                         tmpData = data[i, :, :]
                     else:
                         tmpData = data[i, :, spectral_mask > 0]
-                    tmpData.shape = (data.shape[1],
+                    tmpData = tmpData.reshape((data.shape[1],
                                      data.shape[2] // binning,
-                                     binning)
+                                     binning))
                     tmpData = numpy.sum(tmpData, axis=-1)
                     tmpData = ica.white.execute(tmpData)
                 else:
@@ -949,7 +949,7 @@ def mdpICA(stack, ncomponents=10, binning=None, dtype='float64',
             else:
                 images[ncomponents:(2 * ncomponents), :] =\
                     numpy.dot(proj.astype(data.dtype), data[:, spectral_mask > 0].T)
-        images.shape = 2 * ncomponents, r, c
+        images = images.reshape(2 * ncomponents, r, c)
     else:
         ica = mdp.nodes.FastICANode(white_comp=ncomponents,
                                     verbose=False, dtype=dtype)
@@ -971,11 +971,11 @@ def mdpICA(stack, ncomponents=10, binning=None, dtype='float64',
         proj = ica.white.get_projmatrix(transposed=0)
         images[ncomponents:(2 * ncomponents), :] =\
             numpy.dot(proj.astype(data.dtype), data.T)
-        images.shape = 2 * ncomponents, r, c
+        images = images.reshape(2 * ncomponents, r, c)
 
     if binning == 1:
         if data.shape != oldShape:
-            data.shape = oldShape
+            data = data.reshape(*oldShape)
     if legacy:
         return images, eigenvalues, vectors
     else:
@@ -1019,7 +1019,7 @@ def main():
     for i in range(ncomponents):
         f.WriteImage({}, images[i, :])
 
-    stack.data.shape = r0, c0, n0
+    stack.data = stack.data.reshape(r0, c0, n0)
     print("PCA Elapsed = %f" % (time.time() - e0))
     print("eigenvectors PCA2 = ", eigenvectors[0, 200:230])
     stack = None
@@ -1027,7 +1027,7 @@ def main():
     e0 = time.time()
     images2, eigenvalues, eigenvectors = mdpPCA(stack.data, ncomponents,
                                                 binning=1)
-    stack.data.shape = r0, c0, n0
+    stack.data = stack.data.reshape(r0, c0, n0)
     print("MDP Elapsed = %f" % (time.time() - e0))
     print("eigenvectors MDP = ", eigenvectors[0, 200:230])
     if os.path.exists(outfile):

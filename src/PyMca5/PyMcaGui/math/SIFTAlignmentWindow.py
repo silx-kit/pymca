@@ -291,7 +291,7 @@ class SIFTAlignmentDialog(qt.QDialog):
 
     def setDummyStack(self):
         dummyStack = numpy.arange(2 * 128 *256)
-        dummyStack.shape = 2, 128, 256
+        dummyStack = dummyStack.reshape(2, 128, 256)
         self.setStack(dummyStack, index=0)
 
     def getParameters(self):

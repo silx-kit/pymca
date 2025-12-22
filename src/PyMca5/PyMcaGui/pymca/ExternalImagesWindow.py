@@ -340,13 +340,13 @@ class ExternalImagesWindow(MaskImageWidget.MaskImageWidget):
             for i in range(nImages):
                 if index == 0:
                     imagelist[i] = stack[i, :, :]
-                    imagelist[i].shape = shape[1], shape[2]
+                    imagelist[i] = imagelist[i].reshape(shape[1], shape[2])
                 elif index == 1:
                     imagelist[i] = stack[:, i, :]
-                    imagelist[i].shape = shape[0], shape[2]
+                    imagelist[i] = imagelist[i].reshape(shape[0], shape[2])
                 elif index == 2:
                     imagelist[i] = stack[:, :, i]
-                    imagelist[i].shape = shape[0], shape[1]
+                    imagelist[i] = imagelist[i].reshape(shape[0], shape[1])
         else:
             nImages = len(stack)
             imagelist = stack
@@ -423,7 +423,7 @@ def test():
     else:
         container = ExternalImagesWindow()
         data = numpy.arange(10000)
-        data.shape = 100, 100
+        data = data.reshape(100, 100)
         container.setImageData(data)
     container.show()
     def theSlot(ddict):

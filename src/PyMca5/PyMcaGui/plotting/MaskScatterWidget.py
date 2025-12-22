@@ -249,7 +249,7 @@ class MaskScatterWidget(PlotWindow.PlotWindow):
             # update mask levels
             if self._selectionMask is not None:
                 weights = self._selectionMask[:]
-                weights.shape = x.shape
+                weights = weights.reshape(*x.shape)
                 if self._maxNRois > 1:
                     _logger.debug("BAD PATH")
                     # this does not work properly yet
@@ -391,9 +391,9 @@ class MaskScatterWidget(PlotWindow.PlotWindow):
                     elif self._selectionMask.size == mask.size:
                         # keep shape because we may refer to images
                         tmpView = self._selectionMask[:]
-                        tmpView.shape = -1
+                        tmpView = numpy.ravel(tmpView)
                         tmpMask = mask[:]
-                        tmpMask.shape = -1
+                        tmpMask = numpy.ravel(tmpMask)
                         tmpView[:] = tmpMask[:]
                     else:
                         self._selectionMask = mask
@@ -416,14 +416,14 @@ class MaskScatterWidget(PlotWindow.PlotWindow):
         # make sure we work with views
         x = x0[:]
         y = y0[:]
-        x.shape = -1
-        y.shape = -1
+        x = numpy.ravel(x)
+        y = numpy.ravel(y)
         if 0:
             colors = numpy.zeros((y.size, 4), dtype=numpy.uint8)
             colors[:, 3] = 255
             if self._selectionMask is not None:
                 tmpMask = self._selectionMask[:]
-                tmpMask.shape = -1
+                tmpMask = numpy.ravel(tmpMask)
                 for i in range(0, self._maxNRois + 1):
                     colors[tmpMask == i, :] = self._selectionColors[i]
                 self.setSelectionCurveData(x, y, legend=legend, info=info,
@@ -437,7 +437,7 @@ class MaskScatterWidget(PlotWindow.PlotWindow):
                     self.removeCurve(legend=legend + " %02d" % i, replot=False)
             else:
                 tmpMask = self._selectionMask[:]
-                tmpMask.shape = -1
+                tmpMask = numpy.ravel(tmpMask)
                 if self._plotViewMode == "density":
                     useAlpha = True
                     if self._alphaLevel is None:
@@ -519,8 +519,8 @@ class MaskScatterWidget(PlotWindow.PlotWindow):
         else:
             value = self._nRoi
         x, y, legend, info = self.getCurve(self._selectionCurve)[0:4]
-        x.shape = -1
-        y.shape = -1
+        x = numpy.ravel(x)
+        y = numpy.ravel(y)
         currentMask = self.getSelectionMask()
         if currentMask is None:
             currentMask = numpy.zeros(y.shape, dtype=numpy.uint8)
@@ -530,7 +530,7 @@ class MaskScatterWidget(PlotWindow.PlotWindow):
         Z[:, 0] = x
         Z[:, 1] = y
         mask = pnpoly(points, Z, 1)
-        mask.shape = currentMask.shape
+        mask = mask.reshape(*currentMask.shape)
         currentMask[mask > 0] = value
         self.setSelectionMask(currentMask, plot=True)
         self._emitMaskChangedSignal()
@@ -885,7 +885,7 @@ class MaskScatterWidget(PlotWindow.PlotWindow):
         rows = numpy.digitize(y, self._binsY, right=True)
         rows[rows>=densityPlotMask.shape[0]] = densityPlotMask.shape[0] - 1
         values = densityPlotMask[rows, columns]
-        values.shape = -1
+        values = numpy.ravel(values)
 
         if self._selectionMask is None:
             view = numpy.zeros(x.size, dtype=numpy.uint8)
@@ -901,7 +901,7 @@ class MaskScatterWidget(PlotWindow.PlotWindow):
                                dtype=self._selectionMask.dtype)
             view[:] = values[:]
         if self._selectionMask is not None:
-            view.shape = self._selectionMask.shape
+            view = view.reshape(*self._selectionMask.shape)
         self.setSelectionMask(view, plot=True)
 
     def _densityPlotSlot(self, ddict):
@@ -941,7 +941,7 @@ class MaskScatterWidget(PlotWindow.PlotWindow):
                 if value:
                     view[i] = value
             if self._selectionMask is not None:
-                view.shape = self._selectionMask.shape
+                view = view.reshape(*self._selectionMask.shape)
             self.setSelectionMask(view)
 
         if self._selectionMask is None:
@@ -953,16 +953,16 @@ class MaskScatterWidget(PlotWindow.PlotWindow):
         rows = numpy.digitize(y, self._binsY, right=True)
         rows[rows>=densityPlotMask.shape[0]] = densityPlotMask.shape[0] - 1
         values = densityPlotMask[rows, columns]
-        values.shape = -1
+        values = numpy.ravel(values)
         view2[:] = values[:]
         if self._selectionMask is not None:
-            view2.shape = self._selectionMask.shape
+            view2 = view2.reshape(*self._selectionMask.shape)
         if _logger.getEffectiveLevel() == logging.DEBUG:
             if not numpy.allclose(view, view2):
                 a = view[:]
                 b = view2[:]
-                a.shape = -1
-                b.shape = -1
+                a = numpy.ravel(a)
+                b = numpy.ravel(b)
                 c = 0
                 for i in range(a.size):
                     if a[i] != b[i]:

@@ -134,7 +134,7 @@ class SilxScatterWindow(qt.QWidget):
             data = numpy.ascontiguousarray(z[0], dtype=numpy.float32)[:]
             if (data.size == x.size) and (data.size == y.size):
                 # standard scatter plot
-                data.shape = 1, -1
+                data = data.reshape(1, -1)
                 nscatter = 1
             elif (x.size == y.size) and ((data.size % x.size) == 0):
                 # we have n items, assuming they follow C order we can collapse them to
@@ -151,7 +151,7 @@ class SilxScatterWindow(qt.QWidget):
                         break
                 if not gotIt:
                     raise ValueError("Unmatched dimensions following C order")
-                data.shape = xsize, oldDataShape[i+1:]
+                data = data.reshape(xsize, *oldDataShape[i+1:])
                 nscatter = data.shape[0]
             else:
                 raise ValueError("Unmatched dimensions among axes and signals")
@@ -186,7 +186,7 @@ class SilxScatterWindow(qt.QWidget):
                         elif m.size == data.size:
                             # potentially can take a lot of memory, numexpr?
                             tmpView = m[:]
-                            tmpView.shape = data.shape
+                            tmpView = tmpView.reshape(*data.shape)
                             data /= tmpView
                         else:
                             raise ValueError("Incompatible monitor data")
@@ -195,8 +195,8 @@ class SilxScatterWindow(qt.QWidget):
                 # collapse any additional dimension by summing
                 data = data.sum(dtype=numpy.float32, axis=-1).astype(numpy.float32)
             dataObject.data = data
-            x.shape = -1
-            y.shape = -1
+            x = numpy.ravel(x)
+            y = numpy.ravel(y)
             dataObject.x = [x, y]
             if len(self.dataObjectsList):
                 resetZoom = False

@@ -162,14 +162,14 @@ def makeQimageBW(qimage):
         pixmap[:, 1] = pixmap0[:]
         pixmap[:, 2] = pixmap0[:]
         pixmap[:, 3] = 255
-        pixmap.shape = height, width, 4
+        pixmap = pixmap.reshape(height, width, 4)
     else:
         image = qimage.convertToFormat(qt.QImage.Format_ARGB32)
         pixmap0 = numpy.frombuffer(
             image.bits().asstring(width * height * 4), dtype=numpy.uint8
         )
         pixmap = numpy.array(pixmap0, copy=True)
-    pixmap.shape = height, width, -1
+    pixmap = pixmap.reshape(height, width, -1)
     return pixmap[:, :, 0] * 0.114 + pixmap[:, :, 1] * 0.587 + pixmap[:, :, 2] * 0.299
 
 
@@ -855,7 +855,7 @@ class RGBCorrelatorWidget(qt.QWidget):
         self.__imageShape = shape
         self._updateSizeLabel()
         for key in self._imageDict.keys():
-            self._imageDict[key]["image"].shape = shape
+            self._imageDict[key]["image"] = self._imageDict[key]["image"].reshape(*shape)
         self.tableWidget._update()
 
     def transposeImages(self):
@@ -1797,7 +1797,7 @@ def main():
         if "image" in ddict:
             image_buffer = ddict["image"]
             size = ddict["size"]
-            image_buffer.shape = size[1], size[0], 4
+            image_buffer = image_buffer.reshape(size[1], size[0], 4)
             graph.graph.addImage(image_buffer)
             graph.graph.replot()
 

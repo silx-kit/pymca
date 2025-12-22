@@ -487,7 +487,7 @@ def modelFunction(p, x):
 
 def test1():
     x = numpy.arange(10000.)
-    x.shape = -1, 1
+    x = x.reshape(-1, 1)
     y = modelFunction([100., 50., 4.], x)
     A = getModelMatrixFromFunction(modelFunction, [0.0, 0.0, 0.0], x)
     parameters, uncertainties = lstsq(A, y, uncertainties=True, weight=False)
@@ -505,7 +505,7 @@ def test2():
         GEFIT = False
     data = "0 0.8214 0.1 1 2.8471 0.3 2 4.852 0.5 3 7.5347 0.7 4 10.2464 0.9 5 10.2707 1.1 6 12.8011 1.3 7 13.7108 1.5 8 17.8501 1.7 9 15.3667 1.9 10 19.3933 2.1"
     data = numpy.array([float(x) for x in data.split()])
-    data.shape = -1, 3
+    data = data.reshape(-1, 3)
 
     # the model matrix for a straight line
     A = numpy.ones((data.shape[0],2), numpy.float64)

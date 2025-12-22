@@ -135,9 +135,9 @@ class PyMcaImageWindow(RGBImageCalculator.RGBImageCalculator):
                             if hasattr(dataObject, "x"):
                                 if len(dataObject.x) == 2:
                                     x0 = dataObject.x[0][:]
-                                    x0.shape = -1
+                                    x0 = numpy.ravel(x0)
                                     x1 = dataObject.x[1][:]
-                                    x1.shape = -1
+                                    x1 = numpy.ravel(x1)
                                     if abs(x0[1] - x0[0]) < 1.0e-6:
                                         nColumns = numpy.argmin(abs(x0-x0[0]) < 1.0e-6)
                                         nRows = x1.size / nColumns
@@ -165,7 +165,7 @@ class PyMcaImageWindow(RGBImageCalculator.RGBImageCalculator):
                                             tmpData = numpy.transpose(dataObject.y[yIndex])[:]
                                         else:
                                             tmpData = dataObject.y[yIndex][:]
-                                        tmpData.shape = int(nRows), int(nColumns)
+                                        tmpData = tmpData.reshape(int(nRows), int(nColumns))
                                         dataObject.data[yIndex] = tmpData
                     else:
                         _logger.info("Nothing to plot")
@@ -177,9 +177,9 @@ class PyMcaImageWindow(RGBImageCalculator.RGBImageCalculator):
                 shape = dataObject.data.shape
                 if len(dataObject.x) == 2:
                     x0 = dataObject.x[0][:]
-                    x0.shape = -1
+                    x0 = numpy.ravel(x0)
                     x1 = dataObject.x[1][:]
-                    x1.shape = -1
+                    x1 = numpy.ravel(x1)
                     if abs(x0[1] - x0[0]) < 1.0e-6:
                         nColumns = numpy.argmin(abs(x0-x0[0]) < 1.0e-6)
                         nRows = x1.size / nColumns
@@ -231,7 +231,7 @@ class PyMcaImageWindow(RGBImageCalculator.RGBImageCalculator):
                             if hasattr(m, "size"):
                                 if m.size == self._imageData.size:
                                     tmpView = m[:]
-                                    tmpView.shape = shape
+                                    tmpView = tmpView.reshape(*shape)
                                     self._imageData = self._imageData / tmpView.astype(numpy.float64)
                                 else:
                                     #let numpy raise the appropriate error
@@ -279,14 +279,14 @@ class PyMcaImageWindow(RGBImageCalculator.RGBImageCalculator):
             return data
         if len(shape) == 3:
             data = dataObject.data[index:index+1,:,:]
-            data.shape = data.shape[1:]
+            data = data.reshape(*data.shape[1:])
             if hasattr(dataObject, 'm'):
                 if dataObject.m is not None:
                     for m in dataObject.m:
                         if hasattr(m, "size"):
                             if m.size == data.size:
                                 tmpView = m[:]
-                                tmpView.shape = data.shape
+                                tmpView = tmpView.reshape(*data.shape)
                                 data = data / tmpView.astype(numpy.float64)
                             else:
                                 data = data / numpy.float(m)
@@ -307,7 +307,7 @@ class PyMcaImageWindow(RGBImageCalculator.RGBImageCalculator):
                         if hasattr(m, "size"):
                             if m.size == data.size:
                                 tmpView = m[:]
-                                tmpView.shape = data.shape
+                                tmpView = tmpView.reshape(*data.shape)
                                 data = data / tmpView.astype(numpy.float64)
                             else:
                                 data = data / numpy.float(m)

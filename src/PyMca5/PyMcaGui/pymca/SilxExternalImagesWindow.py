@@ -256,7 +256,7 @@ def test():
     app.lastWindowClosed.connect(app.quit)
 
     data = numpy.arange(10000)
-    data.shape = 50, 200
+    data = data.reshape(50, 200)
     data[8:12, 48:52] = 10000
     data[6:14, 146:154] = 10000
     data[34:46, 44:56] = 0

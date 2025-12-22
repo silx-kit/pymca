@@ -411,7 +411,7 @@ class SimpleFit(object):
             if self._fitConfiguration['fit']['stripanchorslist'] is not None:
                 oldShape = xwork.shape
                 ravelled = xwork
-                ravelled.shape = -1
+                ravelled = numpy.ravel(ravelled)
                 for channel in self._fitConfiguration['fit']['stripanchorslist']:
                     if channel <= ravelled[0]:continue
                     index = numpy.nonzero(ravelled >= channel)[0]
@@ -419,7 +419,7 @@ class SimpleFit(object):
                         index = min(index)
                         if index > 0:
                             anchorslist.append(index)
-                ravelled.shape = oldShape
+                ravelled = ravelled.reshape(*oldShape)
 
         #work with smoothed data
         ysmooth = self._getSmooth(xwork, ywork)

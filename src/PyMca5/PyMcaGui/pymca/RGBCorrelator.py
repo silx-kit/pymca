@@ -132,7 +132,7 @@ class RGBCorrelator(qt.QWidget):
             # keep the image buffer as an array
             self._imageBuffer = ddict['image']
             size = ddict['size']
-            self._imageBuffer.shape = size[1],size[0],4
+            self._imageBuffer = self._imageBuffer.reshape(size[1], size[0], 4)
             self._imageBuffer[:,:,3] = 255
             self.graph.addImage(self._imageBuffer)
             self.graph.replot()

@@ -135,7 +135,7 @@ def dataToRGBAColormap(data,
                            c_nanColorPtr,
                            &c_pixmap[0, 0])
 
-    pixmap.shape = data.shape + (4,)
+    pixmap = pixmap.reshape(data.shape + (4,))
     return pixmap, (c_start, c_end)
 
 def fastLog10(double value):

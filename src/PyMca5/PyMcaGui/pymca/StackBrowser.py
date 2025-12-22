@@ -201,7 +201,7 @@ class StackBrowser(MaskImageWidget.MaskImageWidget):
             if len(shape) == 3:
                 if width < 1:
                     data = dataObject.data[index:index+1,:,:]
-                    data.shape = data.shape[1:]
+                    data = data.reshape(*data.shape[1:])
                 else:
                     i0 = index - width
                     i1 = index + width + 1
@@ -249,7 +249,7 @@ class StackBrowser(MaskImageWidget.MaskImageWidget):
             if len(shape) == 3:
                 if width < 1:
                     data = dataObject.data[:,:,index:index+1]
-                    data.shape = data.shape[0], data.shape[1]
+                    data = data.reshape(data.shape[0], data.shape[1])
                 else:
                     i0 = index - width
                     i1 = index + width + 1

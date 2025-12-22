@@ -221,7 +221,7 @@ class ExternalImagesStackPluginBase(StackPluginBase.StackPluginBase):
             if labels[i].startswith("s("):
                 continue
             tmpData = data[i]
-            tmpData.shape = -1, ncols
+            tmpData = tmpData.reshape(-1, ncols)
             imagelist.append(tmpData)
             imagenames.append(labels[i])
         if not imagenames:
