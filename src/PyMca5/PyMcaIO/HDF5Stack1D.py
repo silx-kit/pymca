@@ -551,18 +551,18 @@ class HDF5Stack1D(DataObject.DataObject):
                                     timeData = timeHdf[externalPath][()]
                         if mcaIndex != 0:
                             if IN_MEMORY:
-                                yDataset.shape = -1, mcaDim
+                                yDataset = yDataset.reshape(-1, mcaDim)
                             if mSelection is not None:
                                 case = -1
                                 nMonitorData = 1
                                 for v in mDataset.shape:
                                     nMonitorData *= v
                                 if nMonitorData == nMcaInYDataset:
-                                    mDataset.shape = nMcaInYDataset
+                                    mDataset = mDataset.reshape(nMcaInYDataset)
                                     case = 0
                                 elif nMonitorData == (nMcaInYDataset * mcaDim):
                                     case = 1
-                                    mDataset.shape = nMcaInYDataset, mcaDim
+                                    mDataset = mDataset.reshape(nMcaInYDataset, mcaDim)
                                 if case == -1:
                                     raise ValueError(\
                                         "I do not know how to handle this monitor data")
@@ -572,7 +572,7 @@ class HDF5Stack1D(DataObject.DataObject):
                                 for v in timeData.shape:
                                     nTimeData *= v
                                 if nTimeData == nMcaInYDataset:
-                                    timeData.shape = nMcaInYDataset
+                                    timeData = timeData.reshape(nMcaInYDataset)
                                     case = 0
                                     _time[nStart: nStart + nMcaInYDataset] += timeData
                                 if case == -1:
@@ -586,7 +586,7 @@ class HDF5Stack1D(DataObject.DataObject):
                                 for ii in range(yDataset.shape[0]):
                                     i = int(n/dim1)
                                     yData = yDataset[ii:(ii+1)]
-                                    yData.shape = -1, mcaDim
+                                    yData = yData.reshape(-1, mcaDim)
                                     if mSelection is not None:
                                         if case == 0:
                                             mData = numpy.outer(mDataset[mca:(mca+dim1)],
@@ -594,7 +594,7 @@ class HDF5Stack1D(DataObject.DataObject):
                                             self.data[i, :, :] += yData / mData
                                         elif case == 1:
                                             mData = mDataset[mca:(mca+dim1), :]
-                                            mData.shape = -1, mcaDim
+                                            mData = mData.reshape(-1, mcaDim)
                                             self.data[i, :, :]  += yData / mData
                                     else:
                                         self.data[i:(i+deltaI), :] += yData
@@ -628,18 +628,18 @@ class HDF5Stack1D(DataObject.DataObject):
                                     nMonitorData *= v
                                 if nMonitorData == yDataset.shape[0]:
                                     case = 3
-                                    mDataset.shape = yDataset.shape[0]
+                                    mDataset = mDataset.reshape(yDataset.shape[0])
                                 elif nMonitorData == nMcaInYDataset:
-                                    mDataset.shape = nMcaInYDataset
+                                    mDataset = mDataset.reshape(nMcaInYDataset)
                                     case = 0
                                 #elif nMonitorData == (yDataset.shape[1] * yDataset.shape[2]):
                                 #    case = 1
-                                #    mDataset.shape = yDataset.shape[1], yDataset.shape[2]
+                                #    mDataset = mDataset.reshape(yDataset.shape[1], yDataset.shape[2])
                                 if case == -1:
                                     raise ValueError(\
                                         "I do not know how to handle this monitor data")
                             if IN_MEMORY:
-                                yDataset.shape = mcaDim, -1
+                                yDataset = yDataset.reshape(mcaDim, -1)
                             if len(yDataset.shape) != 3:
                                 for mca in range(nMcaInYDataset):
                                     i = int(n/dim1)
@@ -741,12 +741,12 @@ class HDF5Stack1D(DataObject.DataObject):
                             yDatasetShape = yDataset.shape
                             if nMonitorData == yDatasetShape[0]:
                                 #as many monitor data as images
-                                mDataset.shape = yDatasetShape[0]
+                                mDataset = mDataset.reshape(yDatasetShape[0])
                                 case = 0
                             elif nMonitorData == (yDatasetShape[1] * yDatasetShape[2]):
                                 #as many monitorData as pixels
                                 case = 1
-                                mDataset.shape = yDatasetShape[1], yDatasetShape[2]
+                                mDataset = mDataset.reshape(yDatasetShape[1], yDatasetShape[2])
                             if case == -1:
                                 raise ValueError(\
                                     "I do not know how to handle this monitor data")
@@ -774,7 +774,7 @@ class HDF5Stack1D(DataObject.DataObject):
                     _logger.warning("Ignoring time information")
                     _time = None
                 else:
-                    _time.shape = -1
+                    _time = numpy.ravel(_time)
 
         self.info["SourceType"] = SOURCE_TYPE
         self.info["SourceName"] = filelist
@@ -867,7 +867,7 @@ class HDF5Stack1D(DataObject.DataObject):
             else:
                 _logger.warning("Ignoring axes selection %s" % xSelectionList)
         elif _channels is not None:
-            _channels.shape = -1
+            _channels = numpy.ravel(_channels)
             self.x = [_channels]
         if _time is not None:
             self.info["McaLiveTime"] = _time

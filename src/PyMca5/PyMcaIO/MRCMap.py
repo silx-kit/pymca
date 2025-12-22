@@ -145,7 +145,7 @@ class MRCMap(DataObject.DataObject):
             fid.close()
             raise
 
-        data.shape = nImages, nRows, nColumns
+        data = data.reshape(nImages, nRows, nColumns)
         self.data = data
 
         self.info = {}

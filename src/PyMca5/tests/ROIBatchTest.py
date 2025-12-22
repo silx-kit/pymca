@@ -118,7 +118,7 @@ class testROIBatch(unittest.TestCase):
 
     def assertROIsum(self, datagen, legacy=False, **parameters):
         x, y, config, peakpos = datagen()
-        y.shape = 1, 1, -1
+        y = y.reshape(1, 1, -1)
         y = y.repeat(2, axis=0).repeat(3, axis=1)
         if legacy:
             instance = LegacyStackROIBatch.StackROIBatch()

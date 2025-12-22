@@ -149,7 +149,7 @@ class MedianFilterScanPlugin(Plugin1DBase.Plugin1DBase):
         x0 = numpy.take(x0, idx)
         y0 = numpy.take(y0, idx)
 
-        x0.shape = -1, 1
+        x0 = x0.reshape(-1, 1)
         nChannels = x0.shape[0]
 
         # built a couple of temporary array of spectra for handy access

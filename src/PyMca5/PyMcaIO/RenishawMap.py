@@ -133,7 +133,7 @@ class RenishawMap(DataObject.DataObject):
         nRows = len(actualRows)
         nColumns = len(actualColumns)
         #positions.sort()
-        data.shape = nRows, nColumns, nChannels
+        data = data.reshape(nRows, nColumns, nChannels)
         with open(filename, 'r') as f:
             for i in range(nSpectra):
                 row, column = indices[i]

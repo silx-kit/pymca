@@ -189,7 +189,7 @@ class ConfigDict(dict):
                                 indata = data[3:-3].replace('] [', ' ')
                                 indata = numpy.array([float(x) for x in
                                                       indata.split()])
-                                indata.shape = nrows, -1
+                                indata = indata.reshape(nrows, -1)
                                 return indata
                         except ValueError:
                             pass

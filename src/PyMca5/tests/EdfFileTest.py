@@ -66,7 +66,7 @@ class testEdfFile(unittest.TestCase):
         # create a file
         self.assertTrue(self.fileClass is not None)
         data = numpy.arange(10000).astype(numpy.int32)
-        data.shape = 100, 100
+        data = data.reshape(100, 100)
         edf = self.fileClass(self.fname, 'wb+')
         edf.WriteImage({'Title': "title",
                         'key': 'key'}, data)

@@ -194,7 +194,7 @@ class specfilewrapper(object):
                                            dtype=numpy.float32,
                                            sep='\t\r\n')
             self.header = ['#S1 %s' % os.path.basename(filename)]
-            self.data.shape = -1, 1
+            self.data = self.data.reshape(-1, 1)
             self.scandata=[myscandata(self.data,'MCA','1.1',
                                       scanheader=self.header)]
             return

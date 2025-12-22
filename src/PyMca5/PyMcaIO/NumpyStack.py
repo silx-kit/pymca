@@ -46,10 +46,10 @@ class NumpyStack(DataObject.DataObject):
         # take a view in order to avoid modification of input data
         y = inputArray[:]
         if y.ndim == 1:
-            y.shape = 1, 1, -1
+            y = y.reshape(1, 1, -1)
         elif y.ndim == 2:
             oldShape = y.shape
-            y.shape = 1, oldShape[0], oldShape[1]
+            y = y.reshape(1, oldShape[0], oldShape[1])
         self.info['McaCalib'] = [0.0, 1.0, 0.0]
         self.info["McaIndex"] = 2
         self.info['Channel0'] = 0

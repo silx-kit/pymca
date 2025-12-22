@@ -431,7 +431,7 @@ if __name__ == "__main__":
     b = 1000
     period = 1000
     x1 = numpy.arange(a * b).astype(numpy.float64)
-    x1.shape= [a, b]
+    x1 = x1.reshape(a, b)
     x2 = numpy.transpose(x1)
 
     app = qt.QApplication([])

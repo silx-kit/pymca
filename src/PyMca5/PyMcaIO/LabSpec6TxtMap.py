@@ -107,7 +107,7 @@ class LabSpec6TxtMap(DataObject.DataObject):
                 nRows = nSpectra // nColumns
         _logger.debug("DIMENSIONS X = %f Y=%d",
                       nSpectra * 1.0 / nRows, nRows)
-        self.data.shape = nRows, nColumns, -1
+        self.data = self.data.reshape(nRows, nColumns, -1)
 
         #arrange as an EDF Stack
         if positioners.shape[1] == 2 and (nSpectra > 1):

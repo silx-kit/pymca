@@ -120,7 +120,7 @@ class AlignmentScanPlugin(Plugin1DBase.Plugin1DBase):
         x0 = xi * 1
         y0 = yi * 1
 
-        y0.shape = -1
+        y0 = numpy.ravel(y0)
         fft0 = numpy.fft.fft(y0)
         y0.shape = -1, 1
         x0.shape = -1, 1

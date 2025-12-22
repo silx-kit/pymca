@@ -131,21 +131,21 @@ def replaceStackWithSavitzkyGolay(stack, npoints=3, degree=1, order=0):
     data = actualData[:]
     oldShape = data.shape
     if mcaIndex in [-1, len(data.shape)-1]:
-        data.shape = -1, oldShape[-1]
+        data = data.reshape(-1, oldShape[-1])
         for i in range(data.shape[0]):
             data[i,N:-N] = convolve(data[i,:],coeff, mode='valid')
             if order > 0:
                 data[i, :N]  = data[i, N]
                 data[i, -N:] = data[i,-(N+1)]
-        data.shape = oldShape
+        data = data.reshape(oldShape)
     elif mcaIndex == 0:
-        data.shape = oldShape[0], -1
+        data = data.reshape(oldShape[0], -1)
         for i in range(data.shape[-1]):
             data[N:-N, i] = convolve(data[:, i],coeff, mode='valid')
             if order > 0:
                 data[:N, i] = data[N, i]
                 data[-N:, i] = data[-(N+1), i]
-        data.shape = oldShape
+        data = data.reshape(oldShape)
     else:
         raise ValueError("Invalid 1D index %d" % mcaIndex)
     return

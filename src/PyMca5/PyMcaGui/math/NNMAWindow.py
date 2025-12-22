@@ -272,15 +272,15 @@ class NNMAParametersDialog(qt.QDialog):
         binning = int(self.binningCombo.currentText())
         x = self._x * 1.0
         y = self._y * 1.0
-        x.shape = 1, -1
-        y.shape = 1, -1
+        x = x.reshape(1, -1)
+        y = y.reshape(1, -1)
         r, c = x.shape
-        x.shape = r, int(c / binning), binning
-        y.shape = r, int(c / binning), binning
+        x = x.reshape(r, int(c / binning), binning)
+        y = y.reshape(r, int(c / binning), binning)
         x = x.sum(axis=-1, dtype=numpy.float32) / binning
         y = y.sum(axis=-1, dtype=numpy.float32)
-        x.shape = -1
-        y.shape = -1
+        x = numpy.ravel(x)
+        y = numpy.ravel(y)
         self._binnedX = x
         self._binnedY = y
         if self.graph:
@@ -411,7 +411,7 @@ def test():
     app.lastWindowClosed.connect(app.quit)
     container = NNMAWindow()
     data = numpy.arange(20000)
-    data.shape = 2, 100, 100
+    data = data.reshape(2, 100, 100)
     data[1, 0:100, 0:50] = 100
     container.setPCAData(
         data,

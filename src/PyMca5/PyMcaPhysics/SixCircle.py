@@ -58,7 +58,7 @@ class SixCircle(object):
         :type ublist: list, tuple or array to convert to a 3x3 matrix
         """
         self._ub = numpy.array(ublist, copy=True, dtype=numpy.float64)
-        self._ub.shape = 3, 3
+        self._ub = self._ub.reshape(3, 3)
 
     def getUB(self):
         """
@@ -66,7 +66,7 @@ class SixCircle(object):
         :rtype: list(float)
         """
         a = self._ub * 1
-        a.shape = -1
+        a = numpy.ravel(a)
         return a.tolist()
 
     def setEnergy(self, energy):
@@ -225,7 +225,7 @@ class SixCircle(object):
         deltaDotGamma[2, 0, :] = 0.0
         deltaDotGamma[2, 1, :] = sgam
         deltaDotGamma[2, 2, :] = cgam
-        deltaDotGamma.shape = 3, 3, len(delta) * len(gamma)
+        deltaDotGamma = deltaDotGamma.reshape(3, 3, len(delta) * len(gamma))
 
         return deltaDotGamma
 
@@ -256,7 +256,7 @@ class SixCircle(object):
         MUi = self.getMuMatrix(mu).T
         tmpArray = numpy.dot(PHIi, numpy.dot(CHIi, numpy.dot(THi, MUi)))
         Q = self.getQLab(mu=mu, delta=delta, gamma=gamma, gamma_first=gamma_first)
-        Q.shape = 3, -1
+        Q = Q.reshape(3, -1)
         Q = numpy.transpose(numpy.dot(tmpArray, Q))
         if type(delta) in [type(1.0), type(1)]:
             lendelta = 1
@@ -266,7 +266,7 @@ class SixCircle(object):
             lengamma = 1
         else:
             lengamma = len(gamma)
-        Q.shape = lengamma, lendelta, 3
+        Q = Q.reshape(lengamma, lendelta, 3)
         return Q
 
     def getQSurface(self, phi=0., chi=0., theta=0., mu=0.,
@@ -297,7 +297,7 @@ class SixCircle(object):
         MUi   = self.getMuMatrix(mu).T
         tmpArray = numpy.dot(PHIi, numpy.dot(CHIi, numpy.dot(THi, MUi)))
         Q = self.getQLab(mu=mu, delta=delta, gamma=gamma, gamma_first=gamma_first)
-        Q.shape = 3, -1
+        Q = Q.reshape(3, -1)
         return (numpy.dot(tmpArray, Q))
 
     def getQLab(self, mu=0.0, delta=0.0, gamma=0.0, gamma_first=False):
@@ -390,7 +390,7 @@ class SixCircle(object):
                                        numpy.dot(CHIi,
                                                  numpy.dot(THi, MUi))))
         Q = self.getQLab(mu=mu, delta=delta, gamma=gamma, gamma_first=gamma_first)
-        Q.shape = 3, -1
+        Q = Q.reshape(3, -1)
         return (numpy.dot(tmpArray, Q))
 
 

@@ -162,7 +162,7 @@ def get_live_times(root):
                 image_data_node = node.find("./Plane0")
                 decoded = base64.b64decode(image_data_node.find('./Data').text)
                 result = numpy.frombuffer(decoded, dtype=dtype)
-                result.shape = height, width
+                result = result.reshape(height, width)
                 # express in seconds
                 result = (result * 1.0e-6).astype(numpy.float32)
                 break

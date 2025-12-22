@@ -65,7 +65,7 @@ def subtractSnip1DBackgroundFromStack(stack, width, roi_min=None, roi_max=None, 
 
     oldShape = data.shape
     if mcaIndex in [-1, len(data.shape)-1]:
-        data.shape = -1, oldShape[-1]
+        data = data.reshape(-1, oldShape[-1])
         if roi_min > 0:
             data[:, 0:roi_min] = 0
         if roi_max < oldShape[-1]:
@@ -73,14 +73,14 @@ def subtractSnip1DBackgroundFromStack(stack, width, roi_min=None, roi_max=None, 
         for i in range(data.shape[0]):
             data[i,roi_min:roi_max] -= snip1d(data[i,roi_min:roi_max],
                                               width, smoothing)
-        data.shape = oldShape
+        data = data.reshape(oldShape)
 
     elif mcaIndex == 0:
-        data.shape = oldShape[0], -1
+        data = data.reshape(oldShape[0], -1)
         for i in range(data.shape[-1]):
             data[roi_min:roi_max, i] -= snip1d(data[roi_min:roi_max, i],
                                                width, smoothing)
-        data.shape = oldShape
+        data = data.reshape(oldShape)
     else:
         raise ValueError("Invalid 1D index %d" % mcaIndex)
     return
@@ -102,7 +102,7 @@ def replaceStackWithSnip1DBackground(stack, width, roi_min=None, roi_max=None,  
 
     oldShape = data.shape
     if mcaIndex in [-1, len(data.shape)-1]:
-        data.shape = -1, oldShape[-1]
+        data = data.reshape(-1, oldShape[-1])
         if roi_min > 0:
             data[:, 0:roi_min] = 0
         if roi_max < oldShape[-1]:

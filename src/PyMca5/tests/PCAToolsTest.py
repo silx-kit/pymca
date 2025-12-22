@@ -80,7 +80,7 @@ class testPCATools(unittest.TestCase):
 
         # calculate covariance using PCATools and 3D stack
         # directly and dynamically loading data
-        x.shape = 2, 2, -1
+        x = x.reshape(2, 2, -1)
         for force in [False, True]:
             pymcaCov, pymcaAvg, nData = getCovarianceMatrix(x,
                                                             force=force,
@@ -130,7 +130,7 @@ class testPCATools(unittest.TestCase):
                                                    numpyEigenvectors[i]))
 
         # test with a different shape
-        x.shape = 2, 2, -1
+        x = x.reshape(2, 2, -1)
         ncomp = 3
         for force in [True, False]:
             images, eigenvalues, eigenvectors = numpyPCA(x,

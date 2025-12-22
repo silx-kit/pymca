@@ -549,7 +549,7 @@ def save3DArrayAsHDF5(data, filename, axes=None, labels=None, dtype=None, mode='
                                                   compression=None)
                 for i in range(data.shape[-1]):
                     tmp = data[:, :, i:i + 1]
-                    tmp.shape = 1, shape[1], shape[2]
+                    tmp = tmp.reshape(1, shape[1], shape[2])
                     dset[i, 0:shape[1], :] = tmp
                     _logger.info("Saved item %d of %d",
                                  i + 1, data.shape[-1])
@@ -568,11 +568,11 @@ def save3DArrayAsHDF5(data, filename, axes=None, labels=None, dtype=None, mode='
                         if 0:
                             tmpData = data[k:k + 1]
                             for j in range(data.shape[2]):  # shape[1]
-                                tmpData.shape = data.shape[1], data.shape[2]
+                                tmpData = tmpData.reshape(data.shape[1], data.shape[2])
                                 chunk[0, j, k] = tmpData[i, j]
                         else:
                             tmpData = data[k:k + 1, i, :]
-                            tmpData.shape = -1
+                            tmpData = numpy.ravel(tmpData)
                             chunk[0, :, k] = tmpData
                     _logger.info("Saving item %d of %d",
                                  i, data.shape[1])
@@ -596,7 +596,7 @@ def save3DArrayAsHDF5(data, filename, axes=None, labels=None, dtype=None, mode='
                                                   compression=None)
                 for i in range(data.shape[0]):
                     tmp = data[i:i + 1, :, :]
-                    tmp.shape = shape[0], shape[1], 1
+                    tmp = tmp.reshape(shape[0], shape[1], 1)
                     dset[:, :, i:i + 1] = tmp
         else:
             if compression:
@@ -717,7 +717,7 @@ def save3DArrayAsHDF5(data, filename, axes=None, labels=None, dtype=None, mode='
 
 def main():
     a = numpy.arange(1000000.)
-    a.shape = 20, 50, 1000
+    a = a.reshape(20, 50, 1000)
     save3DArrayAsHDF5(a, '/test.h5', mode='nexus+', interpretation='image')
     getHDF5FileInstanceAndBuffer('/test2.h5', (100, 100, 100))
     print("Date String = ", getDate())

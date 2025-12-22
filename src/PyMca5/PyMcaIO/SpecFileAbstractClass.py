@@ -89,7 +89,7 @@ class SpecFileAbstractScan(object):
         self.scanheader = scanheader
         if hasattr(data, "shape"):
             if len(data.shape) == 1:
-                data.shape = -1, 1
+                data = data.reshape(-1, 1)
         self.__point = point
         if scantype == 'SCAN':
             (rows, cols) = data.shape

@@ -190,7 +190,7 @@ class ArtaxFileParser(object):
                     else:
                         tiff =TiffIO.TiffIO(name + ".tiff", "rb+")
                     tiff.writeImage(data, info={"Title": key})
-                    data.shape = picture["Height"], picture["Width"]
+                    data = data.reshape(picture["Height"], picture["Width"])
                     picture[key]["Data"] = data
                 tiff = None
             #print("pictures = ", pictures.keys())

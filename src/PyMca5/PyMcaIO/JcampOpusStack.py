@@ -85,7 +85,7 @@ class JcampOpusStack(DataObject.DataObject):
         yShape = firstHeaderInfo.get("$MAP_POINTS_IN_Y", None)
         if (xShape is not None) and (yShape is not None):
             if xShape * yShape == nBlocks:
-                data.shape = yShape, xShape, nChannels
+                data = data.reshape(yShape, xShape, nChannels)
             else:
                 print("PRODUCT DOES NOT MATCH NUMBER OF BLOCKS")
 

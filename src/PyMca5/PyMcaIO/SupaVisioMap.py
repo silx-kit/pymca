@@ -61,7 +61,7 @@ class SupaVisioMap(DataObject.DataObject):
         nrows = values[1]
         ncols = values[2]
         self.nSpectra = nrows * ncols
-        data.shape = [len(data)/3, 3]
+        data = data.reshape(int(len(data)/3), 3)
         self.nChannels = data[:,2].max() + 1
 
         #fill the header

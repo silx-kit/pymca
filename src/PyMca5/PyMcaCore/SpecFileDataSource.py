@@ -543,7 +543,7 @@ class SpecFileDataSource(object):
                     output.data[i,:] = mcaData
                 #I have all the MCA data ready for image plot
                 if selectiontype == 'STACK':
-                    output.data.shape = 1, npoints, -1
+                    output.data = output.data.reshape(1, npoints, -1)
                     shape = output.data.shape
                     for i in range(len(shape)):
                         key = 'Dim_%d' % (i+1,)

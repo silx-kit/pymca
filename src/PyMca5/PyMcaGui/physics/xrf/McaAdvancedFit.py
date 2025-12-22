@@ -1941,8 +1941,8 @@ class McaAdvancedFit(qt.QWidget):
                     ydata  = self.mcafit.ydata + self.mcafit.zz
                 else:
                     ydata  = self.mcafit.ydata * 1.0
-                xdata.shape= [len(xdata),]
-                ydata.shape= [len(ydata),]
+                xdata = numpy.ravel(xdata)
+                ydata = numpy.ravel(ydata)
                 self.graph.addCurve(xdata, ydata, legend="Data", replot=True, replace=True)
                 self.graph.updateLegends()
                 return

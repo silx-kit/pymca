@@ -71,7 +71,7 @@ class MarCCD(object):
             data = numpy.array(numpy.frombuffer(fd.read(nbytes), numpy.uint32))
         if swap:
             data = data.byteswap()
-        data.shape = info["nfast"], info["nslow"]
+        data = data.reshape(info["nfast"], info["nslow"])
         self.__data = data
         self.__info = info
         if not isinstance(filename, file):
