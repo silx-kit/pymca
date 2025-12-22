@@ -2,7 +2,7 @@
 #
 # The PyMca X-Ray Fluorescence Toolkit
 #
-# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2025 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF by the Software group.
@@ -692,6 +692,7 @@ def numpyPCA(stack, index=-1, ncomponents=10, binning=None,
                     tmpData = (tmpData[:, ::binning] - avgSpectrum) / standardDeviation
                 else:
                     tmpData = tmpData[:, ::binning]
+                tmpData = tmpData.reshape(nChannels)
                 for j in range(ncomponents):
                     images[j, i] = numpy.dot(tmpData, eigenvectors[j])
             # reshape the images
@@ -706,6 +707,7 @@ def numpyPCA(stack, index=-1, ncomponents=10, binning=None,
                         tmpData = (tmpData[:, ::binning] - avgSpectrum) / standardDeviation
                     else:
                         tmpData = tmpData[:, ::binning]
+                    tmpData = tmpData.reshape(nChannels)
                     for j in range(ncomponents):
                         images[j, i] = numpy.dot(tmpData, eigenvectors[j])
                     i += 1
