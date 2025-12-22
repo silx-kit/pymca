@@ -166,7 +166,7 @@ class TiffArray(object):
                 if i in scalarArgs:
                     continue
                 finalShape.append(outputShape[i])
-            outputArray = outputArray.reshape(finalShape)
+            outputArray = outputArray.reshape(*finalShape)
         return outputArray
 
     def getShape(self):

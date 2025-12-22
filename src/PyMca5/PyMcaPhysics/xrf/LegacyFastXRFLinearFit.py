@@ -620,7 +620,7 @@ class FastXRFLinearFit(object):
                     outputDict['names'].append("C(%s)" % group)
                     if counter == 0:
                         if hasattr(liveTimeFactor, "shape"):
-                            liveTimeFactor = liveTimeFactor.reshape(results[nFreeBackgroundParameters+i].shape)
+                            liveTimeFactor = liveTimeFactor.reshape(*results[nFreeBackgroundParameters+i].shape)
                     massFractions[counter] = liveTimeFactor * \
                         results[nFreeBackgroundParameters+i] * \
                         (concentrationsResult['mass fraction'][group] / \

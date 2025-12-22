@@ -145,7 +145,7 @@ class PCADialog(qt.QDialog):
                     images, eigenvalues, eigenvectors = threadResult
                 except Exception:
                     if isinstance(data, numpy.ndarray):
-                        self._data = self._data.reshape(old_shape)
+                        self._data = self._data.reshape(*old_shape)
                     msg = qt.QMessageBox(self)
                     msg.setIcon(qt.QMessageBox.Critical)
                     msg.setText("%s" % sys.exc_info()[1])

@@ -205,7 +205,7 @@ class ReverseStackPlugin(StackPluginBase.StackPluginBase):
                 # non-scalar positioners are always stored as arrays in info
                 originalShape = motorValues.shape
                 motorValues2d = numpy.array(motorValues, copy=True)
-                motorValues2d = motorValues2d.reshape(stackImageShape)
+                motorValues2d = motorValues2d.reshape(*stackImageShape)
 
                 if direction == "rows":
                     motorValues2d[offset::2] = numpy.fliplr(motorValues2d[offset::2])

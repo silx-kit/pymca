@@ -232,7 +232,7 @@ class NNMAStackPlugin(StackPluginBase.StackPluginBase):
                 tmpData = stack.data[i]
                 tmpData = numpy.ravel(tmpData)
                 data[:, i] = tmpData
-            data = data.reshape(oldShape[1:] + oldShape[0:1])
+            data = data.reshape(*(oldShape[1:] + oldShape[0:1]))
         else:
             data = stack
         try:
@@ -271,7 +271,7 @@ class NNMAStackPlugin(StackPluginBase.StackPluginBase):
                 data = None
             else:
                 if stack.data.shape != oldShape:
-                    stack.data = stack.data.reshape(oldShape)
+                    stack.data = stack.data.reshape(*oldShape)
 
     def threadFinished(self, result):
         _logger.info("threadFinished")

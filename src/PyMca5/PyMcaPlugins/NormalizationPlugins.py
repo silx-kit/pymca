@@ -327,7 +327,7 @@ class NormalizationPlugins(Plugin1DBase.Plugin1DBase):
                 replot = False
                 replace = False
             # this line is absolutely necessary!
-            xi = xi.reshape(y.shape)
+            xi = xi.reshape(*y.shape)
             self.addCurve(xi, y,
                           legend=legend,
                           info=info,

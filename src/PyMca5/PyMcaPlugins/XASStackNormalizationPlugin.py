@@ -193,9 +193,9 @@ class XASStackNormalizationPlugin(StackPluginBase.StackPluginBase):
             else:
                 edges, jumps, errors = result
             images, names = self.getStackROIImagesAndNames()
-            edges = edges.reshape(images[0].shape)
-            jumps = jumps.reshape(images[0].shape)
-            errors = errors.reshape(images[0].shape)
+            edges = edges.reshape(*images[0].shape)
+            jumps = jumps.reshape(*images[0].shape)
+            errors = errors.reshape(*images[0].shape)
             self.setStack(stack)
             if self.imageWidget is None:
                 self.imageWidget = StackPluginResultsWindow.StackPluginResultsWindow(\
@@ -368,7 +368,7 @@ class XASStackNormalizationPlugin(StackPluginBase.StackPluginBase):
                     edges[i] = ed
                     jumps[i] = jmp
             self._progress = 100
-            data = data.reshape(oldShape)
+            data = data.reshape(*oldShape)
         else:
             raise ValueError("Unsupported 1D index %d" % mcaIndex)
         return edges, jumps, errors

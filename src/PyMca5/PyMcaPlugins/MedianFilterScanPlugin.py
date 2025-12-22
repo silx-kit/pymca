@@ -199,7 +199,7 @@ class MedianFilterScanPlugin(Plugin1DBase.Plugin1DBase):
         # now get the final spectrum
         y = medianSpectra.sum(axis=1) / nCurves
         x0 = numpy.ravel(x0)
-        y = y.reshape(x0.shape)
+        y = y.reshape(*x0.shape)
         legend = "%d Median from %s to %s" % (width,
                                               curves[0][2],
                                               curves[-1][2])

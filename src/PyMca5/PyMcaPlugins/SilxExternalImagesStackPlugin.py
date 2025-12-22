@@ -82,7 +82,7 @@ def resize_image(original_image, new_shape):
 
     interpolated_values = bilinimg.map_coordinates((row_array, column_array))
 
-    interpolated_values = interpolated_values.reshape(new_shape)
+    interpolated_values = interpolated_values.reshape(*new_shape)
     return interpolated_values
 
 

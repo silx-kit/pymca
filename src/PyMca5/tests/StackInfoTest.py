@@ -163,16 +163,16 @@ class testStackInfo(unittest.TestCase):
             mask = numpy.zeros((nRows, nColumns), dtype=numpy.uint8)
         mask[2, :] = 1
         mask[0, 0:2] = 1
-        live_time = live_time.reshape(mask.shape)
+        live_time = live_time.reshape(*mask.shape)
         sb.setSelectionMask(mask)
         mcaObject = sb.calculateMcaDataObject(normalize=False)
-        live_time = live_time.reshape(mask.shape)
+        live_time = live_time.reshape(*mask.shape)
         readLiveTime = mcaObject.info["McaLiveTime"]
         self.assertTrue(abs(live_time[mask > 0].sum() - readLiveTime) < 1.0e-5,
                 "Incorrect sum of masked live time data")
 
         mcaObject = sb.calculateMcaDataObject(normalize=True)
-        live_time = live_time.reshape(mask.shape)
+        live_time = live_time.reshape(*mask.shape)
         tmpBuffer = numpy.zeros(mask.shape, dtype=numpy.int32)
         tmpBuffer[mask > 0] = 1
         nSelectedPixels = float(tmpBuffer.sum())
