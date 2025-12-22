@@ -58,20 +58,20 @@ for transition in ElementKShellTransitions:
 filedata = sf[0].data()
 ndata    = sf[0].lines()
 ElementKAlphaRates = filedata[0] * 1
-ElementKAlphaRates.shape = [ndata, 1]
+ElementKAlphaRates = ElementKAlphaRates.reshape(ndata, 1)
 ElementKBetaRates = filedata[0] * 1
-ElementKBetaRates.shape  = [ndata, 1]
+ElementKBetaRates = ElementKBetaRates.reshape(ndata, 1)
 for transition in ElementKAlphaTransitions:
     if transition[0] != 'Z':
         data = filedata[ElementKShellTransitions.index(transition)] * 1
-        data.shape = [ndata, 1]
+        data = data.reshape(ndata, 1)
         ElementKAlphaRates = numpy.concatenate((ElementKAlphaRates, data),
                                                  axis = 1)
 
 for transition in ElementKBetaTransitions:
     if transition[0] != 'Z':
         data = filedata[ElementKShellTransitions.index(transition)] * 1
-        data.shape = [ndata, 1]
+        data = data.reshape(ndata, 1)
         ElementKBetaRates = numpy.concatenate((ElementKBetaRates, data),
                                                 axis = 1)
 for i in range(len(ElementKAlphaTransitions)):

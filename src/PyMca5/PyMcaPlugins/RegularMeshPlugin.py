@@ -165,7 +165,7 @@ class RegularMeshPlugins(Plugin1DBase.Plugin1DBase):
         self._legend = legend
         self._info = info
         yView = y[:]
-        yView.shape = len(self._motor1), len(self._motor0)
+        yView = yView.reshape(len(self._motor1), len(self._motor0))
         if self.imageWidget is None:
             self.imageWidget = MaskImageWidget.MaskImageWidget(\
                                         imageicons=False,

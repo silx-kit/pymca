@@ -1033,8 +1033,8 @@ class XASClass(object):
         self._lastE0CalculationDict = None
         energy0 = numpy.array(energy, dtype=numpy.float64, copy=True)
         mu0 = numpy.array(mu, dtype=numpy.float64, copy=True)
-        energy0.shape = -1
-        mu0.shape = -1
+        energy0 = numpy.ravel(energy0)
+        mu0 = numpy.ravel(mu0)
         self._equidistant = False
 
         # TODO: This should become a function to be called on its own
@@ -1244,8 +1244,8 @@ class XASClass(object):
             nWorkingPoints = 10 * energy.size
             eWork = numpy.linspace(energy[1], energy[-2], nWorkingPoints)
             muWork = numpy.interp(eWork, energy, mu, mu[0], mu[-1])
-        eWork.shape = -1
-        muWork.shape = -1
+        eWork = numpy.ravel(eWork)
+        muWork = numpy.ravel(muWork)
 
         methodLower = method.lower()
         if methodLower.endswith("manual"):
@@ -1276,8 +1276,8 @@ class XASClass(object):
     def _getRegionsData(self, x0, y0, regions):
         x = x0[:]
         y = y0[:]
-        x.shape = -1
-        y.shape = -1
+        x = numpy.ravel(x)
+        y = numpy.ravel(y)
         i = 0
         for region in regions:
             xmin, xmax = region

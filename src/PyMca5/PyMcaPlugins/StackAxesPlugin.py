@@ -101,7 +101,7 @@ class StackAxesPlugin(StackPluginBase.StackPluginBase):
 
         filename = fileList[0]
         data = numpy.loadtxt(filename)
-        data.shape = -1
+        data = numpy.ravel(data)
         if data.size != nPoints:
             raise ValueError("Number of read values not equal to %d" % nPoints)
         else:
@@ -114,7 +114,7 @@ class StackAxesPlugin(StackPluginBase.StackPluginBase):
         nPoints = stack.data.shape[mcaIndex]
         curve = self.getActiveCurve()
         data = curve[1]
-        data.shape = -1
+        data = numpy.ravel(data)
         if data.size != nPoints:
             raise ValueError("Number of read values not equal to %d" % nPoints)
         else:
@@ -127,7 +127,7 @@ class StackAxesPlugin(StackPluginBase.StackPluginBase):
         nPoints = stack.data.shape[mcaIndex]
         curve = self.getActiveCurve()
         data = curve[0]
-        data.shape = -1
+        data = numpy.ravel(data)
         if data.size != nPoints:
             raise ValueError("Number of read values not equal to %d" % nPoints)
         else:

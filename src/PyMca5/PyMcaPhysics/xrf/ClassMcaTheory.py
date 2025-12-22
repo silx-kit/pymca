@@ -1241,7 +1241,7 @@ class McaTheory(object):
             if lastAnchor < len(ysmooth):
                 self.zz[lastAnchor:] =\
                         SpecfitFuns.snip1d(ysmooth[lastAnchor:], width, 0)
-            self.zz.shape = n, 1
+            self.zz = self.zz.reshape(n, 1)
             self.laststripalgorithm  = self.config['fit']['stripalgorithm']
             self.lastsnipwidth       = self.config['fit']['snipwidth']
             self.laststripfilterwidth = self.config['fit']['stripfilterwidth']

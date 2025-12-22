@@ -311,7 +311,7 @@ class NormalizationPlugins(Plugin1DBase.Plugin1DBase):
             yi = numpy.take(y0, idx)
 
             #perform interpolation
-            xi.shape = -1, 1
+            xi = xi.reshape(-1, 1)
             yw = SpecfitFuns.interpol([x], y, xi, yi.min())
             y = yw / yi
             if minusLog:
@@ -327,7 +327,7 @@ class NormalizationPlugins(Plugin1DBase.Plugin1DBase):
                 replot = False
                 replace = False
             # this line is absolutely necessary!
-            xi.shape = y.shape
+            xi = xi.reshape(y.shape)
             self.addCurve(xi, y,
                           legend=legend,
                           info=info,

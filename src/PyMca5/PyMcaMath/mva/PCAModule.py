@@ -156,7 +156,7 @@ def lanczosPCA2(stack, ncomponents=10, binning=None, legacy=True, **kw):
     r, c, N = data.shape
 
     npixels = r * c  # number of pixels
-    data.shape = r * c, N
+    data = data.reshape(r * c, N)
 
     if npixels < 2000:
         BINNING = 2
@@ -592,7 +592,7 @@ def mdpPCA(stack, ncomponents=10, binning=None, dtype='float64', svd='True',
         r, c, N = data.shape
         # data can be dynamically loaded
         if isinstance(data, numpy.ndarray):
-            data.shape = r * c, N
+            data = data.reshape(r * c, N)
     else:
         r, N = data.shape
         c = 1
@@ -624,7 +624,7 @@ def mdpPCA(stack, ncomponents=10, binning=None, dtype='float64', svd='True',
                     print("Training data %d out of %d" % (i + j + 1, r))
                 tmpData = data[i:(i + step), :, :]
                 if binning > 1:
-                    tmpData.shape = (step * shape[1],
+                    tmpData = tmpData.reshape(step * shape[1],
                                      shape[2] // binning,
                                      binning)
                     tmpData = numpy.sum(tmpData, axis=-1)
@@ -709,7 +709,7 @@ def mdpPCA(stack, ncomponents=10, binning=None, dtype='float64', svd='True',
                     tmpData = data[i, :, :]
                 else:
                     tmpData = data[i, :, spectral_mask > 0]
-                tmpData.shape = data.shape[1], data.shape[2] // binning, binning
+                tmpData = tmpData.reshape(data.shape[1], data.shape[2] // binning, binning)
                 tmpData = numpy.sum(tmpData, axis=-1)
                 images[:, i, :] = numpy.dot(proj.astype(data.dtype), tmpData.T)
             else:
@@ -729,10 +729,10 @@ def mdpPCA(stack, ncomponents=10, binning=None, dtype='float64', svd='True',
     #make sure the shape of the original data is not modified
     if hasattr(stack, "info") and hasattr(stack, "data"):
         if stack.data.shape != oldShape:
-            stack.data.shape = oldShape
+            stack.data = stack.data.reshape(oldShape)
     else:
         if stack.shape != oldShape:
-            stack.shape = oldShape
+            stack = stack.reshape(oldShape)
 
     if spectral_mask is not None:
         eigenvectors = numpy.zeros((ncomponents, N), pca.v.dtype)

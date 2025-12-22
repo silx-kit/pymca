@@ -82,7 +82,7 @@ def resize_image(original_image, new_shape):
 
     interpolated_values = bilinimg.map_coordinates((row_array, column_array))
 
-    interpolated_values.shape = new_shape
+    interpolated_values = interpolated_values.reshape(new_shape)
     return interpolated_values
 
 
@@ -267,13 +267,13 @@ class SilxExternalImagesStackPlugin(ExternalImagesStackPluginBase.ExternalImages
             pixmap[:, 1] = pixmap0[:]
             pixmap[:, 2] = pixmap0[:]
             pixmap[:, 3] = 255
-            pixmap.shape = height, width, 4
+            pixmap = pixmap.reshape(height, width, 4)
         else:
             qimage = qimage.convertToFormat(qt.QImage.Format_ARGB32)
             pixmap0 = numpy.frombuffer(qimage.bits().asstring(width * height * 4),
                                        dtype=numpy.uint8)
             pixmap = numpy.array(pixmap0)  # copy
-            pixmap.shape = height, width, -1
+            pixmap = pixmap.reshape(height, width, -1)
             # Qt uses BGRA, convert to RGBA
             tmpBuffer = numpy.array(pixmap[:, :, 0], copy=True, dtype=pixmap.dtype)
             pixmap[:, :, 0] = pixmap[:, :, 2]

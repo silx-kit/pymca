@@ -280,7 +280,7 @@ class FastXRFLinearFit(object):
             deriv= self._mcaTheory.linearMcaTheoryDerivative(self._mcaTheory.parameters,
                                                              i,
                                                              self._mcaTheory.xdata)
-            deriv.shape = -1
+            deriv = numpy.ravel(deriv)
             if derivatives is None:
                 derivatives = numpy.zeros((deriv.shape[0], nFree), numpy.float64)
             derivatives[:, idx] = deriv
@@ -479,7 +479,7 @@ class FastXRFLinearFit(object):
                         spectra[:] = data[badMask, iXMin:iXMax+1]
                     else:
                         spectra = data[badMask, iXMin:iXMax+1]
-                    spectra.shape = badMask.sum(), -1
+                    spectra = spectra.reshape(int(badMask.sum()), -1)
                 except TypeError:
                     # in case of dynamic arrays, two dimensional indices are not
                     # supported by h5py
@@ -620,7 +620,7 @@ class FastXRFLinearFit(object):
                     outputDict['names'].append("C(%s)" % group)
                     if counter == 0:
                         if hasattr(liveTimeFactor, "shape"):
-                            liveTimeFactor.shape = results[nFreeBackgroundParameters+i].shape
+                            liveTimeFactor = liveTimeFactor.reshape(results[nFreeBackgroundParameters+i].shape)
                     massFractions[counter] = liveTimeFactor * \
                         results[nFreeBackgroundParameters+i] * \
                         (concentrationsResult['mass fraction'][group] / \
