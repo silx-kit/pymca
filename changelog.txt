@@ -1,6 +1,14 @@
 VERSION 5.9.5
 -------------
 
+- Add the possibility to white NaN values in RGB Correlator.
+
+- IO. Improved sorting of scans in HDF5 files.
+
+- XRF. Add support for standard batch fitting of BCF files.
+
+- XRF. Support three incoming beam filters.
+
 - XRF. Support secondary excitation calculations fitting M subshells.
 
 VERSION 5.9.4
