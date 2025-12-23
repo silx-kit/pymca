@@ -1,3 +1,8 @@
+Unreleased
+----------
+
+- XRF. Bug fix in batch processing when using fit files.
+
 VERSION 5.9.5
 -------------
 

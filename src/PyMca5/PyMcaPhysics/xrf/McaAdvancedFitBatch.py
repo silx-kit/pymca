@@ -699,7 +699,7 @@ class McaAdvancedFitBatch(object):
         fitfile = self.__getFitFile(filename,key,createdirs=False)
         if os.path.exists(fitfile) and not self.overwrite:
             # Load MCA data when needed
-            if outbuffer.saveDataDiagnostics:
+            if self.outbuffer.saveDataDiagnostics:
                 if not self._attemptMcaLoad(x, y, filename, info=info):
                     return result, concentrations
             # Load result from FIT file
