@@ -130,7 +130,7 @@ class NNMADialog(qt.QDialog):
                     msg.exec()
                     return
             if isinstance(self._data, numpy.ndarray):
-                self._data = self._data.reshape(old_shape)
+                self._data = self._data.reshape(*old_shape)
             _logger.debug("NNMA Elapsed = %s", time.time() - t0)
             self.nnmaWindow.setPCAData(images,
                                        eigenvalues,
