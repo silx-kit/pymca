@@ -558,7 +558,7 @@ class  EdfFile(object):
             ydim = numpy.int64(struct.unpack('<h', a[656:658])[0])
             fmt = '<%dH' % int(xdim * ydim)
             self.__data = numpy.array(struct.unpack(fmt, a[4100:int(4100+ int(2 * xdim * ydim))])).astype(numpy.uint16)
-        self.__data.shape = ydim, xdim
+        self.__data = self.__data.reshape(ydim, xdim)
         Index = 0
         self.Images.append(Image())
         self.NumImages = 1
@@ -1209,7 +1209,7 @@ if __name__ == "__main__":
             print("C", c[i, :])
 
         x = numpy.arange(100)
-        x.shape = 5, 20
+        x = x.reshape(5, 20)
         for item in ["SignedByte", "UnsignedByte",
                      "SignedShort", "UnsignedShort",
                      "SignedLong", "UnsignedLong",

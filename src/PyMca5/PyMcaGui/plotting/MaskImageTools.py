@@ -99,7 +99,7 @@ def getPixmapFromData(ndarray, colormap=None, mask=None, colors=None):
         data = ndarray[:]
 
     if len(oldShape) == 1:
-        data.shape = -1, 1
+        data = data.reshape(-1, 1)
     elif len(oldShape) != 2:
         raise TypeError("Input array must be of dimension 2 got %d" % \
                                 len(oldShape))
@@ -200,9 +200,9 @@ def getPixmapFromData(ndarray, colormap=None, mask=None, colors=None):
                             (0,255), 1)
 
     # make sure alpha is set
-    pixmap.shape = -1, 4
+    pixmap = pixmap.reshape(-1, 4)
     pixmap[:, 3] = 255
-    pixmap.shape = list(data.shape) + [4]
+    pixmap = pixmap.reshape(list(data.shape) + [4])
     if not goodData:
         pixmap[finiteData < 1] = 255
     if mask is not None:
@@ -240,15 +240,15 @@ def applyMaskToImage(pixmap, mask=None, colors=None, copy=True):
         else:
             raise ValueError("Different mask levels require color list input")
     oldShape = pixmap.shape
-    pixmap.shape = -1, 4
+    pixmap = pixmap.reshape(-1, 4)
     maskView = mask[:]
-    maskView.shape = -1,
+    maskView = numpy.ravel(maskView)
     blendFactor = 0.8
     for i in range(startIndex, maxValue + 1):
         idx = (maskView==i)
         pixmap[idx, :] = pixmap[idx, :] * blendFactor + \
                          colors[i] * (1.0 - blendFactor)
-    pixmap.shape = oldShape
+    pixmap = pixmap.reshape(*oldShape)
     return pixmap
 
 if __name__ == "__main__":

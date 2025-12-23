@@ -224,7 +224,7 @@ class SimpleFitAll(object):
         if self.curves_x is None:
             nValues = y.size
             x = numpy.arange(float(nValues))
-            x.shape = y.shape
+            x = x.reshape(*y.shape)
             self.curves_x = x
         elif hasattr(self.curves_x, "shape") and len(self.curves_x.shape) == 1:
             # same x array for all curves

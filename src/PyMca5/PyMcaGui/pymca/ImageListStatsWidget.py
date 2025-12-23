@@ -202,7 +202,7 @@ class ImageListStatsWidget(qt.QTabWidget):
 def main():
     w = ImageListStatsWidget()
     data = numpy.arange(20000)
-    data.shape = 2, 100, 100
+    data = data.reshape(2, 100, 100)
     data[1, 0:100, 0:50] = 100
     w.setImageList(data, image_names=["I1", "I2"])
     w.show()

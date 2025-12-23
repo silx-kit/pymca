@@ -145,14 +145,14 @@ class PCADialog(qt.QDialog):
                     images, eigenvalues, eigenvectors = threadResult
                 except Exception:
                     if isinstance(data, numpy.ndarray):
-                        self._data.shape = old_shape
+                        self._data = self._data.reshape(*old_shape)
                     msg = qt.QMessageBox(self)
                     msg.setIcon(qt.QMessageBox.Critical)
                     msg.setText("%s" % sys.exc_info()[1])
                     msg.exec()
                     return
             if isinstance(self._data, numpy.ndarray):
-                self._data.shape = old_shape
+                self._data = self._data.reshape(old_shape)
             _logger.debug("PCA Elapsed = %s", time.time() - t0)
             methodlabel = pcaParameters.get('methodlabel', "")
             imagenames = None

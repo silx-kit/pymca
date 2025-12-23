@@ -537,7 +537,7 @@ class FastXRFLinearFit(object):
             deriv = self._mcaTheory.linearMcaTheoryDerivative(self._mcaTheory.parameters,
                                                               iParam,
                                                               self._mcaTheory.xdata)
-            deriv.shape = -1
+            deriv = numpy.ravel(deriv)
             if derivatives is None:
                 derivatives = numpy.zeros((deriv.shape[0], nFree), dtype=dtype)
             derivatives[:, idx] = deriv
@@ -922,7 +922,7 @@ class FastXRFLinearFit(object):
                 labels.append(group)
                 if counter == 0:
                     if hasattr(liveTimeFactor, "shape"):
-                        liveTimeFactor.shape = results[nFreeBkg+i].shape
+                        liveTimeFactor = liveTimeFactor.reshape(*results[nFreeBkg+i].shape)
                 massFractions[counter] = liveTimeFactor * \
                     results[nFreeBkg+i] * \
                     (concentrationsResult['mass fraction'][group] / \

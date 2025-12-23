@@ -272,10 +272,10 @@ class PCAStackPlugin(StackPluginBase.StackPluginBase):
         finally:
             if "Multiple" in self.__methodlabel:
                 for i in range(len(stackList)):
-                    stackList[i].data.shape = oldShapes[i]
+                    stackList[i].data = stackList[i].data.reshape(*oldShapes[i])
             else:
                 if stack.data.shape != oldShape:
-                    stack.data.shape = oldShape
+                    stack.data = stack.data.reshape(*oldShape)
 
     def threadFinished(self, result):
         _logger.info("threadFinished")

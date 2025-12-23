@@ -82,7 +82,7 @@ def shiftBilinear(img, shift):
     x[:,1] = shift[1] + numpy.outer(numpy.ones(shape[0]), numpy.arange(shape[1])).reshape(-1)
     shifted = SpecfitFuns.interpol([numpy.arange(shape[0]),
                                     numpy.arange(shape[1])], img, x)
-    shifted.shape = shape[0], shape[1]
+    shifted = shifted.reshape(shape[0], shape[1])
     return shifted
 
 def shiftImage(img, shift, method=None):

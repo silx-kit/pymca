@@ -120,10 +120,10 @@ class AlignmentScanPlugin(Plugin1DBase.Plugin1DBase):
         x0 = xi * 1
         y0 = yi * 1
 
-        y0.shape = -1
+        y0 = numpy.ravel(y0)
         fft0 = numpy.fft.fft(y0)
-        y0.shape = -1, 1
-        x0.shape = -1, 1
+        y0 = y0.reshape(-1, 1)
+        x0 = x0.reshape(-1, 1)
         nChannels = x0.shape[0]
 
         # built a couple of temporary array of spectra for handy access
@@ -146,13 +146,13 @@ class AlignmentScanPlugin(Plugin1DBase.Plugin1DBase):
 
             if needInterpolation:
                 # we have to interpolate
-                x.shape = -1
-                y.shape = -1
+                x = numpy.ravel(x)
+                y = numpy.ravel(y)
                 xi = x0[:] * 1
                 y = SpecfitFuns.interpol([x], y, xi, y0.min())
                 x = xi
 
-            y.shape = -1
+            y = numpy.ravel(y)
             i += 1
 
             # now calculate the shift
@@ -160,7 +160,7 @@ class AlignmentScanPlugin(Plugin1DBase.Plugin1DBase):
 
             if numpy.allclose(fft0, ffty):
                 shiftList.append(0.0)
-                x.shape = -1
+                x = numpy.ravel(x)
             else:
                 shift = numpy.fft.ifft(fft0 * ffty.conjugate()).real
                 shift2 = numpy.zeros(shift.shape, dtype=shift.dtype)
@@ -176,11 +176,11 @@ class AlignmentScanPlugin(Plugin1DBase.Plugin1DBase):
 
                 # shift the curve
                 shift = (shift - m) * (x[1]-x[0])
-                x.shape = -1
+                x = numpy.ravel(x)
                 y = numpy.fft.ifft(numpy.exp(-2.0*numpy.pi*numpy.sqrt(numpy.complex(-1))*\
                                 numpy.fft.fftfreq(len(x), d=x[1]-x[0])*shift)*ffty)
                 y = y.real
-                y.shape = -1
+                y = numpy.ravel(y)
             curveList.append([x, y, legend + "SHIFT", False, False])
         curveList[-1][-2] = True
         curveList[-1][-1] = False

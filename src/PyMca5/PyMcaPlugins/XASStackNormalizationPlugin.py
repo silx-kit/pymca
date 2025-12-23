@@ -193,9 +193,9 @@ class XASStackNormalizationPlugin(StackPluginBase.StackPluginBase):
             else:
                 edges, jumps, errors = result
             images, names = self.getStackROIImagesAndNames()
-            edges.shape = images[0].shape
-            jumps.shape = images[0].shape
-            errors.shape = images[0].shape
+            edges = edges.reshape(*images[0].shape)
+            jumps = jumps.reshape(*images[0].shape)
+            errors = errors.reshape(*images[0].shape)
             self.setStack(stack)
             if self.imageWidget is None:
                 self.imageWidget = StackPluginResultsWindow.StackPluginResultsWindow(\
@@ -268,7 +268,7 @@ class XASStackNormalizationPlugin(StackPluginBase.StackPluginBase):
         data = actualData[:]
         DONE = 0
         if mcaIndex in [-1, len(data.shape)-1]:
-            data.shape = -1, oldShape[-1]
+            data = data.reshape(-1, oldShape[-1])
             edges = numpy.zeros(data.shape[0], numpy.float32)
             jumps = numpy.zeros(data.shape[0], numpy.float32)
             errors = numpy.zeros(data.shape[0], numpy.float32)
@@ -321,9 +321,9 @@ class XASStackNormalizationPlugin(StackPluginBase.StackPluginBase):
                     edges[i] = ed
                     jumps[i] = jmp
             self._progress = 100
-            data.shape = oldShape
+            data = data.reshape(*oldShape)
         elif mcaIndex == 0:
-            data.shape = oldShape[0], -1
+            data = data.reshape(oldShape[0], -1)
             edges = numpy.zeros(data.shape[-1], numpy.float32)
             jumps = numpy.zeros(data.shape[-1], numpy.float32)
             errors = numpy.zeros(data.shape[-1], numpy.float32)
@@ -368,7 +368,7 @@ class XASStackNormalizationPlugin(StackPluginBase.StackPluginBase):
                     edges[i] = ed
                     jumps[i] = jmp
             self._progress = 100
-            data.shape = oldShape
+            data = data.reshape(*oldShape)
         else:
             raise ValueError("Unsupported 1D index %d" % mcaIndex)
         return edges, jumps, errors

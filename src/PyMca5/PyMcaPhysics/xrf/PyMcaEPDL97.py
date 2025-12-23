@@ -136,36 +136,36 @@ def _initializeElement(element):
         #translate the label to the PyMca keys
         if ('coherent' in label) and ('incoherent' not in label):
             EPDL97_DICT[element]['EPDL97']['coherent'] = data[i, :]
-            EPDL97_DICT[element]['EPDL97']['coherent'].shape = -1
+            EPDL97_DICT[element]['EPDL97']['coherent'] = numpy.ravel(EPDL97_DICT[element]['EPDL97']['coherent'])
             continue
         if ('incoherent' in label) and ('plus' not in label):
             EPDL97_DICT[element]['EPDL97']['compton'] = data[i, :]
-            EPDL97_DICT[element]['EPDL97']['compton'].shape = -1
+            EPDL97_DICT[element]['EPDL97']['compton'] = numpy.ravel(EPDL97_DICT[element]['EPDL97']['compton'])
             continue
         if 'allother' in label:
             EPDL97_DICT[element]['EPDL97']['all other'] = data[i, :]
-            EPDL97_DICT[element]['EPDL97']['all other'].shape = -1
+            EPDL97_DICT[element]['EPDL97']['all other'] = numpy.ravel(EPDL97_DICT[element]['EPDL97']['all other'])
             continue
         label = label.replace(" ","").split("(")[0]
         if 'energy' in label:
             EPDL97_DICT[element]['EPDL97']['energy'] = data[i, :]
-            EPDL97_DICT[element]['EPDL97']['energy'].shape = -1
+            EPDL97_DICT[element]['EPDL97']['energy'] = numpy.ravel(EPDL97_DICT[element]['EPDL97']['energy'])
             continue
         if 'photoelectric' in label:
             EPDL97_DICT[element]['EPDL97']['photo'] = data[i, :]
-            EPDL97_DICT[element]['EPDL97']['photo'].shape = -1
+            EPDL97_DICT[element]['EPDL97']['photo'] = numpy.ravel(EPDL97_DICT[element]['EPDL97']['photo'])
             #a reference should not be expensive ...
             EPDL97_DICT[element]['EPDL97']['photoelectric'] =\
                                 EPDL97_DICT[element]['EPDL97']['photo']
             continue
         if 'total' in label:
             EPDL97_DICT[element]['EPDL97']['total'] = data[i, :]
-            EPDL97_DICT[element]['EPDL97']['total'].shape = -1
+            EPDL97_DICT[element]['EPDL97']['total'] = numpy.ravel(EPDL97_DICT[element]['EPDL97']['total'])
             continue
         if label[0].upper() in ['K', 'L', 'M']:
             #for the time being I do not use the other shells in PyMca
             EPDL97_DICT[element]['EPDL97'][label.upper()] = data[i, :]
-            EPDL97_DICT[element]['EPDL97'][label.upper()].shape = -1
+            EPDL97_DICT[element]['EPDL97'][label.upper()] = numpy.ravel(EPDL97_DICT[element]['EPDL97'][label.upper()])
             continue
     EPDL97_DICT[element]['EPDL97']['pair'] = 0.0 *\
                                              EPDL97_DICT[element]['EPDL97']['energy']

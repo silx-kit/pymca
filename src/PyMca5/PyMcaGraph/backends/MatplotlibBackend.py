@@ -1217,7 +1217,7 @@ class MatplotlibGraph(FigureCanvas):
         #print(dir(self._drawingPatch))
         a = self._drawingPatch.get_xy()
         ddict['points'] = numpy.array(a)
-        ddict['points'].shape = -1, 2
+        ddict['points'] = ddict['points'].reshape(-1, 2)
         ddict['xdata'] = ddict['points'][:, 0]
         ddict['ydata'] = ddict['points'][:, 1]
         #print(numpyvstack(a))
@@ -1751,8 +1751,8 @@ class MatplotlibBackend(PlotBackend.PlotBackend):
             if fill:
                 item.set_hatch('.')
         elif shape in ['polygon']:
-            xView.shape = 1, -1
-            yView.shape = 1, -1
+            xView = xView.reshape(1, -1)
+            yView = yView.reshape(1, -1)
             item = Polygon(numpyvstack((xView, yView)).T,
                             closed=True,
                             fill=False,
@@ -2858,7 +2858,7 @@ if __name__ == "__main__":
     w.replot()
     #w.invertYAxis(True)
     data = numpy.arange(1000.*1000)
-    data.shape = 10000,100
+    data = data.reshape(10000, 100)
     #plot.replot()
     #w.invertYAxis(True)
     #w.replot()

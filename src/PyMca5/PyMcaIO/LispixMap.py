@@ -127,7 +127,7 @@ class LispixMap(DataObject.DataObject):
                 nBytes = struct.calcsize(fmt)
                 for i in range(channels):
                     tmpData = numpy.array(struct.unpack(fmt, f.read(nBytes)), dtype=self.data.dtype)
-                    tmpData.shape = rows, columns
+                    tmpData = tmpData.reshape(rows, columns)
                     self.data[:, :, i] = tmpData
             finally:
                 f.close()
@@ -152,7 +152,7 @@ class LispixMap(DataObject.DataObject):
                 nBytes = struct.calcsize(fmt)
                 for i in range(channels):
                     tmpData = numpy.array(struct.unpack(fmt, f.read(nBytes)), dtype=self.data.dtype)
-                    tmpData.shape = rows, columns
+                    tmpData = tmpData.reshape(rows, columns)
                     self.data[i] = tmpData
             finally:
                 f.close()
@@ -173,7 +173,7 @@ class LispixMap(DataObject.DataObject):
                 nBytes = struct.calcsize(fmt)
                 for i in range(rows):
                     tmpData = numpy.array(struct.unpack(fmt, f.read(nBytes)), dtype=self.data.dtype)
-                    tmpData.shape = columns, channels
+                    tmpData = tmpData.reshape(columns, channels)
                     self.data[i] = tmpData
             finally:
                 f.close()
@@ -183,14 +183,14 @@ class LispixMap(DataObject.DataObject):
 
         if native:
             if description["record-by"] == "image":
-                self.data.shape = channels, rows, columns
+                self.data = self.data.reshape(channels, rows, columns)
                 mcaIndex = 0
             elif description["record-by"] == "vector":
-                self.data.shape = rows, columns, channels
+                self.data = self.data.reshape(rows, columns, channels)
                 mcaIndex = 2
             else:
                 _logger.info("Assuming spectra")
-                self.data.shape = rows, columns, channels
+                self.data = self.data.reshape(rows, columns, channels)
                 mcaIndex = 2
 
         self.sourceName = filename

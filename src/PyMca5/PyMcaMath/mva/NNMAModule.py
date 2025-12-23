@@ -237,10 +237,10 @@ def nnma(stack, ncomponents, binning=None,
 
     if isinstance(data, numpy.ndarray):
         dataView = data[:]
-        dataView.shape = r * c, N
+        dataView = dataView.reshape(r * c, N)
         if spectral_mask is not None:
             if binning > 1:
-                dataView.shape = r * c, N // binning, binning
+                dataView = dataView.reshape(r * c, N // binning, binning)
                 dataView = numpy.sum(dataView, axis=-1, dtype=numpy.float32)
                 N = N // binning
             try:
@@ -252,11 +252,11 @@ def nnma(stack, ncomponents, binning=None,
             data[:, idx] = dataView[:, idx]            
         else:
             if binning > 1:
-                dataView.shape = r * c, N // binning, binning
+                dataView = dataView.reshape(r * c, N // binning, binning)
                 data = numpy.sum(dataView , axis=-1, dtype=numpy.float32)
                 N = N // binning
             else:
-                data.shape = r * c, N
+                data = data.reshape(r * c, N)
     else:
         # we have to build the data dynamically
         oldData = data
@@ -274,7 +274,7 @@ def nnma(stack, ncomponents, binning=None,
                     for i in range(data.shape[0]):
                         data[i] = oldData[i]
                 else:
-                    data.shape = r * c, N
+                    data = data.reshape(r * c, N)
                     for i in range(data.shape[0]):
                         data[i] = oldData[i]
             else:
@@ -283,42 +283,42 @@ def nnma(stack, ncomponents, binning=None,
                     for i in range(data.shape[0]):
                         data[i, :, idx] = oldData[i, :, idx]
                 else:
-                    data.shape = r * c, N
+                    data = data.reshape(r * c, N)
                     for i in range(data.shape[0]):
                         data[i, idx] = oldData[i, idx]
-            data.shape = r * c, N
+            data = data.reshape(r * c, N)
         else:
             if spectral_mask is None:
                 if len(oldShape) == 3:
                     for i in range(data.shape[0]):
                         tmpData = oldData[i, :, :]
-                        tmpData.shape = c, N, binning
+                        tmpData = tmpData.reshape(c, N, binning)
                         data[i, :] = numpy.sum(tmpData, axis=-1, dtype=numpy.float32)
                 else:
-                    data.shape = r * c, N
+                    data = data.reshape(r * c, N)
                     for i in range(data.shape[0]):
                         tmpData = oldData[i]
-                        tmpData.shape = N, binning
+                        tmpData = tmpData.reshape(N, binning)
                         data[i] = numpy.sum(tmpData, axis=-1, dtype=numpy.float32)
             else:
                 idx = spectral_mask > 0
                 if len(oldShape) == 3:
                     for i in range(data.shape[0]):
                         tmpData = oldData[i, :, :]
-                        tmpData.shape = 1, -1, N, binning
+                        tmpData = tmpData.reshape(1, -1, N, binning)
                         data[i, :, idx] = numpy.sum(tmpData, axis=-1, dtype=numpy.float32)[0, :, idx]
                 else:
-                    data.shape = r * c, N
+                    data = data.reshape(r * c, N)
                     for i in range(data.shape[0]):
                         tmpData = oldData[i]
-                        tmpData.shape = 1, N, binning
+                        tmpData = tmpData.reshape(1, N, binning)
                         data[i, idx] = numpy.sum(tmpData, axis=-1, dtype=numpy.float32)[0, idx]
-            data.shape = r * c, N
+            data = data.reshape(r * c, N)
 
     if mask is not None:
         # the mask contains the good data
         maskview = mask[:]
-        maskview.shape = -1
+        maskview = numpy.ravel(maskview)
         data = data[maskview,:]
 
     #mindata = data.min()
@@ -349,7 +349,7 @@ def nnma(stack, ncomponents, binning=None,
     #data.shape = oldShape
     images = A.T
     if 0:
-        images.shape = ncomponents, r, c
+        images = images.reshape(ncomponents, r, c)
         return images, numpy.ones((ncomponents), numpy.float32),X
 
     #order and scale images according to Gerd Wellenreuthers' recipe
@@ -386,13 +386,13 @@ def nnma(stack, ncomponents, binning=None,
         else:
             #imaging the projected sum gives same results
             Atmp = images[idx, :]
-            Atmp.shape = -r*c, 1
+            Atmp = Atmp.reshape(-r*c, 1)
             Xtmp = X[idx,:]
-            Xtmp.shape = 1, -1
+            Xtmp = Xtmp.reshape(1, -1)
             new_images[i, maskview] = numpy.sum(numpy.dot(Atmp, Xtmp), axis=1)
         new_vectors[i,:] = X[idx,:]
         values[i] = 100.*total_nnma_intensity[idx][0]/original_intensity
-    new_images.shape = ncomponents, r, c
+    new_images = new_images.reshape(ncomponents, r, c)
     return new_images, values, new_vectors
 
 if __name__ == "__main__":

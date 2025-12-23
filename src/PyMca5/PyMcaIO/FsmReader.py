@@ -140,7 +140,7 @@ def parseFile(filename):
                 raise IOError("Cannot read block %d" % blockId)
         blockHeader = fid.read(6)
     info["Title"] = comment
-    data.shape = nRows, nColumns, nChannels
+    data = data.reshape(nRows, nColumns, nChannels)
     return info, data
 
 def isFsmFile(filename):

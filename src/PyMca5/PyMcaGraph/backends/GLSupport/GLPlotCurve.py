@@ -1163,7 +1163,7 @@ class GLPlotCurve2D(object):
 
             if self.fill is not None:
                 xData = self.xData[:]
-                xData.shape = xData.size, 1
+                xData = xData.reshape(xData.size, 1)
                 zero = np.array((1e-32,), dtype=self.yData.dtype)
 
                 # Add one point before data: (x0, 0.)

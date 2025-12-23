@@ -235,8 +235,8 @@ class MaskScatterViewWidget(qt.QMainWindow):
         if self._xdata is None or self._ydata is None:
             defaultX, defaultY = numpy.meshgrid(numpy.arange(ncols),
                                                 numpy.arange(nrows))
-            defaultX.shape = stackValues.shape
-            defaultY.shape = stackValues.shape
+            defaultX = defaultX.reshape(*stackValues.shape)
+            defaultY = defaultY.reshape(*stackValues.shape)
 
         xdata = self._xdata if self._xdata is not None else defaultX
         ydata = self._ydata if self._ydata is not None else defaultY

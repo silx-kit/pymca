@@ -169,8 +169,8 @@ def estimateXANESEdge(spectrum, energy=None, npoints=5, full=False,
             # the input data length?
             nchannels = 10 * x.size
             xi = numpy.linspace(x[1], x[-2], nchannels).reshape(-1, 1)
-            x.shape = -1
-            y.shape = -1
+            x = numpy.ravel(x)
+            y = numpy.ravel(y)
             y = SpecfitFuns.interpol([x], y, xi, y.min())
             x = xi
     else:
@@ -178,8 +178,8 @@ def estimateXANESEdge(spectrum, energy=None, npoints=5, full=False,
         x = energy[:]
         y = spectrum[:]
 
-    x.shape = -1
-    y.shape = -1
+    x = numpy.ravel(x)
+    y = numpy.ravel(y)
 
     # Sorted and regularly spaced values
     sortedX = x
@@ -209,8 +209,8 @@ def getRegionsData(x0, y0, regions, edge=0.0):
     x = x0[:]
     y = y0[:]
 
-    x.shape = -1
-    y.shape = -1
+    x = numpy.ravel(x)
+    y = numpy.ravel(y)
 
     i = 0
     for region in regions:
@@ -227,14 +227,14 @@ def getRegionsData(x0, y0, regions, edge=0.0):
     yOut = numpy.take(y, idx)
 
     if len(x0.shape) == 1:
-        xOut.shape = -1
-        yOut.shape = -1
+        xOut = numpy.ravel(xOut)
+        yOut = numpy.ravel(yOut)
     elif x0.shape[0] == 1:
-        xOut.shape = 1, -1
-        yOut.shape = 1, -1
+        xOut = xOut.reshape(1, -1)
+        yOut = yOut.reshape(1, -1)
     else:
-        xOut.shape = -1, 1
-        yOut.shape = -1, 1
+        xOut = xOut.reshape(-1, 1)
+        yOut = yOut.reshape(-1, 1)
 
     return xOut, yOut
 

@@ -182,12 +182,12 @@ class XASScanNormalizationPlugin(Plugin1DBase.Plugin1DBase):
             yi = numpy.take(y0, idx)
 
             #perform interpolation
-            xi.shape = -1, 1
+            xi = xi.reshape(-1, 1)
             yw = SpecfitFuns.interpol([x], y, xi, yi.min())
 
             # try: ... except: here?
-            yw.shape = -1
-            xi.shape = -1
+            yw = numpy.ravel(yw)
+            xi = numpy.ravel(xi)
             x, y = XASNormalization.XASNormalization(yw,
                                 energy=xi,
                                 edge=edge,

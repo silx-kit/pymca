@@ -797,7 +797,7 @@ class MaskImageWidget(qt.QWidget):
                         offset += npoints
                     ydata = self._interpolate((x0, y0),\
                                    imageData, tmpMatrix)
-                    ydata.shape = len(iterValues), npoints
+                    ydata = ydata.reshape(len(iterValues), npoints)
                     ydata = ydata.sum(axis=0)
                     #deal with the oversampling
                     ydata /= oversampling
@@ -1184,7 +1184,7 @@ class MaskImageWidget(qt.QWidget):
                 #mask *= numpy.isfinite(self.__imageData)
                 if self.__imageData.size == mask.size:
                     view = mask[:]
-                    view.shape = self.__imageData.shape
+                    view = view.reshape(*self.__imageData.shape)
                     mask = view
         self.__selectionMask = mask
         if plot:
@@ -1217,7 +1217,7 @@ class MaskImageWidget(qt.QWidget):
         if self.__selectionMask is not None and self.__imageData is not None:
             if self.__selectionMask.size == self.__imageData.size:
                 view = self.__selectionMask[:]
-                view.shape = self.__imageData.shape
+                view = view.reshape(*self.__imageData.shape)
                 self.__selectionMask = view
             else:
                 # reset selection mask
@@ -1262,13 +1262,13 @@ class MaskImageWidget(qt.QWidget):
             pixmap[:, 1] = pixmap0[:]
             pixmap[:, 2] = pixmap0[:]
             pixmap[:, 3] = 255
-            pixmap.shape = height, width, 4
+            pixmap = pixmap.reshape(height, width, 4)
         else:
             self.__image = self.__image.convertToFormat(qt.QImage.Format_ARGB32)
             pixmap0 = numpy.frombuffer(self.__image.bits().asstring(width * height * 4),
                                        dtype=numpy.uint8)
             pixmap = numpy.array(pixmap0, copy=True)
-            pixmap.shape = height, width, -1
+            pixmap = pixmap.reshape(height, width, -1)
             # Qt uses BGRA, convert to RGBA
             tmpBuffer = numpy.array(pixmap[:, :, 0],
                                     copy=True, dtype=pixmap.dtype)
@@ -1282,7 +1282,7 @@ class MaskImageWidget(qt.QWidget):
                                pixmap[:,:,2] * 0.114
         else:
             self.__imageData = data
-            self.__imageData.shape = height, width
+            self.__imageData = self.__imageData.reshape(height, width)
         self._xScale = None
         self._yScale = None
         self.__pixmap0 = pixmap
@@ -1407,7 +1407,7 @@ class MaskImageWidget(qt.QWidget):
                                 (colormap[2],colormap[3]),
                                 (0,255), 1)
 
-        self.__pixmap.shape = [data.shape[0], data.shape[1], 4]
+        self.__pixmap = self.__pixmap.reshape(data.shape[0], data.shape[1], 4)
         if not goodData:
             self.__pixmap[finiteData < 1] = 255
         return self.__pixmap
@@ -1821,15 +1821,15 @@ class MaskImageWidget(qt.QWidget):
         x = self._xScale[0] + self._xScale[1] * numpy.arange(imageShape[1])
         y = self._yScale[0] + self._yScale[1] * numpy.arange(imageShape[0])
         X, Y = numpy.meshgrid(x, y)
-        X.shape = -1
-        Y.shape = -1
+        X = numpy.ravel(X)
+        Y = numpy.ravel(Y)
         Z = numpy.zeros((imageShape[1]*imageShape[0], 2))
         Z[:, 0] = X
         Z[:, 1] = Y
         X = None
         Y = None
         mask = pnpoly(ddict['points'][:-1], Z, 1)
-        mask.shape = imageShape
+        mask = mask.reshape(*imageShape)
         if self.__selectionMask is None:
             self.__selectionMask = mask
         else:
@@ -2226,7 +2226,7 @@ def test(filename=None, backend=None):
             colors[1,3] = 255
             container.setSelectionColors(colors)
         data = numpy.arange(400 * 400).astype(numpy.int32)
-        data.shape = 200, 800
+        data = data.reshape(200, 800)
         #data = numpy.eye(200)
         container.setImageData(data, xScale=(1000.0, 1.0), yScale=(1000., 1.))
         mask = (data*0).astype(numpy.uint8)

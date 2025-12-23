@@ -1016,7 +1016,7 @@ class AdvancedAlignmentScanPlugin(Plugin1DBase.Plugin1DBase):
             idx = numpy.nonzero((x.min()<xeq) & (xeq<x.max()))[0]
             xi = numpy.take(xeq, idx)
             yi = SpecfitFuns.interpol([x], y, xi.reshape(-1,1), y.min())
-            yi.shape = -1
+            yi = numpy.ravel(yi)
             interpCurves += [(xi, yi, legend, info)]
         return interpCurves
 

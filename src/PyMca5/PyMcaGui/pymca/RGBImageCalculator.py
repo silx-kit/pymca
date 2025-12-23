@@ -404,9 +404,9 @@ def test():
     array1 = numpy.arange(10000)
     array2 = numpy.transpose(array1)
     array3 = array1 * 1
-    array1.shape = [100,100]
-    array2.shape = [100,100]
-    array3.shape = [100,100]
+    array1 = array1.reshape(100,100)
+    array2 = array2.reshape(100,100)
+    array3 = array3.reshape(100,100)
     imageList = ["array1", "array2","array3"]
     imageDict = {"array1":{'image':array1},
                  "array2":{'image':array2},

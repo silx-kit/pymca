@@ -227,12 +227,12 @@ class NNMAStackPlugin(StackPluginBase.StackPluginBase):
             # image stack. We need a copy
             _logger.info("NNMAStackPlugin converting to stack of spectra")
             data = numpy.zeros(oldShape[1:] + oldShape[0:1], dtype=numpy.float32)
-            data.shape = -1, oldShape[0]
+            data = data.reshape(-1, oldShape[0])
             for i in range(oldShape[0]):
                 tmpData = stack.data[i]
-                tmpData.shape = -1
+                tmpData = numpy.ravel(tmpData)
                 data[:, i] = tmpData
-            data.shape = oldShape[1:] + oldShape[0:1]
+            data = data.reshape(*(oldShape[1:] + oldShape[0:1]))
         else:
             data = stack
         try:
@@ -271,7 +271,7 @@ class NNMAStackPlugin(StackPluginBase.StackPluginBase):
                 data = None
             else:
                 if stack.data.shape != oldShape:
-                    stack.data.shape = oldShape
+                    stack.data = stack.data.reshape(*oldShape)
 
     def threadFinished(self, result):
         _logger.info("threadFinished")

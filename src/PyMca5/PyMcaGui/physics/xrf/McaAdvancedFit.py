@@ -1065,7 +1065,7 @@ class McaAdvancedFit(qt.QWidget):
 
         xmatrix = fitresult['result']['xdata']
         ymatrix = self.mcafit.mcatheory(parameters,xmatrix)
-        ymatrix.shape =  [len(ymatrix),1]
+        ymatrix = ymatrix.reshape(len(ymatrix), 1)
         ddict=copy.deepcopy(self.dict)
         ddict['event'] = "McaAdvancedFitMatrixFinished"
         if self.mcafit.STRIP:
@@ -1161,7 +1161,7 @@ class McaAdvancedFit(qt.QWidget):
                 parameters.append(areas0[i-nglobal])
         xmatrix = fitresult['result']['xdata']
         ymatrix0 = self.mcafit.mcatheory(parameters, xmatrix)
-        ymatrix0.shape =  [len(ymatrix0),1]
+        ymatrix0 = ymatrix0.reshape(len(ymatrix0), 1)
 
         #secondary
         nglobal    = len(fitresult['result']['parameters']) - len(groupsList)
@@ -1172,7 +1172,7 @@ class McaAdvancedFit(qt.QWidget):
             else:
                 parameters.append(areas1[i-nglobal])
         ymatrix1 = self.mcafit.mcatheory(parameters, xmatrix)
-        ymatrix1.shape =  [len(ymatrix1),1]
+        ymatrix1 = ymatrix1.reshape(len(ymatrix1), 1)
 
         zeroindex = fitresult['result']['parameters'].index('Zero')
         gainindex = fitresult['result']['parameters'].index('Gain')
@@ -1369,13 +1369,13 @@ class McaAdvancedFit(qt.QWidget):
             parameters[i] = fitresult['result']['fittedpar'][i]
             xmatrix = fitresult['result']['xdata']
             ymatrix = self.mcafit.mcatheory(parameters,xmatrix)
-            ymatrix.shape =  [len(ymatrix),1]
+            ymatrix = ymatrix.reshape(len(ymatrix), 1)
             label = 'y'+group
             if self.mcafit.STRIP:
                 ddict['result'][label]  = ymatrix + self.mcafit.zz
             else:
                 ddict['result'][label]  = ymatrix
-            ddict['result'][label].shape  = (len(ddict['result'][label]),)
+            ddict['result'][label] = numpy.ravel(ddict['result'][label])
             if self.peaksSpectrumButton.isChecked():
                 self.dict['result'][label]= ddict['result'][label] * 1.0
         try:
@@ -1941,8 +1941,8 @@ class McaAdvancedFit(qt.QWidget):
                     ydata  = self.mcafit.ydata + self.mcafit.zz
                 else:
                     ydata  = self.mcafit.ydata * 1.0
-                xdata.shape= [len(xdata),]
-                ydata.shape= [len(ydata),]
+                xdata = numpy.ravel(xdata)
+                ydata = numpy.ravel(ydata)
                 self.graph.addCurve(xdata, ydata, legend="Data", replot=True, replace=True)
                 self.graph.updateLegends()
                 return

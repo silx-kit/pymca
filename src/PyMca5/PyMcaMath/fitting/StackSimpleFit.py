@@ -234,7 +234,7 @@ class StackSimpleFit(object):
         if self.stack_x is None:
             nValues = y.size
             x = numpy.arange(float(nValues))
-            x.shape = y.shape
+            x = x.reshape(*y.shape)
             self.stack_x = x
 
         xShape = self.stack_x.shape
@@ -259,7 +259,7 @@ class StackSimpleFit(object):
             #only one x for all the y values
             x = numpy.zeros(y.size, numpy.float64)
             x[:] = self.stack_x[:]
-            x.shape = y.shape
+            x = x.reshape(*y.shape)
         else:
             raise ValueError("Cannot handle incompatible X and Y values")
 
@@ -289,7 +289,7 @@ class StackSimpleFit(object):
             #only one sigma for all the y values
             sigma = numpy.zeros(y.size, numpy.float64)
             sgima[:] = self.stack_sigma[:]
-            sigma.shape = y.shape
+            sigma = sigma.reshape(*y.shape)
         else:
             raise ValueError("Cannot handle incompatible sigma and y values")
 
@@ -444,7 +444,7 @@ def test():
         data[i,:] = SpecfitFuns.gauss(p0[:3*nPeaks],x)
 
     oldShape = data.shape
-    data.shape = 1,oldShape[0], oldShape[1]
+    data = data.reshape(1, oldShape[0], oldShape[1])
 
     instance = StackSimpleFit()
     instance.setData(x, data)

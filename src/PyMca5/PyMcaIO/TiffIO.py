@@ -386,7 +386,7 @@ class TiffIO(object):
                 tmpColormap = (tmpColormap / 256.).astype(numpy.uint8)
             else:
                 tmpColormap = numpy.array(tmpColormap, dtype=numpy.uint8)
-            tmpColormap.shape = 3, -1
+            tmpColormap = tmpColormap.reshape(3, -1)
             colormap = numpy.zeros((tmpColormap.shape[-1], 3), tmpColormap.dtype)
             colormap[:, :] = tmpColormap.T
             tmpColormap = None
@@ -692,12 +692,12 @@ class TiffIO(object):
             else:
                 readout = numpy.array(numpy.frombuffer(fd.read(nBytes), dtype))
             if hasattr(nBits, 'index'):
-                readout.shape = -1, nColumns, len(nBits)
+                readout = readout.reshape(-1, nColumns, len(nBits))
             elif info['colormap'] is not None and (interpretation > 1):
                 readout = colormap[readout]
-                readout.shape = -1, nColumns, 3
+                readout = readout.reshape(-1, nColumns, 3)
             else:
-                readout.shape = -1, nColumns
+                readout = readout.reshape(-1, nColumns)
             image[rowMin:rowMax + 1, :] = readout
         else:
             for i in range(len(stripOffsets)):
@@ -746,12 +746,12 @@ class TiffIO(object):
                     else:
                         readout = numpy.array(numpy.frombuffer(bufferBytes, dtype))
                     if hasattr(nBits, 'index'):
-                        readout.shape = -1, nColumns, len(nBits)
+                        readout = readout.reshape(-1, nColumns, len(nBits))
                     elif info['colormap'] is not None:
                         readout = colormap[readout]
-                        readout.shape = -1, nColumns, 3
+                        readout = readout.reshape(-1, nColumns, 3)
                     else:
-                        readout.shape = -1, nColumns
+                        readout = readout.reshape(-1, nColumns)
                     image[rowStart:rowEnd, :] = readout
                 else:
                     if 1:
@@ -761,24 +761,24 @@ class TiffIO(object):
                         else:
                             readout = numpy.array(numpy.frombuffer(fd.read(nBytes), dtype))
                         if hasattr(nBits, 'index'):
-                            readout.shape = -1, nColumns, len(nBits)
+                            readout = readout.reshape(-1, nColumns, len(nBits))
                         elif colormap is not None:
                             readout = colormap[readout]
-                            readout.shape = -1, nColumns, 3
+                            readout = readout.reshape(-1, nColumns, 3)
                         else:
-                            readout.shape = -1, nColumns
+                            readout = readout.reshape(-1, nColumns)
                         image[rowStart:rowEnd, :] = readout
                     else:
                         # using struct
                         readout = numpy.array(struct.unpack(st+"%df" % int(nBytes/4), fd.read(nBytes)),
                                               dtype=dtype)
                         if hasattr(nBits, 'index'):
-                            readout.shape = -1, nColumns, len(nBits)
+                            readout = readout.reshape(-1, nColumns, len(nBits))
                         elif colormap is not None:
                             readout = colormap[readout]
-                            readout.shape = -1, nColumns, 3
+                            readout = readout.reshape(-1, nColumns, 3)
                         else:
-                            readout.shape = -1, nColumns
+                            readout = readout.reshape(-1, nColumns)
                         image[rowStart:rowEnd, :] = readout
                 rowStart += nRowsToRead
         if close:
@@ -815,7 +815,7 @@ class TiffIO(object):
         if len(image0.shape) == 1:
             # get a different view
             image = image0[:]
-            image.shape = 1, -1
+            image = image.reshape(1, -1)
         else:
             image = image0
 
@@ -1279,7 +1279,7 @@ if __name__ == "__main__":
         print("Testing file creation")
         tif = TiffIO(filename, mode='wb+')
         data = numpy.arange(10000).astype(dtype)
-        data.shape = 100, 100
+        data = data.reshape(100, 100)
         tif.writeImage(data, info={'Title': '1st'})
         tif = None
         if os.path.exists(filename):

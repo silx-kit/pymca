@@ -113,7 +113,7 @@ if __name__ == "__main__":
     w = Plot(None, backend=GLUTOpenGLBackend)
     size = 4096
     data = np.arange(float(size)*size, dtype=np.dtype(np.float32))
-    data.shape = size, size
+    data = data.reshape(size, size)
 
     colormap = {'name': 'gray', 'normalization': 'linear',
                 'autoscale': True, 'vmin': 0.0, 'vmax': 1.0,

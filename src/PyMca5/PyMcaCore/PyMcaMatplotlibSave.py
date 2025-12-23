@@ -658,7 +658,7 @@ if __name__ == "__main__":
     import sys
     if len(sys.argv) < 2:
         a=numpy.arange(1200.)
-        a.shape = 20, 60
+        a = a.reshape(20, 60)
         PyMcaMatplotlibSaveImage(a, "filename.png", colormap="rainbow")
         print("Image filename.png saved")
     else:

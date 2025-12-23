@@ -130,7 +130,7 @@ def applyColormap(data, colormap='gray', norm='linear', bounds=None):
 
 if __name__ == "__main__":
     data = np.arange(1024 * 1024.)
-    data.shape = 1024, -1
+    data = data.reshape(1024, -1)
 
     for colormap in COLORMAPS:
         pixmap, _ = applyColormap(data, colormap)

@@ -128,7 +128,7 @@ class _TestColormap(unittest.TestCase):
                                  dtype=np.uint32)
 
         pixmap = np.take(colormap, indices, axis=0)
-        pixmap.shape = data.shape + (4,)
+        pixmap = pixmap.reshape(data.shape + (4,))
         return np.ascontiguousarray(pixmap)
 
     @staticmethod
@@ -158,7 +158,7 @@ class _TestColormap(unittest.TestCase):
                                                 (start, end),
                                                 (0, 255),
                                                 1)
-        pixmap.shape = data.shape[0], data.shape[1], 4
+        pixmap = pixmap.reshape(data.shape[0], data.shape[1], 4)
 
         return pixmap
 
@@ -188,8 +188,8 @@ class _TestColormap(unittest.TestCase):
                 # Only works with red colormap and even size
                 # as it needs 2D data
                 if len(data.shape) == 1:
-                    data.shape = data.size // 2, -1
-                    pixmap.shape = data.shape + (4,)
+                    data = data.reshape(data.size // 2, -1)
+                    pixmap = pixmap.reshape(data.shape + (4,))
                 control = self.buildSPSLUTRedPixmap(data, start, end, isLog10)
                 controlType = 'SPS LUT'
 
@@ -243,7 +243,7 @@ class TestColormap(_TestColormap):
             for isLog10 in (False, True):
                 data = np.array((), dtype=dtype)
                 result = np.array((), dtype=np.uint8)
-                result.shape = 0, 4
+                result = result.reshape(0, 4)
                 duration = self._testColormap(data, self.COLORMAPS['red 256'],
                                               None, None, result, isLog10)
                 self._log('No data', 'red 256', dtype, len(data), (None, None),
@@ -359,7 +359,7 @@ class TestLinearColormap(_TestColormap):
                         # Increasing values
                         data = np.arange(size * size, dtype=dtype)
                         data = np.nan_to_num(data)
-                        data.shape = size, size
+                        data = data.reshape(size, size)
                         duration = self._testColormap(data, colormap,
                                                       start, end)
 
@@ -493,7 +493,7 @@ class TestLog10Colormap(_TestColormap):
                         # Increasing values
                         data = np.arange(size * size, dtype=dtype) + 1
                         data = np.nan_to_num(data)
-                        data.shape = size, size
+                        data = data.reshape(size, size)
                         duration = self._testColormap(data, colormap,
                                                       start, end,
                                                       isLog10=True)

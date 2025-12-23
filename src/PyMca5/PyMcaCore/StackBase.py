@@ -302,7 +302,7 @@ class StackBase(object):
                     numpy.add(self._stackImageData[i:i+step,:],
                               numpy.sum(tmpData, 2),
                               self._stackImageData[i:i+step,:])
-                    tmpData.shape = step*shape[1], shape[2]
+                    tmpData = tmpData.reshape(step*shape[1], shape[2])
                     tmpMax = numpy.nanmax(tmpData, axis=0)
                     numpy.add(mcaData0, numpy.sum(tmpData, 0), mcaData0)
                     mcaMax =numpy.max([mcaMax, tmpMax], axis=0)
@@ -317,7 +317,7 @@ class StackBase(object):
                 step = 1
                 for i in range(shape[0]):
                     tmpData = self._stack.data[i:i+step,:,:]
-                    tmpData.shape = tmpData.shape[1:]
+                    tmpData = tmpData.reshape(tmpData.shape[1:])
                     numpy.add(self._stackImageData,
                               tmpData,
                               self._stackImageData)
@@ -748,7 +748,7 @@ class StackBase(object):
                             row_dict[r].append(c)
                         for r in row_list:
                             tmpMcaData = self._stack.data[r:r + 1, row_dict[r], :]
-                            tmpMcaData.shape = -1, mcaData.shape[0]
+                            tmpMcaData = tmpMcaData.reshape(-1, mcaData.shape[0])
                             mcaData += numpy.sum(tmpMcaData, axis=0, dtype=numpy.float64)
                             if mcamax:
                                 mcaMax = numpy.max([mcaMax, numpy.max(tmpMcaData, axis=0)], axis=0)
@@ -793,7 +793,7 @@ class StackBase(object):
                             row_dict[r].append(c)
                         for r in row_list:
                             tmpMcaData = self._stack.data[r:r + 1, row_dict[r], :]
-                            tmpMcaData.shape = -1, mcaData.shape[0]
+                            tmpMcaData = tmpMcaData.reshape(-1, mcaData.shape[0])
                             mcaData += tmpMcaData.sum(axis=0, dtype=numpy.float64)
                             if mcamax:
                                 mcaMax = numpy.max([mcaMax, numpy.max(tmpMcaData, axis=0)], axis=0)
@@ -832,7 +832,7 @@ class StackBase(object):
         if "McaLiveTime" in self._stack.info:
             selectedPixels = actualSelectionMask > 0
             liveTime = self._stack.info["McaLiveTime"][:]
-            liveTime.shape = actualSelectionMask.shape
+            liveTime = liveTime.reshape(actualSelectionMask.shape)
             liveTime = liveTime[selectedPixels].sum()
             if normalize:
                 liveTime = liveTime / float(npixels)
@@ -940,7 +940,7 @@ class StackBase(object):
                         minImage = numpy.zeros(leftImage.shape, numpy.int32)
                         for i in range(i1, i2):
                             tmpData = self._stack.data[i]
-                            tmpData.shape = leftImage.shape
+                            tmpData = tmpData.reshape(leftImage.shape)
                             if i == i1:
                                 minImageData = tmpData * 1.0
                                 maxImageData = tmpData * 1.0
@@ -974,7 +974,7 @@ class StackBase(object):
                     istep = 1
                     for i in range(i1, i2):
                         tmpData = self._stack.data[i:i + istep]
-                        tmpData.shape = roiImage.shape
+                        tmpData = tmpData.reshape(roiImage.shape)
                         if i == i1:
                             minImageData = tmpData * 1.0
                             maxImageData = tmpData * 1.0

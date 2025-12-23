@@ -248,7 +248,7 @@ class RTXMap(DataObject.DataObject):
         # it is safer to rely on the scatter view
         if nScans % nColumns == 0:
             nRows = nScans // nColumns
-            self.data.shape = nRows, nColumns, -1
+            self.data = self.data.reshape(nRows, nColumns, -1)
             self.info["xScale"] = [xFirst, (xLast - xFirst) / nColumns]
             self.info["yScale"] = [yFirst, (yLast - yFirst) / nRows]
 

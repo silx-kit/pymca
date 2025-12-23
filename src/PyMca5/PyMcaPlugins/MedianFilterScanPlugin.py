@@ -149,7 +149,7 @@ class MedianFilterScanPlugin(Plugin1DBase.Plugin1DBase):
         x0 = numpy.take(x0, idx)
         y0 = numpy.take(y0, idx)
 
-        x0.shape = -1, 1
+        x0 = x0.reshape(-1, 1)
         nChannels = x0.shape[0]
 
         # built a couple of temporary array of spectra for handy access
@@ -177,17 +177,17 @@ class MedianFilterScanPlugin(Plugin1DBase.Plugin1DBase):
             idx = numpy.nonzero((x[1:] > x[:-1]))[0]
             x = numpy.take(x, idx)
             y = numpy.take(y, idx)
-            x.shape = -1, 1
+            x = x.reshape(-1, 1)
             if numpy.allclose(x, x0):
                 # no need for interpolation
                 pass
             else:
                 # we have to interpolate
-                x.shape = -1
-                y.shape = -1
+                x = numpy.ravel(x)
+                y = numpy.ravel(y)
                 xi = x0[:]
                 y = SpecfitFuns.interpol([x], y, xi, y0.min())
-            y.shape = -1
+            y = numpy.ravel(y)
             tmpArray[:, i] = y
             i += 1
 
@@ -198,8 +198,8 @@ class MedianFilterScanPlugin(Plugin1DBase.Plugin1DBase):
         tmpArray = None
         # now get the final spectrum
         y = medianSpectra.sum(axis=1) / nCurves
-        x0.shape = -1
-        y.shape = x0.shape
+        x0 = numpy.ravel(x0)
+        y = y.reshape(*x0.shape)
         legend = "%d Median from %s to %s" % (width,
                                               curves[0][2],
                                               curves[-1][2])

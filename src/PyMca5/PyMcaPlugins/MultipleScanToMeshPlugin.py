@@ -223,8 +223,8 @@ class MultipleScanToMeshPlugin(Plugin1DBase.Plugin1DBase):
             end = start + nPoints
             x = curve[0]
             z = curve[1]
-            x.shape = -1
-            z.shape = -1
+            x = numpy.ravel(x)
+            z = numpy.ravel(z)
             if fixedMotorMne == "Mono.Energy":
                 xData[start:end] = info["MotorValues"][fixedMotorIndex] * factor
                 yData[start:end] = x * factor

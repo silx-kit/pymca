@@ -237,7 +237,7 @@ def lstsq(a, b, rcond=None, sigma_b=None, weight=False,
     if len(a_shape) != 2:
         raise ValueError("Model matrix must be two dimensional")
     if len(b_shape) == 1:
-        b.shape = b_shape[0], 1
+        b = b.reshape(b_shape[0], 1)
         b_shape = b.shape
 
     m  = a.shape[0]
@@ -255,9 +255,9 @@ def lstsq(a, b, rcond=None, sigma_b=None, weight=False,
             if w.size == b_shape[0]:
                 # same uncertainty for every spectrum
                 fastest = True
-                w.shape = b.shape[0]
+                w = w.reshape(b.shape[0])
             else:
-                w.shape = b_shape
+                w = w.reshape(b.shape)
         else:
             # "statistical" weight
             # we are asked to somehow weight the data but no uncertainties provided
@@ -270,7 +270,7 @@ def lstsq(a, b, rcond=None, sigma_b=None, weight=False,
         fastest = True
         w = numpy.ones(b.shape, numpy.float64)
     if len(w.shape) == 1:
-        w.shape = -1, 1
+        w = w.reshape(-1, 1)
     if covariances:
         covarianceMatrix = numpy.zeros((b_shape[1], n, n), numpy.float64)
 
@@ -292,10 +292,10 @@ def lstsq(a, b, rcond=None, sigma_b=None, weight=False,
         s[s < s_cutoff] = numpy.inf
 
         # and get the parameters
-        s.shape = -1
+        s = numpy.ravel(s)
         dummy = numpy.dot(V.T, numpy.eye(n)*(1./s))
         parameters = numpy.dot(dummy, numpy.dot(U.T, b))
-        parameters.shape = n, b.shape[1]
+        parameters = parameters.reshape(n, b.shape[1])
         if uncertainties or covariances:
             # get the uncertainties
             #(in the no-weight case without experimental uncertainties,
@@ -306,7 +306,7 @@ def lstsq(a, b, rcond=None, sigma_b=None, weight=False,
                 _covariance = numpy.dot(dummy, dummy.T)
                 sigmapar = numpy.sqrt(numpy.diag(_covariance))
                 sigmapar = numpy.outer(sigmapar, numpy.ones(b_shape[1]))
-                sigmapar.shape = n, b_shape[1]
+                sigmapar = sigmapar.reshape(n, b_shape[1])
                 if covariances:
                     covarianceMatrix[:] = _covariance
             elif covariances:
@@ -350,15 +350,15 @@ def lstsq(a, b, rcond=None, sigma_b=None, weight=False,
         s[s < s_cutoff] = numpy.inf
 
         # and get the parameters
-        s.shape = -1
+        s = numpy.ravel(s)
         dummy = numpy.dot(V.T, numpy.eye(n)*(1./s))
         parameters = numpy.dot(dummy, numpy.dot(U.T, b))
-        parameters.shape = n, b.shape[1]
+        parameters = parameters.reshape(n, b.shape[1])
         if uncertainties or covariances:
             _covariance = numpy.dot(dummy, dummy.T)
             sigmapar = numpy.sqrt(numpy.diag(_covariance))
             sigmapar = numpy.outer(sigmapar, numpy.ones(b_shape[1]))
-            sigmapar.shape = n, b_shape[1]
+            sigmapar = sigmapar.reshape(n, b_shape[1])
             if covariances:
                 covarianceMatrix[:] = _covariance
     else:
@@ -376,7 +376,7 @@ def lstsq(a, b, rcond=None, sigma_b=None, weight=False,
                 else:
                     s_cutoff = rcond * s[0]
                 s[s < s_cutoff] = numpy.inf
-                s.shape = -1
+                s = numpy.ravel(s)
                 dummy = numpy.dot(V.T, numpy.eye(n)*(1./s))
                 parameters[:, i:i+1] = numpy.dot(dummy, numpy.dot(U.T, tmpData))
                 if uncertainties or covariances:
@@ -435,14 +435,14 @@ def lstsq(a, b, rcond=None, sigma_b=None, weight=False,
                 if covariances:
                     covarianceMatrix[i] = covariance
     if len(original) == 1:
-        parameters.shape = -1
+        parameters = numpy.ravel(parameters)
     if covariances:
-        sigmapar.shape = parameters.shape
+        sigmapar = sigmapar.reshape(parameters.shape)
         if len(original) == 1:
-            covarianceMatrix.shape = parameters.shape[0], parameters.shape[0]
+            covarianceMatrix = covarianceMatrix.reshape(parameters.shape[0], parameters.shape[0])
         result = [parameters, sigmapar, covarianceMatrix]
     elif uncertainties:
-        sigmapar.shape = parameters.shape
+        sigmapar = sigmapar.reshape(parameters.shape)
         result = [parameters, sigmapar]
     else:
         result = [parameters]
@@ -478,7 +478,7 @@ def getModelMatrixFromFunction(model_function, dummy_parameters, xdata, derivati
             pwork[i] = fitparam
         else:
             help0 = derivative(pwork, i, xdata)
-        help0.shape = -1
+        help0 = numpy.ravel(help0)
         modelMatrix[:, i] = help0
     return modelMatrix
 
@@ -487,7 +487,7 @@ def modelFunction(p, x):
 
 def test1():
     x = numpy.arange(10000.)
-    x.shape = -1, 1
+    x = x.reshape(-1, 1)
     y = modelFunction([100., 50., 4.], x)
     A = getModelMatrixFromFunction(modelFunction, [0.0, 0.0, 0.0], x)
     parameters, uncertainties = lstsq(A, y, uncertainties=True, weight=False)
@@ -505,7 +505,7 @@ def test2():
         GEFIT = False
     data = "0 0.8214 0.1 1 2.8471 0.3 2 4.852 0.5 3 7.5347 0.7 4 10.2464 0.9 5 10.2707 1.1 6 12.8011 1.3 7 13.7108 1.5 8 17.8501 1.7 9 15.3667 1.9 10 19.3933 2.1"
     data = numpy.array([float(x) for x in data.split()])
-    data.shape = -1, 3
+    data = data.reshape(-1, 3)
 
     # the model matrix for a straight line
     A = numpy.ones((data.shape[0],2), numpy.float64)

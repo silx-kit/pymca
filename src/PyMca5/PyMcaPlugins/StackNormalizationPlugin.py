@@ -242,7 +242,7 @@ class StackNormalizationPlugin(StackPluginBase.StackPluginBase):
         else:
             view = stack.data
         if mcaIndex == 0:
-            normalizationData.shape = stackShape[1:]
+            normalizationData = normalizationData.reshape(*stackShape[1:])
             if operation in ["divide", "scale"]:
                 for i in range(stackShape[mcaIndex]):
                     view[i] = stack.data[i] / normalizationData
@@ -250,7 +250,7 @@ class StackNormalizationPlugin(StackPluginBase.StackPluginBase):
                 for i in range(stackShape[mcaIndex]):
                     view[i] = -operator(stack.data[i]/normalizationData)
         elif mcaIndex == 2:
-            normalizationData.shape = stackShape[:2]
+            normalizationData = normalizationData.reshape(*stackShape[:2])
             if operation in ["divide", "scale"]:
                 for i in range(stackShape[mcaIndex]):
                     view[:, :, i] = stack.data[:, :, i] / normalizationData
@@ -259,7 +259,7 @@ class StackNormalizationPlugin(StackPluginBase.StackPluginBase):
                     view[:, :, i] = -operator(stack.data[:, :, i]/ \
                                                     normalizationData)
         elif mcaIndex == 1:
-            normalizationData.shape = stackShape[0], stackShape[2]
+            normalizationData = normalizationData.reshape(stackShape[0], stackShape[2])
             if operation in ["divide", "scale"]:
                 for i in range(stackShape[mcaIndex]):
                     view[:, i, :] = stack.data[:, i, :] / normalizationData

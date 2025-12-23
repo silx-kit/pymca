@@ -408,7 +408,7 @@ def test():
 
     container = StackPluginResultsWindow()
     data = numpy.arange(20000)
-    data.shape = 2, 100, 100
+    data = data.reshape(2, 100, 100)
     data[1, 0:100, 0:50] = 100
     container.setStackPluginResults(
         data,
