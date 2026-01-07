@@ -13,7 +13,7 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-  # Daily run to check libraries compatibility
+  # Weekly (on Monday) run to check libraries compatibility
   schedule:
     - cron: '0 3 * * 1'
 
@@ -147,7 +147,7 @@ jobs:
 
       - name: Generate source package or wheel
         env:
-          MACOSX_DEPLOYMENT_TARGET: "10.9"
+          MACOSX_DEPLOYMENT_TARGET: "11"
         run: |
           python -m build ${{ matrix.BUILD_COMMAND }}
           ls dist
