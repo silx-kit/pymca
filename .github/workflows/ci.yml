@@ -13,6 +13,10 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+  # Daily run to check libraries compatibility
+  schedule:
+    - cron: '0 3 * * *'
+
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
@@ -30,6 +34,7 @@ jobs:
             BUILD_COMMAND: --sdist
             QT_BINDING: PyQt5==5.14.1
             XVFB_RUN: xvfb-run -a
+            WARNING_FLAGS: "-W ignore::DeprecationWarning"
 
           - name-suffix: "PySide6 wheel"
             os: ubuntu-latest
@@ -52,6 +57,14 @@ jobs:
             QT_BINDING: PyQt6
             XVFB_RUN: ""
 
+            # binaries use PySide6==6.7.3
+          - name-suffix: "PySide6 wheel (for MacOS binaries)"
+            os: macos-latest
+            python-version: 3.12
+            BUILD_COMMAND: --wheel
+            QT_BINDING: PySide6
+            XVFB_RUN: ""
+
           - name-suffix: "PyQt6 wheel"
             os: windows-latest
             python-version: "3.13"
@@ -59,7 +72,8 @@ jobs:
             QT_BINDING: PyQt6
             XVFB_RUN: ""
 
-          - name-suffix: "PySide6 wheel"
+            # binaries use PySide6==6.9.1
+          - name-suffix: "PySide6 wheel (for Windows binaries)"
             os: windows-latest
             python-version: "3.13"
             BUILD_COMMAND: --wheel
@@ -145,4 +159,4 @@ jobs:
       - name: Run the tests
         run: |
           cd ..
-          ${{ matrix.XVFB_RUN }} python -m PyMca5.tests.TestAll
+          ${{ matrix.XVFB_RUN }} python -W error ${{ matrix.WARNING_FLAGS }} -m PyMca5.tests.TestAll
