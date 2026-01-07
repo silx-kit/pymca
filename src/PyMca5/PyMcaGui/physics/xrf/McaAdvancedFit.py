@@ -1073,7 +1073,7 @@ class McaAdvancedFit(qt.QWidget):
         else:
             ddict['result']['ymatrix']  = ymatrix
         ddict['result']['ymatrix'] = numpy.ravel(ddict['result']['ymatrix'])
-        ddict['result']['continuum'] = numpy.ravel(ddict['result']['continuum'])
+        ddict['result']['continuum'] = numpy.ravel(ddict['result']['ymatrix'])
         if self.matrixSpectrumButton.isChecked():
             self.dict['result']['ymatrix']= ddict['result']['ymatrix'] * 1.0
         """
