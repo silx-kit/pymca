@@ -620,7 +620,7 @@ class Lanczos:
 
     def diago(self, k, m):
         mat = numpy.zeros([m,m], numpy.float64)
-        mat = numpy.ravel(mat)
+        mat = mat.reshape(m * m)
         mat[0:m*m:m+1] = self.alpha
         mat[k*m+k+1:m*m:m+1] =self.beta[k:m-1]
         mat[(k+1)*m+k:m*m:m+1] =self.beta[k:m-1]
