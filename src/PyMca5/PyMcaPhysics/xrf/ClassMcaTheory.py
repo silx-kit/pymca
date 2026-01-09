@@ -1126,6 +1126,8 @@ class McaTheory(object):
         if xmax is None and len(self.xdata):
             xmax = max(self.xdata)
 
+        _logger.info("X-axis fit limits: xmin=%s, xmax=%s", xmin, xmax)
+
         self.lastxmin = xmin
         self.lastxmax = xmax
 
