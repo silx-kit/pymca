@@ -1667,7 +1667,7 @@ class McaAdvancedFit(qt.QWidget):
         # To make sure the limits configuration settings respect the selected GUI behavior
         # xmin and xmax they need to be set or overwritten here if required
         for key in ['xmin', 'xmax']:
-            if self.mcafit.config['fit'].get('use_limits',False):
+            if self.mcafit.config['fit']['use_limit']:
                 kw[key] = self.mcafit.config['fit'][key]
                 _logger.info("%s limit overwritten by fit configuration" % key)
 
