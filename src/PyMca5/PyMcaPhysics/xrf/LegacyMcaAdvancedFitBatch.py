@@ -561,7 +561,7 @@ class McaAdvancedFitBatch(object):
             else:
                 useExistingResult = 0
                 try:
-                    #I make sure I take the fit limits configuration
+                    # Make sure the fit limits are taken from the configuration
                     self.mcafit.config['fit']['use_limit'] = 1
                     self.mcafit.setData(x,y, time=info.get("McaLiveTime", None))
                 except Exception:
