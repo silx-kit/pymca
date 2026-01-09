@@ -1126,6 +1126,10 @@ class McaTheory(object):
         if xmax is None and len(self.xdata):
             xmax = max(self.xdata)
 
+        if not self.config['fit']['use_limit']:
+            self.config['fit']['xmin'] = xmin
+            self.config['fit']['xmax'] = xmax
+
         _logger.info("X-axis fit limits: xmin=%s, xmax=%s", xmin, xmax)
 
         self.lastxmin = xmin
