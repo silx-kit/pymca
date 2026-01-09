@@ -2,7 +2,7 @@
 #
 # The PyMca X-Ray Fluorescence Toolkit
 #
-# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2025 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF.
@@ -291,7 +291,7 @@ class McaAdvancedFit(qt.QWidget):
         self.matrixXRFMCSpectrumButton.setToolTip('Calculate Matrix Spectrum Using Monte Carlo')
         self.peaksSpectrumButton.setToolTip('Toggle Individual Peaks Spectrum Calculation On/Off')
 
-        self.mcafit   = ClassMcaTheory.McaTheory()
+        self.mcafit = ClassMcaTheory.McaTheory()
 
         self.fitButton.clicked.connect(self.fit)
         self.printButton.clicked.connect(self.printActiveTab)
@@ -1640,9 +1640,9 @@ class McaAdvancedFit(qt.QWidget):
             sigmay
                 uncertainties to be applied if different than sqrt(y)
             xmin
-                minimum channel of the fit
+                minimum channel/x value of the fit. It will be ignored if use_limits is True
             xmax
-                maximum channel of the fit
+                maximum channel/x value of the fit. It will be ignored if use_limits is True
             calibration
                 list of the form [a, b, c] containing the mca calibration
             time
@@ -1662,6 +1662,15 @@ class McaAdvancedFit(qt.QWidget):
             self.info[key] = kw[key]
         else:
             self.info[key] = 'X'
+
+        # PyMca McaWindow is systematically sending the zoomed region xmin and xmax
+        # To make sure the limits configuration settings respect the selected GUI behavior
+        # xmin and xmax they need to be set or overwritten here if required
+        for key in ['xmin', 'xmax']:
+            if self.mcafit.config['fit'].get('use_limits',False):
+                kw[key] = self.mcafit.config['fit'][key]
+                _logger.info("%s limit overwritten by fit configuration" % key)
+
         key = 'xmin'
         if key in kw:
             self.info[key] = "%.3f" % kw[key]
@@ -1682,8 +1691,12 @@ class McaAdvancedFit(qt.QWidget):
             self.info[key] = kw[key]
         else:
             self.info[key] = None
+
+        # TODO: These two variables do not seem to be used anywhere.
+        # Is there a reason to keep a reference? 
         self.__var = var
         self.__kw  = kw
+
         try:
             self.mcafit.setData(*var,**kw)
         except ValueError:
