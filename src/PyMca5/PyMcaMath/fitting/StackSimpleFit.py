@@ -2,7 +2,7 @@
 #
 # The PyMca X-Ray Fluorescence Toolkit
 #
-# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2026 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF by the Software group.
@@ -288,7 +288,7 @@ class StackSimpleFit(object):
         elif sigmaSize == y.size:
             #only one sigma for all the y values
             sigma = numpy.zeros(y.size, numpy.float64)
-            sgima[:] = self.stack_sigma[:]
+            sigma[:] = self.stack_sigma[:]
             sigma = sigma.reshape(*y.shape)
         else:
             raise ValueError("Cannot handle incompatible sigma and y values")
