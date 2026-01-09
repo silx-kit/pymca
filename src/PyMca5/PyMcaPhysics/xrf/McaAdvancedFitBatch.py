@@ -753,8 +753,8 @@ class McaAdvancedFitBatch(object):
 
     def _attemptMcaLoad(self, x, y, filename, info=None):
         try:
-            #I make sure I take the fit limits configuration
-            self.mcafit.config['fit']['use_limit'] = 1  # TODO: why???
+            # Make sure the fit limits are taken from the configuration
+            self.mcafit.config['fit']['use_limit'] = 1
             self.mcafit.setData(x, y, time=info.get("McaLiveTime", None))
         except Exception:
             self._restoreFitConfig(filename, 'entering data')

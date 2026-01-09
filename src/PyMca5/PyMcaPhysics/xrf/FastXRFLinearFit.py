@@ -129,11 +129,13 @@ class FastXRFLinearFit(object):
             else:
                 yref = ysum
 
-            # Get the basis of the linear models (i.e. derivative to peak areas)
+            # Make sure the fit limits are taken from the configuration
             if xmin is None:
                 xmin = config['fit']['xmin']
             if xmax is None:
                 xmax = config['fit']['xmax']
+
+            # Get the basis of the linear models (i.e. derivative to peak areas)
             dtypeCalculcation = self._fitDtypeCalculation(data)
             self._mcaTheory.setData(x=x, y=yref, xmin=xmin, xmax=xmax)
             derivatives, freeNames, nFree, nFreeBkg = self._fitCreateModel(dtype=dtypeCalculcation)

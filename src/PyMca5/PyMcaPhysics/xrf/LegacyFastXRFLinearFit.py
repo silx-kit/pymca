@@ -114,10 +114,13 @@ class FastXRFLinearFit(object):
         # read the current configuration
         # it is a copy, we can modify it at will
         config = self._mcaTheory.getConfiguration()
+
+        # Make sure the fit limits are taken from the configuration
         if xmin is None:
             xmin = config['fit']['xmin']
         if xmax is None:
             xmax = config['fit']['xmax']
+
         toReconfigure = False
 
         # if concentrations and use times, it needs to be reconfigured

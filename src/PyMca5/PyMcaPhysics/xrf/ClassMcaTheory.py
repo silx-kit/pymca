@@ -1114,26 +1114,23 @@ class McaTheory(object):
         elif self.config["concentrations"].get("useautotime", False):
             self.config["concentrations"]["time"] = timeFactor
 
-        xmin = self.config['fit']['xmin']
+        xmin = kw.get("xmin")
+        if xmin is None and self.config['fit']['use_limit']:
+            xmin = self.config['fit']['xmin']
+        if xmin is None and len(self.xdata):
+            xmin = min(self.xdata)
+
+        xmax = kw.get("xmax")
+        if xmax is None and self.config['fit']['use_limit']:
+            xmax = self.config['fit']['xmax']
+        if xmax is None and len(self.xdata):
+            xmax = max(self.xdata)
+
         if not self.config['fit']['use_limit']:
-            if 'xmin' in kw:
-                xmin=kw['xmin']
-                if xmin is not None:
-                    self.config['fit']['xmin'] = xmin
-                else:
-                    xmin=min(self.xdata)
-            elif len(self.xdata):
-                xmin=min(self.xdata)
-        xmax = self.config['fit']['xmax']
-        if not self.config['fit']['use_limit']:
-            if 'xmax' in kw:
-                xmax=kw['xmax']
-                if xmax is not None:
-                    self.config['fit']['xmax'] = xmax
-                else:
-                    xmax=max(self.xdata)
-            elif len(self.xdata):
-                    xmax=max(self.xdata)
+            self.config['fit']['xmin'] = xmin
+            self.config['fit']['xmax'] = xmax
+
+        _logger.info("X-axis fit limits: xmin=%s, xmax=%s", xmin, xmax)
 
         self.lastxmin = xmin
         self.lastxmax = xmax
