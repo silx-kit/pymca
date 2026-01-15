@@ -1072,8 +1072,8 @@ class McaAdvancedFit(qt.QWidget):
             ddict['result']['ymatrix']  = ymatrix + self.mcafit.zz
         else:
             ddict['result']['ymatrix']  = ymatrix
-        ddict['result']['ymatrix'].shape  = (len(ddict['result']['ymatrix']),)
-        ddict['result']['continuum'].shape  = (len(ddict['result']['ymatrix']),)
+        ddict['result']['ymatrix'] = ddict['result']['ymatrix'].reshape(len(ddict['result']['ymatrix']))
+        ddict['result']['continuum'] = ddict['result']['continuum'].reshape(len(ddict['result']['ymatrix']))
         if self.matrixSpectrumButton.isChecked():
             self.dict['result']['ymatrix']= ddict['result']['ymatrix'] * 1.0
         """
@@ -1375,7 +1375,7 @@ class McaAdvancedFit(qt.QWidget):
                 ddict['result'][label]  = ymatrix + self.mcafit.zz
             else:
                 ddict['result'][label]  = ymatrix
-            ddict['result'][label] = numpy.ravel(ddict['result'][label])
+            ddict['result'][label] = ddict['result'][label].reshape(len(ddict['result'][label]))
             if self.peaksSpectrumButton.isChecked():
                 self.dict['result'][label]= ddict['result'][label] * 1.0
         try:
@@ -1954,8 +1954,8 @@ class McaAdvancedFit(qt.QWidget):
                     ydata  = self.mcafit.ydata + self.mcafit.zz
                 else:
                     ydata  = self.mcafit.ydata * 1.0
-                xdata = numpy.ravel(xdata)
-                ydata = numpy.ravel(ydata)
+                xdata = xdata.reshape(len(xdata))
+                ydata = ydata.reshape(len(ydata))
                 self.graph.addCurve(xdata, ydata, legend="Data", replot=True, replace=True)
                 self.graph.updateLegends()
                 return
