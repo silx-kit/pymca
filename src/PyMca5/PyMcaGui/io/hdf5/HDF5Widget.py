@@ -206,6 +206,8 @@ class H5NodeProxy(object):
                                         pass
                                     elif dataset_dtype_print.startswith("uint"):
                                         pass
+                                    elif dataset_dtype_print.startswith("bool"):
+                                        pass
                                     elif dataset_dtype_print.startswith("complex"):
                                         pass
                                     elif safe_str(dataset.dtype) == "object":
