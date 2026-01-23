@@ -1,5 +1,5 @@
 #/*##########################################################################
-# Copyright (C) 2004-2025 V.A. Sole, ESRF - D. Dale CHESS
+# Copyright (C) 2004-2026 V.A. Sole, ESRF - D. Dale CHESS
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF.
@@ -195,9 +195,18 @@ class H5NodeProxy(object):
                             finalListIsTrue = True
                         if hasattr(dataset, "shape"):
                             if not len(dataset.shape):
-                                # it can still be a string
+                                # it can still be a string or a scalar
                                 if hasattr(dataset, "dtype"):
-                                    if safe_str(dataset.dtype).startswith("|S"):
+                                    dataset_dtype_print = safe_str(dataset.dtype)
+                                    if dataset_dtype_print.startswith("|S"):
+                                        pass
+                                    elif dataset_dtype_print.startswith("float"):
+                                        pass
+                                    elif dataset_dtype_print.startswith("int"):
+                                        pass
+                                    elif dataset_dtype_print.startswith("uint"):
+                                        pass
+                                    elif dataset_dtype_print.startswith("complex"):
                                         pass
                                     elif safe_str(dataset.dtype) == "object":
                                         # issue 1059
