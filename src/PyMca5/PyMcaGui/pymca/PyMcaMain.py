@@ -191,6 +191,14 @@ if __name__ == "__main__":
     if sys.platform == 'win32':
         _ = os.environ.setdefault("QT_QPA_PLATFORM", "windows:darkmode=0")
     
+
+    # to forbid font changes if windows scale is not 100%
+    if sys.platform == 'win32':
+        os.environ["QT_ENABLE_HIGHDPI_SCALING"] = "0"
+        os.environ["QT_SCALE_FACTOR"] = "1"
+        os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "0"
+        os.environ["QT_FONT_DPI"] = "96" # it is not absolute value - it is windows "100%" value
+
     app = qt.QApplication(sys.argv)
     
     # To avoid "Dark mode"; without this part some menus will be still dark
