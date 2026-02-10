@@ -52,6 +52,7 @@ if __name__ == '__main__':
     parser.add_argument('--logging', help='Set logging level: critical, error, warning (default), info, debug or numeric values 0 (critical) to 4 (debug)')
     parser.add_argument('--test', action='store_true', help='Run PyMca unit tests and exit')
     parser.add_argument('--PySide', help=argparse.SUPPRESS)  # deprecated
+    parser.add_argument('sources', nargs='*', help='Data sources to open')
     args = parser.parse_args()
 
     keywords={}
@@ -1859,7 +1860,7 @@ if __name__ == '__main__':
 
     #try to interpret rest of command line arguments as data sources
     try:
-        for source in args:
+        for source in args.sources:
             PyMcaMainWidgetInstance.sourceWidget.sourceSelector.openSource(source)
     except Exception:
         msg = qt.QMessageBox(PyMcaMainWidgetInstance)
