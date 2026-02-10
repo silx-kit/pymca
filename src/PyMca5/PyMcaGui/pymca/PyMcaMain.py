@@ -29,7 +29,7 @@ __contact__ = "sole@esrf.fr"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 import os
-import sys, getopt
+import sys, argparse
 import traceback
 import logging
 if sys.platform == 'win32':
@@ -40,79 +40,74 @@ nativeFileDialogs = None
 _logger = logging.getLogger(__name__)
 backend=None
 if __name__ == '__main__':
-    options     = '-f'
-    longoptions = ['spec=',
-                   'shm=',
-                   'debug=',
-                   'qt=',
-                   'backend=',
-                   'nativefiledialogs=',
-                   'PySide=',
-                   'binding=',
-                   'logging=',
-                   'test']
-    try:
-        opts, args = getopt.getopt(
-                     sys.argv[1:],
-                     options,
-                     longoptions)
-    except getopt.error:
-        print("%s" % sys.exc_info()[1])
-        sys.exit(1)
+    parser = argparse.ArgumentParser(description='PyMca X-Ray Fluorescence Toolkit main application.')
+    parser.add_argument('-f', '--fresh', action='store_true', help='Bypass user-defined default settings')
+    parser.add_argument('--spec', help='Specify spec file')
+    parser.add_argument('--shm', help='Shared memory key')
+    parser.add_argument('--debug', default='0', help='Enable debug mode (0 or 1)')
+    parser.add_argument('--qt', help='Qt version')
+    parser.add_argument('--backend', help='Select graphics backend: mpl (matplotlib), gl (OpenGL), silx')
+    parser.add_argument('--nativefiledialogs', type=int, choices=[0,1], help='Use native file dialogs (X=1) or Qt dialogs (X=0)')
+    parser.add_argument('--binding', choices=['pyqt5', 'pyside2', 'pyside6', 'pyqt6'], help='Select Qt binding: PyQt5 (default), PyQt6, PySide6, PySide2')
+    parser.add_argument('--logging', help='Set logging level: critical, error, warning (default), info, debug or numeric values 0 (critical) to 4 (debug)')
+    parser.add_argument('--test', action='store_true', help='Run PyMca unit tests and exit')
+    parser.add_argument('--PySide', help=argparse.SUPPRESS)  # deprecated
+    args = parser.parse_args()
 
     keywords={}
     debugreport = 0
     qtversion = None
     binding = None
-    for opt, arg in opts:
-        if  opt in ('--spec'):
-            keywords['spec'] = arg
-        elif opt in ('--shm'):
-            keywords['shm']  = arg
-        elif opt in ('--debug'):
-            if arg.lower() not in ['0', 'false']:
-                debugreport = 1
-                _logger.setLevel(logging.DEBUG)
-            # --debug is also parsed later for the global logging level
-        elif opt in ('-f'):
-            keywords['fresh'] = 1
-        elif opt in ('--qt'):
-            qtversion = arg
-        elif opt in ('--backend'):
-            backend = arg
-        elif opt in ('--nativefiledialogs'):
-            if int(arg):
-                nativeFileDialogs = True
-            else:
-                nativeFileDialogs = False
-        elif opt in ('--PySide'):
-            print("Please use --binding=PySide6")
+    if args.fresh:
+        keywords['fresh'] = 1
+    if args.spec:
+        keywords['spec'] = args.spec
+    if args.shm:
+        keywords['shm'] = args.shm
+    if args.debug.lower() not in ['0', 'false']:
+        debugreport = 1
+        _logger.setLevel(logging.DEBUG)
+    if args.qt:
+        qtversion = args.qt
+    if args.backend:
+        backend = args.backend
+    if args.nativefiledialogs is not None:
+        nativeFileDialogs = bool(args.nativefiledialogs)
+    if args.PySide:
+        print("Please use --binding=PySide6")
+        import PySide6.QtCore
+    if args.binding:
+        binding = args.binding.lower()
+        if binding == "pyqt5":
+            import PyQt5.QtCore
+        elif binding == "pyside2":
+            import PySide2.QtCore
+        elif binding == "pyside6":
             import PySide6.QtCore
-        elif opt in ('--binding'):
-            binding = arg.lower()
-            if binding == "pyqt5":
-                import PyQt5.QtCore
-            elif binding == "pyside2":
-                import PySide2.QtCore
-            elif binding == "pyside6":
-                import PySide6.QtCore
-            elif binding == "pyqt6":
-                import PyQt6.QtCore
-            else:
-                raise ValueError("Unknown Qt binding <%s>" % binding)
-        elif opt in ('--test'):
-            try:
-                from PyMca5.tests import TestAll
-                print("Running PyMca Unit Tests...")
-                result = TestAll.main()
-                exit_code = 0 if result.wasSuccessful() else 1
-                print('exit code: ', exit_code)
-                sys.exit(exit_code)
-            except Exception as e:
-                import traceback
-                print("Failed to run tests:", e)
-                traceback.print_exc()
-                sys.exit(1)
+        elif binding == "pyqt6":
+            import PyQt6.QtCore
+        else:
+            raise ValueError("Unknown Qt binding <%s>" % binding)
+    if args.test:
+        try:
+            from PyMca5.tests import TestAll
+            print("Running PyMca Unit Tests...")
+            result = TestAll.main()
+            exit_code = 0 if result.wasSuccessful() else 1
+            print('exit code: ', exit_code)
+            sys.exit(exit_code)
+        except Exception as e:
+            import traceback
+            print("Failed to run tests:", e)
+            traceback.print_exc()
+            sys.exit(1)
+
+    # For logging
+    opts = []
+    if args.logging:
+        opts.append(('--logging', args.logging))
+    if args.debug.lower() not in ['0', 'false']:
+        opts.append(('--debug', args.debug))
 
     from PyMca5.PyMcaCore.LoggingLevel import getLoggingLevel
     logging.basicConfig(level=getLoggingLevel(opts))
