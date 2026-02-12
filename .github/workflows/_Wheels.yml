@@ -307,7 +307,7 @@ jobs:
           arch -x86_64 python -m PyMca5.tests.TestAll
 
   check_existence_of_artifacts:
-    name: Upload all wheels to TestPyPI
+    name: Verify the wheels list
     runs-on: macos-latest
     needs:
       - test_wheels
