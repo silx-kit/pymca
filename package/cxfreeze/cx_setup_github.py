@@ -67,7 +67,7 @@ excludes = []
 includes = []
 
 # This module basically does not work with frozen versions
-#excludes.append("multiprocessing")
+excludes.append("multiprocessing")
 
 #some standard encodings
 #includes.append('encodings.ascii')
