@@ -35,9 +35,12 @@ import traceback
 import numpy
 import weakref
 import logging
+import multiprocessing
 _logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
+    multiprocessing.freeze_support()
+    
     # We are going to read. Disable file locking.
     os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
     _logger.info("%s set to %s" % ("HDF5_USE_FILE_LOCKING",

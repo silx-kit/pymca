@@ -32,6 +32,7 @@ import sys
 import os
 import numpy
 import time
+import multiprocessing
 
 from PyMca5.PyMcaGui import PyMcaQt as qt
 QTVERSION = qt.qVersion()
@@ -505,6 +506,7 @@ def main():
         sys.exit(app.exec())
 
 if __name__ == "__main__":
+    multiprocessing.freeze_support()
     main()
 
 # Mca2Edf.py  --outdir=/tmp --mcastep=1 *.mca

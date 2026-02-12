@@ -36,6 +36,7 @@ import signal
 import atexit
 import logging
 import traceback
+import multiprocessing
 from glob import glob
 from contextlib import contextmanager
 try:
@@ -2198,6 +2199,8 @@ def main():
     app = None
 
 if __name__ == "__main__":
+    multiprocessing.freeze_support()
+    
     # We are going to read. Disable file locking.
     os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
     _logger.info("%s set to %s" % ("HDF5_USE_FILE_LOCKING",

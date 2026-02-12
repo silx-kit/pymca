@@ -32,6 +32,7 @@ __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 import sys
 import logging
+import multiprocessing
 from PyMca5.PyMcaGui import PyMcaQt as qt
 from PyMca5.PyMcaPhysics import Elements
 from PyMca5.PyMcaGui.plotting import PyMca_Icons
@@ -306,4 +307,5 @@ def main():
     app.exec()
 
 if __name__ == "__main__":
+    multiprocessing.freeze_support()
     main()
