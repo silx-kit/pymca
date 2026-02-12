@@ -32,6 +32,7 @@ import os
 import sys, getopt
 import traceback
 import logging
+import multiprocessing
 if sys.platform == 'win32':
     import ctypes
     from ctypes.wintypes import MAX_PATH
@@ -40,6 +41,8 @@ nativeFileDialogs = None
 _logger = logging.getLogger(__name__)
 backend=None
 if __name__ == '__main__':
+    multiprocessing.freeze_support()
+    
     options     = '-f'
     longoptions = ['spec=',
                    'shm=',
