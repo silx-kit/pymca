@@ -202,13 +202,17 @@ class ElementButton(qt.QPushButton):
 
     def __setBrush(self):
         if self.current and self.selected:
-            self.setStyleSheet("color: %s; background-color: %s" % (self._textColor.name(), self.colors[1].name()))
+            self.setStyleSheet("color: %s; background-color: %s; border-color: black; border-style: outset; border-width: 1px" % \
+                               (self._textColor.name(), self.colors[1].name()))
         elif self.selected:
-            self.setStyleSheet("color: black; background-color: %s" % self.colors[0].name())
+            self.setStyleSheet("color: black; background-color: %s; border-color: black; border-style: outset; border-width: 1px" % \
+                               self.colors[0].name())
         elif self.current:
-            self.setStyleSheet("color: %s; background-color: %s" % (self._textColor.name(), self.colors[2].name()))
+            self.setStyleSheet("color: %s; background-color: %s; border-color: black; border-style: outset; border-width: 1px" % \
+                               (self._textColor.name(), self.colors[2].name()))
         else:
-            self.setStyleSheet("color: %s; background-color: %s" % (self._textColor.name(), self.colors[3].name()))
+            self.setStyleSheet("color: %s; background-color: %s; border-color: black; border-style: outset; border-width: 1px" % \
+                               (self._textColor.name(), self.colors[3].name()))
         self.update()
 
     def enterEvent(self, e):
