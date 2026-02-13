@@ -57,7 +57,7 @@ jobs:
         run: python -m cibuildwheel --output-dir dist
         env:
           # Python versions
-          CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-*"
+          CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-* cp314-*"
           # MacOS: only universal2
           CIBW_ARCHS_MACOS: universal2
           # Linux: only x86_64
@@ -91,7 +91,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ "3.9", "3.10", "3.11", "3.12", "3.13" ]
+        python-version: [ "3.9", "3.10", "3.11", "3.12", "3.13", "3.14" ]
 
     steps:
 
@@ -151,7 +151,7 @@ jobs:
 
       - name: Install Qt
         run: |
-          python -m pip install Pyside6==6.9.1
+          python -m pip install Pyside6==6.10.2
           #PyQt5==5.14.1
 
       - name: Download all artifacts
@@ -176,7 +176,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest, windows-latest, macos-latest ]
-        python-version: [ "3.9", "3.10", "3.11", "3.12", "3.13" ]
+        python-version: [ "3.9", "3.10", "3.11", "3.12", "3.13", "3.14" ]
 
     steps:
       - uses: actions/checkout@v6
@@ -237,7 +237,7 @@ jobs:
 
       - name: Install Qt
         run: |
-          python -m pip install Pyside6==6.9.1
+          python -m pip install Pyside6==6.10.2
           #PyQt5
 
       - name: Download all artifacts
@@ -307,7 +307,7 @@ jobs:
           arch -x86_64 python -m PyMca5.tests.TestAll
 
   check_existence_of_artifacts:
-    name: Upload all wheels to TestPyPI
+    name: Verify the wheels list
     runs-on: macos-latest
     needs:
       - test_wheels
