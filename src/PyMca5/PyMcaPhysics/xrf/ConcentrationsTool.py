@@ -43,20 +43,10 @@ except ImportError:
     print("WARNING: fisx features not available")
 
 class ConcentrationsConversion(object):
-    def getConcentrationsAsHtml(self, concentrations=None,
-                                    headingColor=None, rowColor=None,
-                                    altRowColor=None, headerBgColor=None):
+    def getConcentrationsAsHtml(self, concentrations=None):
         text = ""
         if concentrations is None:
             return text
-        if headingColor is None:
-            headingColor = '#009999'
-        if rowColor is None:
-            rowColor = ("#%x%x%x" % (255, 250, 205)).upper()
-        if altRowColor is None:
-            altRowColor = '#FFFFFF'
-        if headerBgColor is None:
-            headerBgColor = ("#%x%x%x" % (230, 240, 249)).upper()
 
         result = concentrations
         #the header
@@ -67,8 +57,8 @@ class ConcentrationsConversion(object):
 
         for mmolarflag in mmolarflaglist:
             text += "\n"
-            text += "<H2><a NAME=""%s""></a><FONT color=%s>" %\
-                ('Concentrations', headingColor)
+            text += "<H2><a NAME=""%s""></a><FONT color=#009999>" %\
+                'Concentrations'
             if mmolarflag:
                 text += "%s:" % 'mM Concentrations'
             else:
@@ -91,23 +81,20 @@ class ConcentrationsConversion(object):
                     result['layerlist'] = [result['layerlist']]
                 for label in result['layerlist']:
                     labels += [label]
-            lemmon = rowColor
-            white = altRowColor
-            hcolor = headerBgColor
             text += "<CENTER>"
             text += "<nobr>"
             text += '<table width="80%" border="0" cellspacing="1" cellpadding="1" >'
             text += "<tr>"
             for l in range(len(labels)):
                 if l < 2:
-                    text += '<td align="left" bgcolor=%s><b>%s</b></td>' %\
-                        (hcolor, labels[l])
+                    text += '<td align="left"><b>%s</b></td>' % \
+                        labels[l]
                 elif l == 2:
-                    text += '<td align="center" bgcolor=%s><b>%s</b></td>' %\
-                        (hcolor, labels[l])
+                    text += '<td align="center"><b>%s</b></td>' % \
+                        labels[l]
                 else:
-                    text += '<td align="right" bgcolor=%s><b>%s</b></td>' %\
-                        (hcolor, labels[l])
+                    text += '<td align="right"><b>%s</b></td>' % \
+                        labels[l]
             text += "</tr>"
             line = 0
             for group in result['groups']:
@@ -134,16 +121,12 @@ class ConcentrationsConversion(object):
                             else:
                                 fraction = "%.4g" % result[layer]['mass fraction'][group]
                         fields += [fraction]
-                if line % 2:
-                    color = lemmon
-                else:
-                    color = white
                 i = 0
                 for field in fields:
                     if (i<2):
-                        text += '<td align="left"  bgcolor=%s>%s</td>' % (color, field)
+                        text += '<td align="left">%s</td>' % field
                     else:
-                        text += '<td align="right" bgcolor=%s>%s</td>' % (color, field)
+                        text += '<td align="right">%s</td>' % field
                     i += 1
                 text += '</tr>'
                 line += 1

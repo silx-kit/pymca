@@ -224,7 +224,7 @@ class PeakIdentifier(qt.QWidget):
         try:
             _palette = qt.QApplication.instance().palette()
             _Base = _palette.color(qt.QPalette.Base)
-            _mid = _palette.color(qt.QPalette.AlternateBase)
+            _mid = _palette.color(qt.QPalette.Midlight)
             lemmon = _Base.name().upper()
             hcolor = _mid.name().upper()
         except Exception:

@@ -767,25 +767,23 @@ class McaAdvancedFit(qt.QWidget):
         gain = fitresult['result']['fittedpar'][i]
         meanfwhm = int(meanfwhm/gain) + 1
         missed =  self.mcafit.detectMissingPeaks(y, yfit, meanfwhm)
-        hcolor = 'white'
-        finalcolor = 'white'
         text=""
         if len(missed):
-            text+="<br><b><font color=blue size=4>Possibly Missing or Underestimated Peaks</font></b>"
+            text+="<br><b><font color=#009999 size=4>Possibly Missing or Underestimated Peaks</font></b>"
             text+="<nobr><table><tr>"
-            text+='<td align="right" bgcolor="%s"><b>' % hcolor
+            text+='<td align="right"><b>'
             text+='Channel'
             text+="</b></td>"
-            text+='<td align="right" bgcolor="%s"><b>' % hcolor
+            text+='<td align="right"><b>'
             text+='Energy'
             text+="</b></td>"
             text+="</tr>"
             for peak in missed:
                 text+="<tr>"
-                text+='<td align="right" bgcolor="%s">' % finalcolor
+                text+='<td align="right">'
                 text+="<b><font size=3>%d </font></b>"  % x[int(peak)]
                 text+="</td>"
-                text+='<td align="right" bgcolor="%s">' % finalcolor
+                text+='<td align="right">'
                 text+="<b><font size=3>%.3f </font></b>"  % energy[int(peak)]
                 text+="</td>"
             text+="</tr>"
@@ -793,21 +791,21 @@ class McaAdvancedFit(qt.QWidget):
             text+="</table>"
         missed =  self.mcafit.detectMissingPeaks(yfit, y, meanfwhm)
         if len(missed):
-            text+="<br><b><font color=blue size=4>Possibly Overestimated Peaks</font></b>"
+            text+="<br><b><font color=#009999 size=4>Possibly Overestimated Peaks</font></b>"
             text+="<nobr><table><tr>"
-            text+='<td align="right" bgcolor="%s"><b>' % hcolor
+            text+='<td align="right"><b>'
             text+='Channel'
             text+="</b></td>"
-            text+='<td align="right" bgcolor="%s"><b>' % hcolor
+            text+='<td align="right"><b>'
             text+='Energy'
             text+="</b></td>"
             text+="</tr>"
             for peak in missed:
                 text+="<tr>"
-                text+='<td align="right" bgcolor="%s">' % finalcolor
+                text+='<td align="right">'
                 text+="<b><font size=3>%d </font></b>"  % x[int(peak)]
                 text+="</td>"
-                text+='<td align="right" bgcolor="%s">' % finalcolor
+                text+='<td align="right">'
                 text+="<b><font size=3>%.3f </font></b>"  % energy[int(peak)]
                 text+="</td>"
             text+="</tr>"
@@ -847,18 +845,18 @@ class McaAdvancedFit(qt.QWidget):
                     if correction[-1] > 1.02:
                         doIt = True
                         bodyText += "<tr>"
-                        bodyText += '<td align="right" bgcolor="%s">' % finalcolor
+                        bodyText += '<td align="right">'
                         bodyText += "<b><font size=3>%s&nbsp;&nbsp;</font></b>"  % \
                                               (element + " " + family)
                         bodyText += "</td>"
-                        bodyText += '<td align="right" bgcolor="%s">' % finalcolor
+                        bodyText += '<td align="right">'
                         bodyText += "<b><font size=3>"
                         bodyText += "%.3f</font></b>"  % correction[1]
                         bodyText += "&nbsp;&nbsp;&nbsp;"
                         if len(corrections[element][family]['correction_factor']) > 2:
                             tertiary = True
                             bodyText+= "</td>"
-                            bodyText += '<td align="right" bgcolor="%s">' % finalcolor
+                            bodyText += '<td align="right">'
                             bodyText += "<b><font size=3>"
                             bodyText+= "%.3f </font></b>"  % correction[2]
                             bodyText += "&nbsp;&nbsp;&nbsp;"
@@ -867,19 +865,19 @@ class McaAdvancedFit(qt.QWidget):
             if doIt:
                 bodyText += "<tr>"
                 bodyText += "</table>"
-                warningText  = "<br><b><font color=blue size=4>"
+                warningText  = "<br><b><font color=#009999 size=4>"
                 warningText += "Neglected higher order excitation correction</font></b>"
                 warningText += "<nobr><table>"
                 warningText += "<tr>"
-                warningText += '<td align="right" bgcolor="%s"><b>' % hcolor
+                warningText += '<td align="right"><b>'
                 warningText += 'Peak Family'
                 warningText += "</b></td>"
-                warningText += '<td align="right" bgcolor="%s"><b>' % hcolor
+                warningText += '<td align="right"><b>'
                 warningText += ('&nbsp;' * 10)
                 warningText += '2nd Order'
                 warningText += "</b></td>"
                 if tertiary:
-                    warningText += '<td align="right" bgcolor="%s"><b>' % hcolor
+                    warningText += '<td align="right"><b>'
                     warningText += ('&nbsp;' * 10)
                     warningText += '3rd Order'
                     warningText += "</b></td>"

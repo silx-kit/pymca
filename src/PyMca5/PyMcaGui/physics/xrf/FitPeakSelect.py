@@ -63,7 +63,10 @@ class PeakButton(qt.QPushButton):
         self.setSizePolicy(qt.QSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding))
 
         self.selected= 0
-        self.brush= qt.QBrush(qt.QColor(qt.Qt.yellow))
+        _palette = qt.QApplication.instance().palette()
+        self.brush= qt.QBrush(_palette.color(qt.QPalette.Highlight))
+        self._highlightTextColor = _palette.color(qt.QPalette.HighlightedText)
+        self._normalTextColor = _palette.color(qt.QPalette.WindowText)
 
         self.clicked.connect(self.clickedSlot)
 
@@ -98,7 +101,9 @@ class PeakButton(qt.QPushButton):
         pr= qt.QRect(wr.left()+1, wr.top()+1, wr.width()-2, wr.height()-2)
         if self.selected:
             p.fillRect(pr, self.brush)
-        p.setPen(qt.QApplication.instance().palette().color(qt.QPalette.WindowText))
+            p.setPen(self._highlightTextColor)
+        else:
+            p.setPen(self._normalTextColor)
         if hasattr(p, "drawRoundRect"):
             p.drawRoundRect(pr)
         else:
@@ -112,7 +117,10 @@ class PeakButton(qt.QPushButton):
         if self.selected:
                 p.fillRect(pr, self.brush)
         qt.QPushButton.drawButtonLabel(self, p)
-        p.setPen(qt.QApplication.instance().palette().color(qt.QPalette.WindowText))
+        if self.selected:
+            p.setPen(self._highlightTextColor)
+        else:
+            p.setPen(self._normalTextColor)
         p.drawRoundRect(pr)
 
 class PeakButtonList(qt.QWidget):
