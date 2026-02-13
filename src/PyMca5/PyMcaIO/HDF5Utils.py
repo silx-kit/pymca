@@ -4,10 +4,14 @@ import h5py
 import logging
 import posixpath
 from queue import Empty
-from operator import itemgetter
-
-
 _logger = logging.getLogger(__name__)
+try:
+    import multiprocessing
+    _MULTIPROCESS = True
+except Exception:
+    _logger.info("multiprocessing not available")
+    _MULTIPROCESS = False
+from operator import itemgetter
 
 
 def get_hdf5_group_keys(file_path, data_path=None):
@@ -23,13 +27,16 @@ def get_hdf5_group_keys(file_path, data_path=None):
 
 
 def safe_hdf5_group_keys(file_path, data_path=None):
-    return run_in_subprocess(
-        get_hdf5_group_keys, file_path, data_path=data_path, default=list()
-    )
+    if _MULTIPROCESS:
+        return run_in_subprocess(
+            get_hdf5_group_keys, file_path, data_path=data_path, default=list()
+        )
+    else:
+        _logger.warning("multiprocessing not available")
+        return get_hdf5_group_keys, file_path, data_path
 
 
 def run_in_subprocess(target, *args, context=None, default=None, **kwargs):
-    import multiprocessing
     ctx = multiprocessing.get_context(context)
     queue = ctx.Queue(maxsize=1)
     p = ctx.Process(
