@@ -189,7 +189,7 @@ if __name__ == "__main__":
 
     # To avoid "Dark mode"; this force main windows to be light (but not all submenus)
     if sys.platform == 'win32':
-        _ = os.environ.setdefault("QT_QPA_PLATFORM", "windows:darkmode=0")
+        _ = os.environ.setdefault("QT_QPA_PLATFORM", "windows:darkmode=2")
     
     app = qt.QApplication(sys.argv)
     

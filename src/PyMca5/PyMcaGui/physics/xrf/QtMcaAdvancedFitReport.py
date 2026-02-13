@@ -155,10 +155,24 @@ class QtMcaAdvancedFitReport:
         if 'concentrations' in d:
             self.concentrations = d['concentrations']
 
+    def _getPaletteColors(self):
+        """Return a dict of palette-derived color hex strings for HTML generation."""
+        _palette = qt.QApplication.instance().palette()
+        return {
+            'text': _palette.color(qt.QPalette.WindowText).name(),
+            'bg': _palette.color(qt.QPalette.Base).name(),
+            'altBg': _palette.color(qt.QPalette.AlternateBase).name(),
+            'link': _palette.color(qt.QPalette.Link).name(),
+            'highlight': _palette.color(qt.QPalette.Highlight).name(),
+            'highlightText': _palette.color(qt.QPalette.HighlightedText).name(),
+            'midlight': _palette.color(qt.QPalette.Midlight).name(),
+        }
+
     def getText(self):
         newlinks = []
         for key in self.otherhtmltext.keys():
             newlinks.append(["#%s" % (key),"%s" % key])
+        _colors = self._getPaletteColors()
         text =self.getHeader(newlinks)
         text+=self.getInfo()
         text+=self.getImage()
@@ -168,7 +182,7 @@ class QtMcaAdvancedFitReport:
         text+=self.getResult()
         for key in self.otherhtmltext.keys():
              text+="\n"
-             text+= "<H2><a NAME=""%s""></a><FONT color=#009999>" % key
+             text+= "<H2><a NAME=""%s""></a><FONT color=%s>" % (key, _colors['link'])
              text+= "%s:" % key
              text+= "</FONT></H2>"
              text+= self.otherhtmltext[key]
@@ -186,16 +200,26 @@ class QtMcaAdvancedFitReport:
         if addlink is not None:
             for item in addlink:
                 link.append(item)
+
+        # Use palette-derived colors for dark mode support
+        _palette = qt.QApplication.instance().palette()
+        _textColor = _palette.color(qt.QPalette.WindowText).name()
+        _bgColor = _palette.color(qt.QPalette.Base).name()
+        _linkColor = _palette.color(qt.QPalette.Link).name()
+        _highlightColor = _palette.color(qt.QPalette.Highlight).name()
+        _highlightTextColor = _palette.color(qt.QPalette.HighlightedText).name()
+
         text =""
         text+= "<HTML>"
         text+= "<HEAD>"
         text+= "<TITLE>PyMCA : Advanced Fit Results</TITLE>"
         text+= "</HEAD>"
-        text+= "<BODY TEXT=#000000 BGCOLOR=#FFFFFF ALINK=#ff6600 LINK=#0000cc VLINK=#0000cc marginwidth=10 marginheight=10  topmargin=10 leftmargin=10>"
+        text+= "<BODY TEXT=%s BGCOLOR=%s ALINK=%s LINK=%s VLINK=%s marginwidth=10 marginheight=10  topmargin=10 leftmargin=10>" % \
+               (_textColor, _bgColor, _linkColor, _linkColor, _linkColor)
         text+= "<CENTER>"
         text+= "<TABLE WIDTH=100%% border=0 Height=70>"
         text+= "  <TR>"
-        text+= "    <TD><Font Size=5 Color=#0000cc>"
+        text+= "    <TD><Font Size=5 Color=%s>" % _linkColor
         text+= "        <b>PyMCA : Advanced Fit Results</b></Font>"
         text+= "    </td>"
         text+= "    <td rowspan=2 ALIGN=RIGHT VALIGN=bottom>"
@@ -211,10 +235,10 @@ class QtMcaAdvancedFitReport:
         text+= "     <td width=100%%  VALIGN=bottom>"
         text+= "        <TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH=100%%>"
         text+= "          <TR>"
-        text+= "            <TD WIDTH=100%% BGCOLOR=#ee22aa HEIGHT=17  ALIGN=LEFT VALIGN=middle>"
-        text+= "            <FONT color=#000000>&nbsp;"
+        text+= "            <TD WIDTH=100%% BGCOLOR=%s HEIGHT=17  ALIGN=LEFT VALIGN=middle>" % _highlightColor
+        text+= "            <FONT color=%s>&nbsp;" % _highlightTextColor
         for name in link:
-            text+= "|&nbsp;&nbsp;<A STYLE=""color: #FFFFFF"" HREF=""%s"">%s</a>&nbsp;&nbsp;"%(tuple(name))
+            text+= "|&nbsp;&nbsp;<A STYLE=""color: %s"" HREF=""%s"">%s</a>&nbsp;&nbsp;" % (_highlightTextColor, name[0], name[1])
         text+= "            </FONT>"
         text+= "            </TD>"
         text+= "          </TR>"
@@ -230,11 +254,14 @@ class QtMcaAdvancedFitReport:
         return text
 
     def getInfo(self):
+        _palette = qt.QApplication.instance().palette()
+        _headingColor = _palette.color(qt.QPalette.Link).name()
+        _textColor = _palette.color(qt.QPalette.WindowText).name()
         text =""
-        text+= "<nobr><H2><FONT color=#0000cc>"
+        text+= "<nobr><H2><FONT color=%s>" % _headingColor
         text+= "Computed File :&nbsp;"
         text+= "</FONT>"
-        text+= "<FONT color=#000000>"
+        text+= "<FONT color=%s>" % _textColor
         if self.fitfile is not None:
             if os.path.basename(self.fitfile) == self.fitfile:
                 text+= "<b><I>%s</I></b>" % (os.getcwd()+"/"+self.fitfile)
@@ -328,7 +355,8 @@ class QtMcaAdvancedFitReport:
                     hypermetfinalnames.append(name)
 
         # --- html table
-        text+="<H2><FONT color=#009999>"
+        _headingColor = self._getPaletteColors()['link']
+        text+="<H2><FONT color=%s>" % _headingColor
         text+="Fit Parameters :"
         text+="</FONT></H2>"
         text+="<CENTER>"
@@ -537,27 +565,28 @@ class QtMcaAdvancedFitReport:
 
     def getFooter(self):
         now = time.time()
+        _colors = self._getPaletteColors()
         text =""
         text+= "<center>"
         text+= "<table width=100%% border=0 cellspacing=0 cellpadding=0>"
         text+= "    <tr><td colspan=2 height=10><spacer type=block height=10 width=0></td></tr>"
-        text+= "    <tr><td colspan=2 bgcolor=#cc0066 height=5><spacer type=block height=5 width=0></td></tr>"
+        text+= "    <tr><td colspan=2 bgcolor=%s height=5><spacer type=block height=5 width=0></td></tr>" % _colors['highlight']
         text+= "    <tr><td colspan=2 height=5><spacer type=block height=5 width=0></td></tr>"
         text+= "    <TR>"
         text+= "        <TD><FONT size=1 >created:  %s</font></TD>" % time.ctime(now)
         #text+= "        <TD ALIGN=RIGHT><FONT size=1 >last modified: %s" % time.ctime(now)
         text+= "        <TD ALIGN=RIGHT><FONT size=1 >last modified: %s by" % time.ctime(now)
-        #text+= "        <A STYLE=""color: #0000cc"" HREF=""mailto:papillon@esrf.fr"">papillon@esrf.fr</A></FONT></TD>"
+        #text+= "        <A STYLE=""color: %s"" HREF=""mailto:papillon@esrf.fr"">papillon@esrf.fr</A></FONT></TD>" % _colors['link']
         if sys.platform == 'win32':
             try:
                 user = os.getenv('USERNAME')
-                text+= "        <A STYLE=""color: #0000cc"">%s</A></FONT></TD>" % user
+                text+= "        <A STYLE=""color: %s"">%s</A></FONT></TD>" % (_colors['link'], user)
             except Exception:
                 text +="</FONT></TD>"
         else:
             try:
                 user = os.getenv("USER")
-                text+= "        <A STYLE=""color: #0000cc"">%s</A></FONT></TD>" % user
+                text+= "        <A STYLE=""color: %s"">%s</A></FONT></TD>" % (_colors['link'], user)
             except Exception:
                 text +="</FONT></TD>"
         text+= "    </TR>"
@@ -570,8 +599,9 @@ class QtMcaAdvancedFitReport:
     def __getFitImage(self,imagefile=None):
         if imagefile is None:imagefile=self.outdir+"/"+self.outfile+".png"
         filelink = "%s" % imagefile
+        _headingColor = self._getPaletteColors()['link']
         text = ""
-        text+= "<H2><FONT color=#009999>"
+        text+= "<H2><FONT color=%s>" % _headingColor
         text+= "Spectrum, Continuum and Fitted values :"
         text+= "</FONT></H2>"
         text+= "<CENTER>"
@@ -656,8 +686,13 @@ class QtMcaAdvancedFitReport:
         return self.__getFitImage(self.outfile+".png")
 
     def getConcentrations(self):
-        return self.concentrationsConversion.getConcentrationsAsHtml(\
-                                                self.concentrations)
+        _colors = self._getPaletteColors()
+        return self.concentrationsConversion.getConcentrationsAsHtml(
+                                self.concentrations,
+                                headingColor=_colors['link'],
+                                rowColor=_colors['bg'],
+                                altRowColor=_colors['altBg'],
+                                headerBgColor=_colors['altBg'])
 
     def getConcentrationsASCII(self):
         return self.concentrationsConversion.getConcentrationsAsAscii(\
@@ -668,7 +703,8 @@ class QtMcaAdvancedFitReport:
         if self.tableFlag == 0:
             return text
         text+="\n"
-        text+= "<H2><a NAME=""%s""></a><FONT color=#009999>" % 'Fit_Peak_Results'
+        _colors = self._getPaletteColors()
+        text+= "<H2><a NAME=""%s""></a><FONT color=%s>" % ('Fit_Peak_Results', _colors['link'])
         text+= "%s:" % 'Fit Peak Results'
         text+= "</FONT></H2>"
         text+="<br>"
@@ -677,8 +713,8 @@ class QtMcaAdvancedFitReport:
             labels=['Element','Group','Fit&nbsp; Area','Sigma']
         else:
             labels=['Element','Group','Fit&nbsp; Area','Sigma','Energy','Ratio','FWHM','Chi&nbsp; square']
-        lemmon = ("#%x%x%x" % (255,250,205)).upper()
-        hcolor = ("#%x%x%x" % (230,240,249)).upper()
+        lemmon = _colors['bg']
+        hcolor = _colors['altBg']
         text += "<CENTER>"
         text += ("<nobr>")
         text += '<table width="80%" border="0" cellspacing="1" cellpadding="1" >'
