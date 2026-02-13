@@ -49,6 +49,8 @@ hiddenimports += collect_submodules('hdf5plugin')
 hiddenimports += collect_submodules('fisx')
 hiddenimports += collect_submodules('PyMca5.PyMcaGui.PyMcaQt')
 hiddenimports += collect_submodules('PyMca5.PyMcaGui.pymca')
+hiddenimports += collect_submodules('multiprocessing')
+hiddenimports += collect_submodules('multiprocessing.spawn')
 
 my_binaries = []
 

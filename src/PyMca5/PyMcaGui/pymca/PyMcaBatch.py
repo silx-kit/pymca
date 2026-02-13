@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #/*##########################################################################
-# Copyright (C) 2004-2023 European Synchrotron Radiation Facility
+# Copyright (C) 2004-2026 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF.
@@ -36,6 +36,14 @@ import signal
 import atexit
 import logging
 import traceback
+if __name__== '__main__':
+    # avoid issues if some module or dependency tries to use multiprocessing in frozen binaries
+    if getattr(sys, "frozen", False):
+        try:
+            import multiprocessing
+            multiprocessing.freeze_support()
+        except Exception:
+            pass
 from glob import glob
 from contextlib import contextmanager
 try:
