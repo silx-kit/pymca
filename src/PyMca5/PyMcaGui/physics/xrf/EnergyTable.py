@@ -2,7 +2,7 @@
 #
 # The PyMca X-Ray Fluorescence Toolkit
 #
-# Copyright (c) 2004-2025 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2026 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF.
@@ -298,6 +298,13 @@ class EnergyTable(QTable):
         self.offset      = offset
         self.scatterList = scatterlist
         self._scatterColor = scattercolor
+        try:
+            self._textBackgroundColor = \
+                qt.QApplication.instance().palette().color(qt.QPalette.Base)
+        except Exception:
+            _logger.warning("Cannot obtain text background color")
+            self._textBackgroundColor = qt.QColor(255, 255, 255)
+
         self.verticalHeader().hide()
         self.dataColumns = 30
         if QTVERSION < '4.0.0':
@@ -360,7 +367,7 @@ class EnergyTable(QTable):
         if oldcolor != self._scatterColor:
             item.setColor(self._scatterColor)
         else:
-            item.setColor(qt.QColor(255, 255, 255))
+            item.setColor(self._textBackgroundColor)
         item.repaint(item.rect())
         self.cellChanged.emit(row, col)
 
@@ -384,7 +391,7 @@ class EnergyTable(QTable):
                 rowoffset= (-int(idx/self.__rows))*(nrows //self.dataColumns)
                 coloffset=  3*int(idx/self.__rows)
             r = idx + rowoffset
-            color = qt.QColor(255, 255, 255)
+            color = self._textBackgroundColor
             if len(self.scatterList):
                 if idx < len(self.scatterList):
                     if (self.scatterList[idx] is not None)and \
