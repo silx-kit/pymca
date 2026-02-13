@@ -4,7 +4,6 @@ import h5py
 import logging
 import posixpath
 from queue import Empty
-import multiprocessing
 from operator import itemgetter
 
 
@@ -30,6 +29,7 @@ def safe_hdf5_group_keys(file_path, data_path=None):
 
 
 def run_in_subprocess(target, *args, context=None, default=None, **kwargs):
+    import multiprocessing
     ctx = multiprocessing.get_context(context)
     queue = ctx.Queue(maxsize=1)
     p = ctx.Process(
