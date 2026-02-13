@@ -32,7 +32,7 @@ import sys
 import os
 import logging
 if __name__== '__main__':
-    # this is to avoid issues if some module or dependency try to use multiprocessing in frozen binaries
+    # this is to avoid issues if some module or dependency tries to use multiprocessing in frozen binaries
     if getattr(sys, "frozen", False):
         try:
             import multiprocessing
