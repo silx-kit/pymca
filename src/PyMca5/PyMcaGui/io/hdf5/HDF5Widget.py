@@ -318,7 +318,15 @@ class H5NodeProxy(object):
 
             self._hasChildren = is_group(node)
             #self._attrs = []
-            self._color = qt.QColor(qt.Qt.black)
+            try:
+                # get the default text foreground color
+                foregroundTextColor = qt.QApplication.instance().palette().color(qt.QPalette.Text)
+                # get the default text foreground color for links
+                foregroundLinkColor = qt.QApplication.instance().palette().color(qt.QPalette.Link)
+            except Exception:
+                foregroundTextColor = qt.Qt.black
+                foregroundLinkColor = qt.Qt.blue
+            self._color = qt.QColor(foregroundTextColor)
             if hasattr(node, 'attrs'):
                 attrs = list(node.attrs)
                 for cname in ['class', 'NX_class']:
@@ -332,9 +340,9 @@ class H5NodeProxy(object):
                             _type = "%s" % nodeattr
                         self._type = _type
                         if _type in ["NXdata"]:
-                            self._color = qt.QColor(qt.Qt.blue)
+                            self._color = qt.QColor(foregroundLinkColor)
                         elif ("default" in attrs):
-                            self._color = qt.QColor(qt.Qt.blue)
+                            self._color = qt.QColor(foregroundLinkColor)
                         #self._attrs = attrs
                         break
                         #self._type = _type[2].upper() + _type[3:]
