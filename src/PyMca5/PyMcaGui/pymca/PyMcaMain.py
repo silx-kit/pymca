@@ -187,7 +187,18 @@ __version__ = PyMca5.version()
 if __name__ == "__main__":
     sys.excepthook = qt.exceptionHandler
 
+    # To avoid "Dark mode"; this force main windows to be light (but not all submenus)
+    if sys.platform == 'win32':
+        _ = os.environ.setdefault("QT_QPA_PLATFORM", "windows:darkmode=0")
+    
     app = qt.QApplication(sys.argv)
+    
+    # To avoid "Dark mode"; without this part some menus will be still dark
+    if sys.platform == 'win32':
+        platform = os.environ.get("QT_QPA_PLATFORM", "")
+        if "darkmode=0" in platform:
+            app.setStyle('fusion')
+    
     if sys.platform not in ["win32", "darwin"]:
         # some themes of Ubuntu 16.04 give black tool tips on black background
         app.setStyleSheet("QToolTip { color: #000000; background-color: #fff0cd; border: 1px solid black; }")
