@@ -38,11 +38,11 @@ jobs:
             XVFB_RUN: xvfb-run -a
             WARNING_FLAGS: "-W ignore::DeprecationWarning"
           
-          - name-suffix: "PyQt5 wheel"
+          - name-suffix: "PySide6 wheel"
             os: ubuntu-latest
             python-version: "3.10"
             BUILD_COMMAND: --wheel
-            QT_BINDING: PyQt5
+            QT_BINDING: PySide6
             XVFB_RUN: xvfb-run -a
 
           - name-suffix: "PyQt6 wheel"
@@ -59,42 +59,14 @@ jobs:
             QT_BINDING: PySide6
             XVFB_RUN: xvfb-run -a
 
-          - name-suffix: "PySide6 wheel"
+          - name-suffix: "PyQt5 wheel"
             os: ubuntu-latest
             python-version: "3.13"
             BUILD_COMMAND: --wheel
-            QT_BINDING: PySide6
-            XVFB_RUN: xvfb-run -a
-
-          - name-suffix: "PySide6 wheel"
-            os: ubuntu-latest
-            python-version: "3.14"
-            BUILD_COMMAND: --wheel
-            QT_BINDING: PySide6
+            QT_BINDING: PyQt5
             XVFB_RUN: xvfb-run -a
 
             # MacOS section
-
-          - name-suffix: "PyQt6 wheel"
-            os: macos-latest
-            python-version: "3.9"
-            BUILD_COMMAND: --wheel
-            QT_BINDING: PyQt6
-            XVFB_RUN: ""
-
-          - name-suffix: "PySide6 wheel"
-            os: macos-latest
-            python-version: "3.10"
-            BUILD_COMMAND: --wheel
-            QT_BINDING: PySide6
-            XVFB_RUN: ""
-
-          - name-suffix: "PyQt6 wheel"
-            os: macos-latest
-            python-version: "3.11"
-            BUILD_COMMAND: --wheel
-            QT_BINDING: PyQt6
-            XVFB_RUN: ""
 
           - name-suffix: "PySide6 wheel (for frozen MacOS binaries)"
             os: macos-latest
@@ -110,42 +82,14 @@ jobs:
             QT_BINDING: PyQt6
             XVFB_RUN: ""
 
-          - name-suffix: "PySide6 wheel (for MacOS binaries)"
+          - name-suffix: "PySide6 wheel"
             os: macos-latest
             python-version: "3.14"
             BUILD_COMMAND: --wheel
             QT_BINDING: PySide6
             XVFB_RUN: ""
 
-            # Windows section
-
-          - name-suffix: "PyQt5 wheel"
-            os: windows-latest
-            python-version: "3.9"
-            BUILD_COMMAND: --wheel
-            QT_BINDING: PyQt5
-            XVFB_RUN: ""
-
-          - name-suffix: "PyQt6 wheel"
-            os: windows-latest
-            python-version: "3.10"
-            BUILD_COMMAND: --wheel
-            QT_BINDING: PyQt6
-            XVFB_RUN: ""
-
-          - name-suffix: "PySide6 wheel"
-            os: windows-latest
-            python-version: "3.11"
-            BUILD_COMMAND: --wheel
-            QT_BINDING: PySide6
-            XVFB_RUN: ""
-
-          - name-suffix: "PyQt6 wheel"
-            os: windows-latest
-            python-version: "3.12"
-            BUILD_COMMAND: --wheel
-            QT_BINDING: PyQt6
-            XVFB_RUN: ""                                    
+            # Windows section                             
 
           - name-suffix: "PySide6 wheel (for frozen Windows binaries)"
             os: windows-latest
