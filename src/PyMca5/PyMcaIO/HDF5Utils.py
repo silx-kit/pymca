@@ -33,7 +33,7 @@ def safe_hdf5_group_keys(file_path, data_path=None):
         )
     else:
         _logger.warning("multiprocessing not available")
-        return get_hdf5_group_keys, file_path, data_path
+        return get_hdf5_group_keys(file_path, data_path)
 
 
 def run_in_subprocess(target, *args, context=None, default=None, **kwargs):
