@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #/*##########################################################################
-# Copyright (C) 2004-2025 European Synchrotron Radiation Facility
+# Copyright (C) 2004-2026 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF.
@@ -32,7 +32,14 @@ import os
 import sys, getopt
 import traceback
 import logging
-import multiprocessing
+if __name__== '__main__':
+    # avoid issues if some module or dependency tries to use multiprocessing in frozen binaries
+    if getattr(sys, "frozen", False):
+        try:
+            import multiprocessing
+            multiprocessing.freeze_support()
+        except Exception:
+            pass
 if sys.platform == 'win32':
     import ctypes
     from ctypes.wintypes import MAX_PATH
@@ -41,8 +48,6 @@ nativeFileDialogs = None
 _logger = logging.getLogger(__name__)
 backend=None
 if __name__ == '__main__':
-    multiprocessing.freeze_support()
-    
     options     = '-f'
     longoptions = ['spec=',
                    'shm=',
