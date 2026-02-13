@@ -2,7 +2,7 @@
 #
 # The PyMca X-Ray Fluorescence Toolkit
 #
-# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2026 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF.
@@ -173,12 +173,14 @@ class ElementButton(qt.QPushButton):
 
         self.selected= 0
         self.current= 0
-        self.colors= [ qt.QColor(qt.Qt.yellow),
-                       qt.QColor(qt.Qt.darkYellow),
-                       qt.QColor(qt.Qt.gray) ]
+        self.colors= [ qt.QColor(qt.Qt.yellow), # not current but with selected peak
+                       qt.QColor(qt.Qt.darkYellow), # current with peaks selected color
+                       qt.QColor(qt.Qt.gray), # current but no peaks selected
+                       qt.QApplication.instance().palette().color(qt.QPalette.Button), # default color for a button background 
+                       ]
+        self._textColor = qt.QApplication.instance().palette().color(qt.QPalette.ButtonText)
 
         self.brush= qt.QBrush()
-
         self.clicked.connect(self.clickedSlot)
 
     def sizeHint(self):
@@ -199,40 +201,15 @@ class ElementButton(qt.QPushButton):
         self.__setBrush()
 
     def __setBrush(self):
-        role = self.backgroundRole()
-        palette = self.palette()
         if self.current and self.selected:
-            self.brush= qt.QBrush(self.colors[1])
+            self.setStyleSheet("color: %s; background-color: %s" % (self._textColor.name(), self.colors[1].name()))
         elif self.selected:
-            self.brush= qt.QBrush(self.colors[0])
+            self.setStyleSheet("color: black; background-color: %s" % self.colors[0].name())
         elif self.current:
-            self.brush= qt.QBrush(self.colors[2])
+            self.setStyleSheet("color: %s; background-color: %s" % (self._textColor.name(), self.colors[2].name()))
         else:
-            self.brush= qt.QBrush()
-        palette.setBrush( role,self.brush)
+            self.setStyleSheet("color: %s; background-color: %s" % (self._textColor.name(), self.colors[3].name()))
         self.update()
-
-
-    def paintEvent(self, pEvent):
-        p = qt.QPainter(self)
-        wr= self.rect()
-        pr= qt.QRect(wr.left()+1, wr.top()+1, wr.width()-2, wr.height()-2)
-        if self.brush is not None:
-            p.fillRect(pr, self.brush)
-        p.setPen(qt.Qt.black)
-        p.drawRect(pr)
-        p.end()
-        qt.QPushButton.paintEvent(self, pEvent)
-
-    def drawButton(self, p):
-        #Qt 2 and Qt3
-        wr= self.rect()
-        pr= qt.QRect(wr.left()+1, wr.top()+1, wr.width()-2, wr.height()-2)
-        if self.brush is not None:
-            p.fillRect(pr, self.brush)
-        qt.QPushButton.drawButtonLabel(self, p)
-        p.setPen(qt.Qt.black)
-        p.drawRect(pr)
 
     def enterEvent(self, e):
         self.sigElementEnter.emit((self.symbol, self.Z, self.name))
