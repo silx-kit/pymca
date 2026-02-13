@@ -153,7 +153,8 @@ class PeakIdentifier(qt.QWidget):
             value = float(qt.safe_str(qstring))
             self.energyvalue = value
             self.mySlot()
-            self.energy.setPaletteBackgroundColor(qt.Qt.white)
+            self.energy.setPaletteBackgroundColor(
+                qt.QApplication.instance().palette().color(qt.QPalette.Base))
             cursor = self.__browsertext.textCursor()
             cursor.movePosition(qt.QTextCursor.Start)
             self.__browsertext.setTextCursor(cursor)
@@ -220,10 +221,17 @@ class PeakIdentifier(qt.QWidget):
         if QTVERSION < '4.0.0':
             text += "<br>"
         labels=['Element','Line','Energy','Rate']
-        lemmon=("#%x%x%x" % (255,250,205))
-        lemmon = lemmon.upper()
-        hcolor = ("#%x%x%x" % (230,240,249))
-        hcolor = hcolor.upper()
+        try:
+            _palette = qt.QApplication.instance().palette()
+            _Base = _palette.color(qt.QPalette.Base)
+            _mid = _palette.color(qt.QPalette.AlternateBase)
+            lemmon = _Base.name().upper()
+            hcolor = _mid.name().upper()
+        except Exception:
+            lemmon = ("#%x%x%x" % (255,250,205))
+            lemmon = lemmon.upper()
+            hcolor = ("#%x%x%x" % (230,240,249))
+            hcolor = hcolor.upper()
         text+="<CENTER>"
         text+=("<nobr>")
         text+=( "<table WIDTH=80%%>")
@@ -284,7 +292,8 @@ class MyQLineEdit(qt.QLineEdit):
 
 
     def focusInEvent(self,event):
-        self.setPaletteBackgroundColor(qt.QColor('yellow'))
+        self.setPaletteBackgroundColor(
+            qt.QApplication.instance().palette().color(qt.QPalette.Highlight))
         # TODO not like focusOutEvent ?
         '''
         if QTVERSION > '4.0.0':
@@ -292,14 +301,13 @@ class MyQLineEdit(qt.QLineEdit):
         '''
 
     def focusOutEvent(self,event):
-        self.setPaletteBackgroundColor(qt.QColor('white'))
+        self.setPaletteBackgroundColor(
+            qt.QApplication.instance().palette().color(qt.QPalette.Base))
         qt.QLineEdit.focusOutEvent(self, event)
 
 def main():
     logging.basicConfig(level=logging.INFO)
     app  = qt.QApplication(sys.argv)
-    winpalette = qt.QPalette(qt.QColor(230,240,249),qt.QColor(238,234,238))
-    app.setPalette(winpalette)
     if len(sys.argv) > 1:
         ene = float(sys.argv[1])
     else:

@@ -575,6 +575,8 @@ class ScanWindow(PlotWindow.PlotWindow):
                                 xText = '%.7g' % xCurve
                                 yText = '%.7g' % yCurve
                     # showing ToolTip with coordinates of a cursor and nearest point
+                    # colors are hardcoded due to matplotlib colormap
+                    # current point coordinates are red to match crosshair red color
                     if xMin <ddict['x']< xMax and yMin <ddict['y']< yMax and self.getGraphCursor():
                         xy_tip = ('<span style="color: red;">X:%s <br>'
                                   'Y:%s</span> <br>'

@@ -98,7 +98,7 @@ class PeakButton(qt.QPushButton):
         pr= qt.QRect(wr.left()+1, wr.top()+1, wr.width()-2, wr.height()-2)
         if self.selected:
             p.fillRect(pr, self.brush)
-        p.setPen(qt.Qt.black)
+        p.setPen(qt.QApplication.instance().palette().color(qt.QPalette.WindowText))
         if hasattr(p, "drawRoundRect"):
             p.drawRoundRect(pr)
         else:
@@ -112,7 +112,7 @@ class PeakButton(qt.QPushButton):
         if self.selected:
                 p.fillRect(pr, self.brush)
         qt.QPushButton.drawButtonLabel(self, p)
-        p.setPen(qt.Qt.black)
+        p.setPen(qt.QApplication.instance().palette().color(qt.QPalette.WindowText))
         p.drawRoundRect(pr)
 
 class PeakButtonList(qt.QWidget):
@@ -191,7 +191,7 @@ class FitPeakSelect(qt.QWidget):
         hboxLayout.setContentsMargins(0, 0, 0, 0)
         hboxLayout.setSpacing(20)
         hboxLayout.addWidget(qt.HorizontalSpacer(hbox))
-        l1=MyQLabel(hbox, bold=True, color=qt.QColor(0,0,0))
+        l1=MyQLabel(hbox, bold=True, color=qt.QApplication.instance().palette().color(qt.QPalette.WindowText))
         hboxLayout.addWidget(l1)
 
         self.energyValue = None
@@ -444,14 +444,16 @@ class MyQLineEdit(qt.QLineEdit):
         qt.QLineEdit.__init__(self,parent,name)
 
     def focusInEvent(self,event):
-        self.setPaletteBackgroundColor(qt.QColor('yellow'))
+        self.setPaletteBackgroundColor(qt.QApplication.instance().palette().color(qt.QPalette.Highlight))
 
     def focusOutEvent(self,event):
-        self.setPaletteBackgroundColor(qt.QColor('white'))
+        self.setPaletteBackgroundColor(qt.QApplication.instance().palette().color(qt.QPalette.Base))
 
 class MyQLabel(qt.QLabel):
-    def __init__(self, parent=None, bold=True, color= qt.Qt.red):
+    def __init__(self, parent=None, bold=True, color=None):
         qt.QLabel.__init__(self,parent)
+        if color is None:
+            color = qt.QApplication.instance().palette().color(qt.QPalette.WindowText)
         palette = self.palette()
         role = self.foregroundRole()
         palette.setColor(role,color)

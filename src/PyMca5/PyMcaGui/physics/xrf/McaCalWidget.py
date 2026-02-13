@@ -1243,11 +1243,13 @@ class MyQLineEdit(qt.QLineEdit):
     def focusInEvent(self,event):
         if QTVERSION < '4.0.0':
             self.backgroundcolor = self.paletteBackgroundColor()
-        self.setPaletteBackgroundColor(qt.QColor('yellow'))
+        self.setPaletteBackgroundColor(
+            qt.QApplication.instance().palette().color(qt.QPalette.Highlight))
         qt.QLineEdit.focusInEvent(self, event)
 
     def focusOutEvent(self,event):
-        self.setPaletteBackgroundColor(qt.QColor('white'))
+        self.setPaletteBackgroundColor(
+            qt.QApplication.instance().palette().color(qt.QPalette.Base))
         qt.QLineEdit.focusOutEvent(self, event)
 
 class DoubleDialog(qt.QDialog):

@@ -131,7 +131,11 @@ class McaTable(QTable):
                     if fitlabel == 'Area':
                         if diag:
                             if abs(fitpars[i]-area) > (3.0 * sigma):
-                                color = qt.QColor(255,182,193)
+                                try:
+                                    _hl = qt.QApplication.instance().palette().color(qt.QPalette.Highlight)
+                                    color = qt.QColor(_hl.red(), _hl.green(), _hl.blue(), 100)
+                                except Exception:
+                                    color = qt.QColor(255,182,193)
                                 recolor = 1
                     for field in fields:
                         key = self.item(line, col)

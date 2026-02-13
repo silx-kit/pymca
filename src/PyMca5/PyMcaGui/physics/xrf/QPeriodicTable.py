@@ -201,18 +201,19 @@ class ElementButton(qt.QPushButton):
         self.__setBrush()
 
     def __setBrush(self):
+        _borderColor = qt.QApplication.instance().palette().color(qt.QPalette.Shadow).name()
         if self.current and self.selected:
-            self.setStyleSheet("color: %s; background-color: %s; border-color: black; border-style: outset; border-width: 1px" % \
-                               (self._textColor.name(), self.colors[1].name()))
+            self.setStyleSheet("color: %s; background-color: %s; border-color: %s; border-style: outset; border-width: 1px" % \
+                               (self._textColor.name(), self.colors[1].name(), _borderColor))
         elif self.selected:
-            self.setStyleSheet("color: black; background-color: %s; border-color: black; border-style: outset; border-width: 1px" % \
-                               self.colors[0].name())
+            self.setStyleSheet("color: %s; background-color: %s; border-color: %s; border-style: outset; border-width: 1px" % \
+                               ('black', self.colors[0].name(), _borderColor))
         elif self.current:
-            self.setStyleSheet("color: %s; background-color: %s; border-color: black; border-style: outset; border-width: 1px" % \
-                               (self._textColor.name(), self.colors[2].name()))
+            self.setStyleSheet("color: %s; background-color: %s; border-color: %s; border-style: outset; border-width: 1px" % \
+                               (self._textColor.name(), self.colors[2].name(), _borderColor))
         else:
-            self.setStyleSheet("color: %s; background-color: %s; border-color: black; border-style: outset; border-width: 1px" % \
-                               (self._textColor.name(), self.colors[3].name()))
+            self.setStyleSheet("color: %s; background-color: %s; border-color: %s; border-style: outset; border-width: 1px" % \
+                               (self._textColor.name(), self.colors[3].name(), _borderColor))
         self.update()
 
     def enterEvent(self, e):

@@ -702,9 +702,9 @@ class ConcentrationsTable(QTable):
                 else:
                     fraction = QString("%.4g" % (result['mass fraction'][group]))
             if line % 2:
-                color = qt.QColor(255, 250, 205)
+                color = qt.QApplication.instance().palette().color(qt.QPalette.AlternateBase)
             else:
-                color = qt.QColor('white')
+                color = qt.QApplication.instance().palette().color(qt.QPalette.Base)
             if 'Expected Area' in self.labels:
                 fields = [element, group0, fitarea, sigmaarea, area, fraction]
             else:
@@ -744,9 +744,15 @@ class ConcentrationsTable(QTable):
                 self.resizeColumnToContents(i)
 
     def getHtmlText(self):
-        lemon = ("#%x%x%x" % (255, 250, 205)).upper()
-        white = "#FFFFFF"
-        hcolor = ("#%x%x%x" % (230, 240, 249)).upper()
+        try:
+            _palette = qt.QApplication.instance().palette()
+            lemon = _palette.color(qt.QPalette.AlternateBase).name().upper()
+            white = _palette.color(qt.QPalette.Base).name().upper()
+            hcolor = _palette.color(qt.QPalette.Midlight).name().upper()
+        except Exception:
+            lemon = ("#%x%x%x" % (255, 250, 205)).upper()
+            white = "#FFFFFF"
+            hcolor = ("#%x%x%x" % (230, 240, 249)).upper()
         text = ""
         text += ("<nobr>")
         text += ("<table>")

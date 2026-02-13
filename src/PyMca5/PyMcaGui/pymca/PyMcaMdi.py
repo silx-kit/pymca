@@ -428,10 +428,6 @@ class PyMcaMdi(qt.QMainWindow):
 
 def main(args):
     app = qt.QApplication(args)
-    #if sys.platform == 'win32':
-    if 1:
-        winpalette = qt.QPalette(qt.QColor(230,240,249),qt.QColor(238,234,238))
-        app.setPalette(winpalette)
 
     options     = ''
     longoptions = ['spec=','shm=']

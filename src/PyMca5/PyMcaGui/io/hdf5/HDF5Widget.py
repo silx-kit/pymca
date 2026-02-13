@@ -327,6 +327,7 @@ class H5NodeProxy(object):
                 foregroundTextColor = qt.Qt.black
                 foregroundLinkColor = qt.Qt.blue
             self._color = qt.QColor(foregroundTextColor)
+            self._isLink = False
             if hasattr(node, 'attrs'):
                 attrs = list(node.attrs)
                 for cname in ['class', 'NX_class']:
@@ -341,8 +342,10 @@ class H5NodeProxy(object):
                         self._type = _type
                         if _type in ["NXdata"]:
                             self._color = qt.QColor(foregroundLinkColor)
+                            self._isLink = True
                         elif ("default" in attrs):
                             self._color = qt.QColor(foregroundLinkColor)
+                            self._isLink = True
                         #self._attrs = attrs
                         break
                         #self._type = _type[2].upper() + _type[3:]
@@ -519,9 +522,8 @@ class FileModel(qt.QAbstractItemModel):
                         return MyQVariant(qt.QColor(item.color))
             elif role == qt.Qt.ToolTipRole:
                 item = self.getProxyFromIndex(index)
-                if hasattr(item, "color"):
-                    if item.color == qt.Qt.blue:
-                        return MyQVariant("Item has a double click NXdata associated action")
+                if getattr(item, '_isLink', False):
+                    return MyQVariant("Item has a double click NXdata associated action")
             return MyQVariant()
         except Exception:
             return MyQVariant("Unhandled exception filling tree. Reload?")
@@ -833,6 +835,7 @@ class HDF5Widget(FileView):
         ddict['dtype'] = item.dtype
         ddict['shape'] = item.shape
         ddict['color'] = item.color
+        ddict['_isLink'] = getattr(item, '_isLink', False)
         ddict['mouse'] = getattr(self, '_lastMouse', 'left') * 1
         self.sigHDF5WidgetSignal.emit(ddict)
 

@@ -478,8 +478,6 @@ def main():
         for i in range(len(filelist)):
             filelist[i]=filelist[i].replace('\n','')
     app=qt.QApplication(sys.argv)
-    winpalette = qt.QPalette(qt.QColor(230,240,249),qt.QColor(238,234,238))
-    app.setPalette(winpalette)
     app.lastWindowClosed.connect(app.quit)
     if len(filelist) == 0:
         w = Mca2EdfGUI(actions=1)

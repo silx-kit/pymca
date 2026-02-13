@@ -236,9 +236,10 @@ class RGBCorrelatorWidget(qt.QWidget):
             self.tomographyButton.setToolTip("Run tomography reconstruction")
             self.tomographyButton.clicked.connect(self._showTomoReconsDialog)
 
-        label1 = MyQLabel(self.labelWidget, color=qt.Qt.black)
+        label1 = MyQLabel(self.labelWidget, color=qt.QApplication.instance().palette().color(qt.QPalette.WindowText))
         label1.setAlignment(alignment)
         label1.setText("Image Size")
+        # Should be red even in Dark mode
         self.__sizeLabel = MyQLabel(self.labelWidget, bold=True, color=qt.Qt.red)
         self.__sizeLabel.setAlignment(alignment)
         self.__sizeLabel.setText("No image set")
@@ -1671,7 +1672,7 @@ class ImageShapeDialog(qt.QDialog):
     def __init__(self, parent=None, shape=None):
         qt.QDialog.__init__(self, parent)
         self.mainLayout = qt.QGridLayout(self)
-        label1 = MyQLabel(self, bold=False, color=qt.Qt.black)
+        label1 = MyQLabel(self, bold=False, color=qt.QApplication.instance().palette().color(qt.QPalette.WindowText))
         label1.setText("Number of rows    = ")
         self.rows = qt.QLineEdit(self)
         self._size = None
@@ -1685,7 +1686,7 @@ class ImageShapeDialog(qt.QDialog):
                 self.setCaption("Resize %d x %d image" % (shape[0], shape[1]))
             else:
                 self.setWindowTitle("Reshape %d x %d image" % (shape[0], shape[1]))
-        label2 = MyQLabel(self, bold=False, color=qt.Qt.black)
+        label2 = MyQLabel(self, bold=False, color=qt.QApplication.instance().palette().color(qt.QPalette.WindowText))
         label2.setText("Number of columns = ")
         self.cancelButton = qt.QPushButton(self)
         self.cancelButton.setText("Dismiss")
@@ -1759,8 +1760,13 @@ class ImageShapeDialog(qt.QDialog):
 
 
 class MyQLabel(qt.QLabel):
-    def __init__(self, parent=None, name=None, fl=0, bold=True, color=qt.Qt.red):
+    def __init__(self, parent=None, name=None, fl=0, bold=True, color=None):
         qt.QLabel.__init__(self, parent)
+        if color is None:
+            try:
+                color = qt.QApplication.instance().palette().color(qt.QPalette.WindowText)
+            except Exception:
+                color = qt.Qt.red
         if qt.qVersion() < "4.0.0":
             self.color = color
             self.bold = bold

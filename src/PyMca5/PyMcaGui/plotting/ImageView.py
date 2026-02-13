@@ -294,7 +294,6 @@ class ImageView(qt.QWidget):
         self._updatingLimits = False
 
         super(ImageView, self).__init__(parent, windowFlags)
-        self.setStyleSheet('background-color: white;')
         self._initWidgets(backend)
 
         # Sync PlotBackend and ImageView
@@ -338,6 +337,8 @@ class ImageView(qt.QWidget):
 
         self._radarView = RadarView()
         self._radarView.visibleRectDragged.connect(self._radarViewCB)
+        # Should be white even in Dark mode due to white background in matplotlib.
+        self._radarView.setStyleSheet('background-color: white;')
 
         self._layout = qt.QGridLayout()
         self._layout.addWidget(self._imagePlot, 0, 0)

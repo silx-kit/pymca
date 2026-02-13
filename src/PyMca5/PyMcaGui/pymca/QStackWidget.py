@@ -1539,7 +1539,13 @@ if __name__ == "__main__":
     app = qt.QApplication([])
     if sys.platform not in ["win32", "darwin"]:
         # some themes of Ubuntu 16.04 give black tool tips on black background
-        app.setStyleSheet("QToolTip { color: #000000; background-color: #fff0cd; border: 1px solid black; }")
+        try:
+            _ttp = qt.QApplication.instance().palette()
+            _ttText = _ttp.color(qt.QPalette.ToolTipText).name()
+            _ttBase = _ttp.color(qt.QPalette.ToolTipBase).name()
+            app.setStyleSheet("QToolTip { color: %s; background-color: %s; border: 1px solid %s; }" % (_ttText, _ttBase, _ttText))
+        except Exception:
+            app.setStyleSheet("QToolTip { color: #000000; background-color: #fff0cd; border: 1px solid black; }")
     if backend is not None:
         # set the default backend
         try:

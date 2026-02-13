@@ -122,8 +122,6 @@ def main():
     import glob
     from PyMca5.PyMcaCore.LoggingLevel import getLoggingLevel
     app=qt.QApplication(sys.argv)
-    winpalette = qt.QPalette(qt.QColor(230,240,249),qt.QColor(238,234,238))
-    app.setPalette(winpalette)
     options=''
     longoptions=['logging=', 'debug=']
     opts, args = getopt.getopt(

@@ -290,7 +290,7 @@ class EnergyTable(QTable):
         if weightlist is  None:weightlist  =[]
         if flaglist   is  None:flaglist  =[]
         if scatterlist   is  None:scatterlist  = []
-        if scattercolor is None: scattercolor = qt.QColor(255, 20, 147)
+        if scattercolor is None: scattercolor = qt.QApplication.instance().palette().color(qt.QPalette.Highlight) # qt.QColor(255, 20, 147)
         if offset is None:offset = 0
         self.energyList  = energylist
         self.weightList  = weightlist
@@ -639,8 +639,13 @@ class EnergyTable(QTable):
         return ddict
 
 class ColorQTableItem(qt.QCheckBox):
-         def __init__(self, table, text, color=qt.QColor(255, 255, 255), bold=0):
+         def __init__(self, table, text, color=None, bold=0):
             qt.QCheckBox.__init__(self, table)
+            if color is None:
+                try:
+                    color = qt.QApplication.instance().palette().color(qt.QPalette.Base)
+                except Exception:
+                    color = qt.QColor(255, 255, 255)
             self.setColor(color)
             self.bold  = bold
             self.setText(text)

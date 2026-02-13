@@ -101,7 +101,7 @@ class McaTable(QTable):
             sigmaarea  = QString("%.2e" % (result[group]['sigmaarea']))
             fields = [ele,group0,fitarea,sigmaarea]
             col = 0
-            color = qt.QColor('white')
+            color = qt.QApplication.instance().palette().color(qt.QPalette.Base)
             nlines = self.rowCount()
             if (line+1) > nlines:
                 self.setRowCount(line+1)
@@ -128,8 +128,7 @@ class McaTable(QTable):
                     #self.setItem(line, col, item)
                 col=col+1
             line += 1
-            #Lemon Chiffon = (255,250,205)
-            color = qt.QColor(255,250,205)
+            color = qt.QApplication.instance().palette().color(qt.QPalette.AlternateBase)
             for peak in result[group]['peaks']:
                 name  = peak
                 energy = QString("%.3f" % (result[group][peak]['energy']))
