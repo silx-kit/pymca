@@ -1771,7 +1771,7 @@ class MyQLabel(qt.QLabel):
             self.color = color
             self.bold = bold
         else:
-            palette = self.palette()
+            palette = qt.QPalette(self.palette())
             role = self.foregroundRole()
             palette.setColor(role, color)
             self.setPalette(palette)

@@ -63,29 +63,35 @@ class PeakButton(qt.QPushButton):
         self.setSizePolicy(qt.QSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding))
 
         self.selected= 0
+        self._selectedColor = qt.QColor(qt.Qt.yellow)
+        self._selectedTextColor = qt.QColor(qt.Qt.black)
         _palette = qt.QApplication.instance().palette()
-        self.brush= qt.QBrush(_palette.color(qt.QPalette.Highlight))
-        self._highlightTextColor = _palette.color(qt.QPalette.HighlightedText)
-        self._normalTextColor = _palette.color(qt.QPalette.WindowText)
+        self._defaultColor = _palette.color(qt.QPalette.Button)
+        self._defaultTextColor = _palette.color(qt.QPalette.ButtonText)
 
         self.clicked.connect(self.clickedSlot)
+        self.__setBrush()
 
     def toggle(self):
         self.selected= not self.selected
-        self.update()
+        self.__setBrush()
 
     def setSelected(self, b):
         self.selected= b
-        if b:
-            role = self.backgroundRole()
-            palette = self.palette()
-            palette.setBrush( role,self.brush)
-            self.setPalette(palette)
+        self.__setBrush()
+
+    def __setBrush(self):
+        _borderColor = qt.QApplication.instance().palette().color(qt.QPalette.Shadow).name()
+        if self.selected:
+            self.setStyleSheet("color: %s; background-color: %s; border-color: %s; border-style: outset; border-width: 1px; " % \
+                               (self._selectedTextColor.name(), self._selectedColor.name(), _borderColor))
         else:
-            role = self.backgroundRole()
-            palette = self.palette()
-            palette.setBrush( role, qt.QBrush())
-            self.setPalette(palette)
+            self.setStyleSheet("color: %s; background-color: %s; border-color: %s; border-style: outset; border-width: 1px; " % \
+                               (self._defaultTextColor.name(), self._defaultColor.name(), _borderColor))
+        
+        if not self.isEnabled():
+            self.setStyleSheet("color: %s; background-color: %s; border-color: %s; border-style: outset; border-width: 1px; " % \
+                               ('gray', 'lightgray', _borderColor))
         self.update()
 
     def isSelected(self):
@@ -94,34 +100,6 @@ class PeakButton(qt.QPushButton):
     def clickedSlot(self):
         self.toggle()
         self.sigPeakClicked.emit(self.peak)
-
-    def paintEvent(self, pEvent):
-        p = qt.QPainter(self)
-        wr= self.rect()
-        pr= qt.QRect(wr.left()+1, wr.top()+1, wr.width()-2, wr.height()-2)
-        if self.selected:
-            p.fillRect(pr, self.brush)
-            p.setPen(self._highlightTextColor)
-        else:
-            p.setPen(self._normalTextColor)
-        if hasattr(p, "drawRoundRect"):
-            p.drawRoundRect(pr)
-        else:
-            p.drawRoundedRect(pr, 1., 1., qt.Qt.RelativeSize)
-        p.end()
-        qt.QPushButton.paintEvent(self, pEvent)
-
-    def drawButton(self, p):
-        wr= self.rect()
-        pr= qt.QRect(wr.left()+1, wr.top()+1, wr.width()-2, wr.height()-2)
-        if self.selected:
-                p.fillRect(pr, self.brush)
-        qt.QPushButton.drawButtonLabel(self, p)
-        if self.selected:
-            p.setPen(self._highlightTextColor)
-        else:
-            p.setPen(self._normalTextColor)
-        p.drawRoundRect(pr)
 
 class PeakButtonList(qt.QWidget):
     # emitted object is a list
@@ -145,7 +123,7 @@ class PeakButtonList(qt.QWidget):
         self.buttondict={}
         for key in peaklist:
             self.buttondict[key] = PeakButton(self, key)
-            layout.addWidget(self.buttondict[key])
+            layout.addWidget(self.buttondict[key], 1)
             self.buttondict[key].sigPeakClicked.connect(self.__selection)
 
         layout.addStretch(1)
@@ -462,7 +440,7 @@ class MyQLabel(qt.QLabel):
         qt.QLabel.__init__(self,parent)
         if color is None:
             color = qt.QApplication.instance().palette().color(qt.QPalette.WindowText)
-        palette = self.palette()
+        palette = qt.QPalette(self.palette())
         role = self.foregroundRole()
         palette.setColor(role,color)
         self.setPalette(palette)

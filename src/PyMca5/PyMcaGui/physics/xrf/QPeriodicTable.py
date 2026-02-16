@@ -173,19 +173,15 @@ class ElementButton(qt.QPushButton):
 
         self.selected= 0
         self.current= 0
-        _palette = qt.QApplication.instance().palette()
-        _highlight = _palette.color(qt.QPalette.Highlight)
-        _midlight = _palette.color(qt.QPalette.Midlight)
-        _mid = _palette.color(qt.QPalette.Mid)
-        self.colors= [ _highlight, # not current but with selected peak
-                       _midlight, # current with peaks selected color
-                       _mid, # current but no peaks selected
-                       _palette.color(qt.QPalette.Button), # default color for a button background 
+        self.colors= [ qt.QColor(qt.Qt.yellow),      # selected, not current
+                       qt.QColor(qt.Qt.darkYellow),   # current + selected
+                       qt.QColor(qt.Qt.gray),          # current, not selected
+                       qt.QApplication.instance().palette().color(qt.QPalette.Button),  # default
                        ]
-        self._textColor = _palette.color(qt.QPalette.ButtonText)
-        self._highlightTextColor = _palette.color(qt.QPalette.HighlightedText)
+        self._textColor = qt.QApplication.instance().palette().color(qt.QPalette.ButtonText)
+        self._selectedTextColor = qt.QColor(qt.Qt.black)
 
-        self.brush= qt.QBrush()
+        self.brush = qt.QBrush()
         self.clicked.connect(self.clickedSlot)
 
     def sizeHint(self):
@@ -206,16 +202,17 @@ class ElementButton(qt.QPushButton):
         self.__setBrush()
 
     def __setBrush(self):
+        
         _borderColor = qt.QApplication.instance().palette().color(qt.QPalette.Shadow).name()
         if self.current and self.selected:
             self.setStyleSheet("color: %s; background-color: %s; border-color: %s; border-style: outset; border-width: 1px" % \
-                               (self._highlightTextColor.name(), self.colors[1].name(), _borderColor))
+                               (self._selectedTextColor.name(), self.colors[1].name(), _borderColor))
         elif self.selected:
             self.setStyleSheet("color: %s; background-color: %s; border-color: %s; border-style: outset; border-width: 1px" % \
-                               (self._highlightTextColor.name(), self.colors[0].name(), _borderColor))
+                               (self._selectedTextColor.name(), self.colors[0].name(), _borderColor))
         elif self.current:
             self.setStyleSheet("color: %s; background-color: %s; border-color: %s; border-style: outset; border-width: 1px" % \
-                               (self._textColor.name(), self.colors[2].name(), _borderColor))
+                               (self._selectedTextColor.name(), self.colors[2].name(), _borderColor))
         else:
             self.setStyleSheet("color: %s; background-color: %s; border-color: %s; border-style: outset; border-width: 1px" % \
                                (self._textColor.name(), self.colors[3].name(), _borderColor))

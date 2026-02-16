@@ -1235,7 +1235,7 @@ class MyQLineEdit(qt.QLineEdit):
         if QTVERSION < '4.0.0':
             qt.QLineEdit.setPaletteBackgroundColor(self,color)
         else:
-            palette = self.palette()
+            palette = qt.QPalette(self.palette())
             role = self.backgroundRole()
             palette.setColor(role,color)
             self.setPalette(palette)

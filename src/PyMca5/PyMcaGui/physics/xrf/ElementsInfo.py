@@ -271,7 +271,7 @@ class MyQLineEdit(qt.QLineEdit):
         qt.QLineEdit.__init__(self,parent)
 
     def setPaletteBackgroundColor(self, color):
-        palette = self.palette()
+        palette = qt.QPalette(self.palette())
         role = self.backgroundRole()
         palette.setColor(role,color)
         self.setPalette(palette)
