@@ -119,10 +119,7 @@ def getFileList(parent=None, filetypelist=None, message=None, currentdir=None,
         nativeFileDialogs = native
     if getfilter is None:
         getfilter = False
-    if getfilter:
-        native_possible = True
-    else:
-        native_possible = True
+    native_possible = True
     filterused = None
     if native_possible and nativeFileDialogs:
         filetypes = currentfilter
@@ -232,10 +229,9 @@ def getFileList(parent=None, filetypelist=None, message=None, currentdir=None,
             fdialog.setFileMode(qt.QFileDialog.FileMode.AnyFile)
 
         fdialog.setDirectory(wdir)
-        if QTVERSION > '4.3.0':
-            history = fdialog.history()
-            if len(history) > 6:
-                fdialog.setHistory(history[-6:])
+        history = fdialog.history()
+        if len(history) > 6:
+            fdialog.setHistory(history[-6:])
         ret = fdialog.exec()
         if ret != qt.QDialog.Accepted:
             fdialog.close()

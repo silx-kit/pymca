@@ -180,10 +180,7 @@ class McaBatchGUI(qt.QWidget):
         self.__fitBox = qt.QCheckBox(vbox1)
         self.__fitBox.setText('Generate .fit Files')
         palette = self.__fitBox.palette()
-        #if QTVERSION < '4.0.0':
-        #    palette.setDisabled(palette.active())
-        #else:
-        #    print("palette set disabled")
+        # print("palette set disabled")
         self.__fitBox.setChecked(False)
         self.__fitBox.setEnabled(True)
         vbox1.l.addWidget(self.__fitBox)
@@ -216,10 +213,7 @@ class McaBatchGUI(qt.QWidget):
         self.__tableBox = qt.QCheckBox(vbox1)
         self.__tableBox.setText('Table in Report')
         palette = self.__tableBox.palette()
-        #if QTVERSION < '4.0.0':
-        #    palette.setDisabled(palette.active())
-        #else:
-        #    print("palette set disabled")
+        # print("palette set disabled")
         self.__tableBox.setChecked(True)
         self.__tableBox.setEnabled(False)
         vbox1.l.addWidget(self.__tableBox)

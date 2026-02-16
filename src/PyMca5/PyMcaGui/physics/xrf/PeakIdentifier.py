@@ -294,8 +294,7 @@ class MyQLineEdit(qt.QLineEdit):
             qt.QApplication.instance().palette().color(qt.QPalette.Highlight))
         # TODO not like focusOutEvent ?
         '''
-        if QTVERSION > '4.0.0':
-            qt.QLineEdit.focusInEvent(self, event)
+        qt.QLineEdit.focusInEvent(self, event)
         '''
 
     def focusOutEvent(self,event):

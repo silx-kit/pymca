@@ -1102,8 +1102,7 @@ class SectionFileWidget(qt.QWidget):
         self.check= {}
         for (sect, txt) in zip(self.sections, self.labels):
             self.check[sect]= qt.QCheckBox(txt, group)
-            if QTVERSION > '4.0.0':
-                group.layout.addWidget(self.check[sect])
+            group.layout.addWidget(self.check[sect])
 
         self.allCheck.setChecked(1)
         self.__allClicked()

@@ -139,12 +139,9 @@ class PyMcaPrintPreview(qt.QDialog):
 
         # Margin
         # marginLabel = qt.QLabel("Margins:", toolBar)
-        # if QTVERSION < '4.0.0':
-        #     self.marginSpin = qt.QSpinBox(0, 50, 10, toolBar)
-        # else:
-        #     self.marginSpin = qt.QSpinBox(toolBar)
-        #     self.marginSpin.setRange(0, 50)
-        #     self.marginSpin.setSingleStep(10)
+        # self.marginSpin = qt.QSpinBox(toolBar)
+        # self.marginSpin.setRange(0, 50)
+        # self.marginSpin.setSingleStep(10)
         # self.marginSpin.valueChanged[int].connect( \
         #          self.__marginChanged)
 
@@ -345,6 +342,8 @@ class PyMcaPrintPreview(qt.QDialog):
         #I should adjust text size here
         #textItem.scale(2,2)
         #commentItem.scale(2,2)
+        # the correct equivalent would be:
+        # rectItem.setTransform(qt.QTransform.fromScale(scalex, scaley))
         rectItem.setScale(scale)
         rectItem.moveBy(20 , 40)
 

@@ -40,10 +40,9 @@ _logger = logging.getLogger(__name__)
 SOURCE_TYPE = 'SPS'
 SCAN_MODE = True
 
-if QTVERSION > '4.0.0':
-    class QGridLayout(qt.QGridLayout):
-        def addMultiCellWidget(self, w, r0, r1, c0, c1, *var):
-            self.addWidget(w, r0, c0, 1 + r1 - r0, 1 + c1 - c0)
+class QGridLayout(qt.QGridLayout):
+    def addMultiCellWidget(self, w, r0, r1, c0, c1, *var):
+        self.addWidget(w, r0, c0, 1 + r1 - r0, 1 + c1 - c0)
 
 class SPSFramesMcaWidget(qt.QWidget):
     def __init__(self, parent=None):

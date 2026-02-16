@@ -142,30 +142,22 @@ class QSpecFileWidget(QSelectorWidget.QSelectorWidget):
         #self.list.header().resizeSection(4, size)
 
         self.list.header().setStretchLastSection(False)
-        if QTVERSION > '5.0.0':
-            self.list.header().setSectionResizeMode(0, qt.QHeaderView.Interactive)
-            self.list.header().setSectionResizeMode(1, qt.QHeaderView.Interactive)
-            self.list.header().setSectionResizeMode(2, qt.QHeaderView.Interactive)
-            self.list.header().setSectionResizeMode(3, qt.QHeaderView.Interactive)
-            self.list.header().setSectionResizeMode(4, qt.QHeaderView.Interactive)
-            fm = self.list.header().fontMetrics()
-            if hasattr(fm, "width"):
-                size = fm.width("X")
-            else:
-                size = fm.maxWidth()
-            self.list.header().setMinimumSectionSize(size)
-            self.list.header().resizeSection(0, size)
-            #    self.list.header().resizeSection(1, size * 4)
-            self.list.header().resizeSection(2, size * 25)
-            #    self.list.header().resizeSection(3, size * 7)
-            #    self.list.header().resizeSection(4, size * 8)
-
+        self.list.header().setSectionResizeMode(0, qt.QHeaderView.Interactive)
+        self.list.header().setSectionResizeMode(1, qt.QHeaderView.Interactive)
+        self.list.header().setSectionResizeMode(2, qt.QHeaderView.Interactive)
+        self.list.header().setSectionResizeMode(3, qt.QHeaderView.Interactive)
+        self.list.header().setSectionResizeMode(4, qt.QHeaderView.Interactive)
+        fm = self.list.header().fontMetrics()
+        if hasattr(fm, "width"):
+            size = fm.width("X")
         else:
-            self.list.header().setResizeMode(0, qt.QHeaderView.ResizeToContents)
-            self.list.header().setResizeMode(1, qt.QHeaderView.ResizeToContents)
-            self.list.header().setResizeMode(2, qt.QHeaderView.Interactive)
-            self.list.header().setResizeMode(3, qt.QHeaderView.ResizeToContents)
-            self.list.header().setResizeMode(4, qt.QHeaderView.ResizeToContents)
+            size = fm.maxWidth()
+        self.list.header().setMinimumSectionSize(size)
+        self.list.header().resizeSection(0, size)
+        #    self.list.header().resizeSection(1, size * 4)
+        self.list.header().resizeSection(2, size * 25)
+        #    self.list.header().resizeSection(3, size * 7)
+        #    self.list.header().resizeSection(4, size * 8)
 
         # --- signal handling
         self.list.itemSelectionChanged.connect(self.__selectionChanged)
@@ -197,13 +189,10 @@ class QSpecFileWidget(QSelectorWidget.QSelectorWidget):
         self.disableScan   = 0 #(type=="mca")
 
         # -- last scan watcher
-        if QTVERSION > '5.0.0':
-            self.lastScanWatcher = qt.QTimer()
-            self.lastScanWatcher.setSingleShot(True)
-            self.lastScanWatcher.setInterval(2000) # 2 seconds
-            self.lastScanWatcher.timeout.connect(self._timerSlot)
-        else:
-            self.lastScanWatcher = None
+        self.lastScanWatcher = qt.QTimer()
+        self.lastScanWatcher.setSingleShot(True)
+        self.lastScanWatcher.setInterval(2000) # 2 seconds
+        self.lastScanWatcher.timeout.connect(self._timerSlot)
 
         # --- context menu
         self.data= None
@@ -334,12 +323,11 @@ class QSpecFileWidget(QSelectorWidget.QSelectorWidget):
             self.scans.append(sn)
             after= item
             i = i + 1
-        if QTVERSION > '5.0.0':
-            self.list.resizeColumnToContents(0)
-            self.list.resizeColumnToContents(1)
-            #self.list.resizeColumnToContents(2)
-            self.list.resizeColumnToContents(3)
-            self.list.resizeColumnToContents(4)
+        self.list.resizeColumnToContents(0)
+        self.list.resizeColumnToContents(1)
+        #self.list.resizeColumnToContents(2)
+        self.list.resizeColumnToContents(3)
+        self.list.resizeColumnToContents(4)
 
     def clear(self):
         self.list.clear()
@@ -460,11 +448,10 @@ class QSpecFileWidget(QSelectorWidget.QSelectorWidget):
                         if updated:
                             self.data.refresh()
                             self.refresh()
-                            if QTVERSION > "5.0.0":
-                                # make sure the item is found and selected after the update
-                                itemList = self.list.findItems(scan, qt.Qt.MatchExactly,1)
-                                if len(itemList) == 1:
-                                    itemList[0].setSelected(True)
+                            # make sure the item is found and selected after the update
+                            itemList = self.list.findItems(scan, qt.Qt.MatchExactly,1)
+                            if len(itemList) == 1:
+                                itemList[0].setSelected(True)
                 if not self.lastScanWatcher.isActive():
                     self.lastScanWatcher.start()
         else:
@@ -524,11 +511,10 @@ class QSpecFileWidget(QSelectorWidget.QSelectorWidget):
                         if updated:
                             self.data.refresh()
                             self.refresh()
-                            if QTVERSION > "5.0.0":
-                                # make sure the item is selected
-                                itemList = self.list.findItems(sn, qt.Qt.MatchExactly,1)
-                                if len(itemList) == 1:
-                                    itemList[0].setSelected(True)
+                            # make sure the item is selected
+                            itemList = self.list.findItems(sn, qt.Qt.MatchExactly,1)
+                            if len(itemList) == 1:
+                                itemList[0].setSelected(True)
             #shortcut selec + remove?
             #for the time being just add
             self._addClicked()

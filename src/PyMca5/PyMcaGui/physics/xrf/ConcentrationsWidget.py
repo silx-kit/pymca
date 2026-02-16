@@ -44,9 +44,7 @@ else:
 
 QTVERSION = qt.qVersion()
 
-XRFMC_FLAG = False
-if QTVERSION > '4.0.0':
-    XRFMC_FLAG = True
+XRFMC_FLAG = True
 
 try:
     from PyMca5.PyMcaGui.misc.TableWidget import TableWidget

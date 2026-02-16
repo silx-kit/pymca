@@ -141,11 +141,9 @@ class QStackWidget(StackBase.StackBase,
         self.setWindowTitle("PyMCA - ROI Imaging Tool")
         screenHeight = qt.QDesktopWidget().height()
         if screenHeight > 0:
-            self.setMaximumHeight(int(0.99*screenHeight))
             self.setMinimumHeight(int(0.5*screenHeight))
         screenWidth = qt.QDesktopWidget().width()
         if screenWidth > 0:
-            self.setMaximumWidth(int(screenWidth)-5)
             self.setMinimumWidth(min(int(0.5*screenWidth),800))
         self.mainLayout = qt.QVBoxLayout(self)
         self.mainLayout.setContentsMargins(0, 0, 0, 0)

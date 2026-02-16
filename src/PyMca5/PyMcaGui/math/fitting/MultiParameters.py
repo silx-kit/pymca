@@ -244,38 +244,37 @@ class ParametersTab(qt.QTabWidget):
     def getHTMLText(self, **kw):
         return self.gettext(**kw)
 
-    if QTVERSION > '4.0.0':
-        def getText(self, **kw):
-            if "name" in kw:
-                name = kw["name"]
-            else:
-                name = self.current
-            table = self.tables[name]
-            text=""
-            ncols = table.columnCount()
-            for l in range(ncols):
-                text+=(str(table.horizontalHeaderItem(l).text()))+"\t"
-            text+=("\n")
-            nrows = table.rowCount()
-            for r in range(nrows):
-                item = table.item(r, 0)
+    def getText(self, **kw):
+        if "name" in kw:
+            name = kw["name"]
+        else:
+            name = self.current
+        table = self.tables[name]
+        text=""
+        ncols = table.columnCount()
+        for l in range(ncols):
+            text+=(str(table.horizontalHeaderItem(l).text()))+"\t"
+        text+=("\n")
+        nrows = table.rowCount()
+        for r in range(nrows):
+            item = table.item(r, 0)
+            newtext = ""
+            if item is not None:
+                newtext = str(item.text())+"\t"
+            for c in range(ncols):
                 newtext = ""
-                if item is not None:
-                    newtext = str(item.text())+"\t"
-                for c in range(ncols):
-                    newtext = ""
-                    if c != 4:
-                        item = table.item(r, c)
-                        if item is not None:
-                            newtext = str(item.text())
-                    else:
-                        item = table.cellWidget(r, c)
-                        if item is not None:
-                            newtext = str(item.currentText())
-                    text+=(newtext)+"\t"
-                text+=("\n")
+                if c != 4:
+                    item = table.item(r, c)
+                    if item is not None:
+                        newtext = str(item.text())
+                else:
+                    item = table.cellWidget(r, c)
+                    if item is not None:
+                        newtext = str(item.currentText())
+                text+=(newtext)+"\t"
             text+=("\n")
-            return text
+        text+=("\n")
+        return text
 
 def test():
     a = qt.QApplication(sys.argv)
