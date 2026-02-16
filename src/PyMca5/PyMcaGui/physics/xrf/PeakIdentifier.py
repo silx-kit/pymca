@@ -218,8 +218,6 @@ class PeakIdentifier(qt.QWidget):
 
     def getHtmlText(self, ddict):
         text  = ""
-        if QTVERSION < '4.0.0':
-            text += "<br>"
         labels=['Element','Line','Energy','Rate']
         try:
             _palette = qt.QApplication.instance().palette()

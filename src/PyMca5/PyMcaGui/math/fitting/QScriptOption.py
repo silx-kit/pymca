@@ -53,10 +53,7 @@ class QScriptOption(TabSheets.TabSheets):
                 sheets=(),default=None,nohelp=1,nodefaults=1):
         TabSheets.TabSheets.__init__(self,parent,name,modal,fl,
                                     nohelp,nodefaults)
-        if QTVERSION < '4.0.0':
-            if name is not None:self.setCaption(str(name))
-        else:
-            if name is not None:self.setWindowTitle(str(name))
+        if name is not None:self.setWindowTitle(str(name))
         self.sheets={}
         self.sheetslist=[]
         self.default=default
@@ -66,12 +63,8 @@ class QScriptOption(TabSheets.TabSheets):
 
         #remove anything not having to do with my sheets
         for i in range(ntabs):
-            if QTVERSION < '4.0.0':
-                page = self.tabWidget.page(0)
-                self.tabWidget.removePage(page)
-            else:
-                self.tabWidget.setCurrentIndex(0)
-                self.tabWidget.removeTab(self.tabWidget.currentIndex())
+            self.tabWidget.setCurrentIndex(0)
+            self.tabWidget.removeTab(self.tabWidget.currentIndex())
 
         for sheet in sheets:
             name=sheet['notetitle']
@@ -80,11 +73,7 @@ class QScriptOption(TabSheets.TabSheets):
             a.setdefaults(self.default)
             self.sheetslist.append(name)
             self.tabWidget.addTab(self.sheets[name],str(name))
-            if QTVERSION < '4.2.0':
-                i = self.tabWidget.indexOf(self.sheets[name])
-                self.tabWidget.setCurrentIndex(i)
-            else:
-                self.tabWidget.setCurrentWidget(self.sheets[name])
+            self.tabWidget.setCurrentWidget(self.sheets[name])
         #perform the binding to the buttons
         self.buttonOk.clicked.connect(self.myaccept)
         self.buttonCancel.clicked.connect(self.myreject)
@@ -254,26 +243,13 @@ class MyCheckField(CheckField.CheckField):
 class RadioField(qt.QWidget):
     def __init__(self,parent = None,name = None,fl = 0,
                             keys=(), params = ()):
-            if QTVERSION < '4.0.0':
-                qt.QWidget.__init__(self,parent,name,fl)
-
-                if name == None:
-                    self.setName("RadioField")
-
-                #self.resize(166,607)
-                self.setSizePolicy(qt.QSizePolicy(1,1,0,0,self.sizePolicy().hasHeightForWidth()))
-                self.setCaption(str("RadioField"))
-                RadioFieldLayout = qt.QHBoxLayout(self,11,6,"RadioFieldLayout")
-            else:
-                qt.QWidget.__init__(self,parent)
-                RadioFieldLayout = qt.QHBoxLayout(self)
-                RadioFieldLayout.setContentsMargins(11, 11, 11, 11)
-                RadioFieldLayout.setSpacing(6)
+            qt.QWidget.__init__(self,parent)
+            RadioFieldLayout = qt.QHBoxLayout(self)
+            RadioFieldLayout.setContentsMargins(11, 11, 11, 11)
+            RadioFieldLayout.setSpacing(6)
 
 
             self.RadioFieldBox = qt.QButtonGroup(self)
-            if QTVERSION < '4.0.0':
-                self.RadioFieldBox.setSizePolicy(qt.QSizePolicy(1,1,0,0,self.RadioFieldBox.sizePolicy().hasHeightForWidth()))
             self.RadioFieldBox.setTitle(str(""))
             self.RadioFieldBox.setColumnLayout(0,qt.Qt.Vertical)
             self.RadioFieldBox.layout().setSpacing(6)

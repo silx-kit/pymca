@@ -58,8 +58,6 @@ class PeakButton(qt.QPushButton):
         font.setBold(1)
         self.setText(peak)
         self.setFlat(1)
-        if QTVERSION < '4.0.0':
-            self.setToggleButton(0)
         self.setSizePolicy(qt.QSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding))
 
         self.selected= 0
@@ -110,13 +108,10 @@ class PeakButtonList(qt.QWidget):
         qt.QWidget.__init__(self,parent)
         self.peaklist = peaklist
 
-        if QTVERSION < '4.0.0':
-            layout= qt.QHBoxLayout(self, 0, 5)
-        else:
-            layout= qt.QHBoxLayout(self)
-            layout.setContentsMargins(0, 0, 0, 0)
-            layout.setSpacing(5)
-            #, 0, 5)
+        layout= qt.QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(5)
+        #, 0, 5)
 
         layout.addStretch(2)
 
@@ -284,7 +279,7 @@ class FitPeakSelect(qt.QWidget):
         self.sigFitPeakSelect.emit((sel))
 
     def elementClicked(self,symbol):
-        if QTVERSION > '4.0.0':symbol = str(symbol)
+        symbol = str(symbol)
         if not (symbol in self.peakdict):
             self.peakdict[symbol] = []
         self.current = symbol
@@ -445,16 +440,6 @@ class MyQLabel(qt.QLabel):
         palette.setColor(role,color)
         self.setPalette(palette)
         self.font().setBold(bold)
-
-
-    if QTVERSION < '4.0.0':
-        def drawContents(self, painter):
-            painter.font().setBold(self.bold)
-            pal =self.palette()
-            pal.setColor(qt.QColorGroup.Foreground,self.color)
-            self.setPalette(pal)
-            qt.QLabel.drawContents(self,painter)
-            painter.font().setBold(0)
 
 if __name__ == "__main__":
     import sys

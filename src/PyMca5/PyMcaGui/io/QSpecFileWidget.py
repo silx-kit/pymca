@@ -41,17 +41,14 @@ _logger = logging.getLogger(__name__)
 
 QTVERSION = qt.qVersion()
 
-if QTVERSION > '4.2.0':
-    class MyQTreeWidgetItem(qt.QTreeWidgetItem):
-        def __lt__(self, other):
-            c = self.treeWidget().sortColumn()
-            if  c == 0:
-                return False
-            if c !=  2:
-                return (float(self.text(c)) <  float(other.text(c)))
-            return (self.text(c) < other.text(c))
-else:
-    MyQTreeWidgetItem = qt.QTreeWidgetItem
+class MyQTreeWidgetItem(qt.QTreeWidgetItem):
+    def __lt__(self, other):
+        c = self.treeWidget().sortColumn()
+        if  c == 0:
+            return False
+        if c !=  2:
+            return (float(self.text(c)) <  float(other.text(c)))
+        return (self.text(c) < other.text(c))
 
 #class QSpecFileWidget(qt.QWidget):
 class QSpecFileWidget(QSelectorWidget.QSelectorWidget):
@@ -163,12 +160,6 @@ class QSpecFileWidget(QSelectorWidget.QSelectorWidget):
             #    self.list.header().resizeSection(3, size * 7)
             #    self.list.header().resizeSection(4, size * 8)
 
-        elif QTVERSION < '4.2.0':
-            self.list.header().setResizeMode(0, qt.QHeaderView.Stretch)
-            self.list.header().setResizeMode(1, qt.QHeaderView.Stretch)
-            self.list.header().setResizeMode(2, qt.QHeaderView.Interactive)
-            self.list.header().setResizeMode(3, qt.QHeaderView.Stretch)
-            self.list.header().setResizeMode(4, qt.QHeaderView.Stretch)
         else:
             self.list.header().setResizeMode(0, qt.QHeaderView.ResizeToContents)
             self.list.header().setResizeMode(1, qt.QHeaderView.ResizeToContents)
@@ -186,10 +177,9 @@ class QSpecFileWidget(QSelectorWidget.QSelectorWidget):
                      self.__doubleClicked)
         self.cntTable.sigSpecFileCntTableSignal.connect(self._cntSignal)
 
-        if QTVERSION > '4.2.0':
-            self.list.setSortingEnabled(False)
-            self.list.header().sectionDoubleClicked[int].connect( \
-                         self.__headerSectionDoubleClicked)
+        self.list.setSortingEnabled(False)
+        self.list.header().sectionDoubleClicked[int].connect( \
+                     self.__headerSectionDoubleClicked)
         if OBJECT3D:
             self.object3DBox.clicked.connect(self._setObject3DBox)
         if hasattr(self, 'meshBox'):
@@ -586,8 +576,7 @@ class QSpecFileWidget(QSelectorWidget.QSelectorWidget):
 
     def __showScanInfo(self, idx = None):
         if idx is None:
-            if QTVERSION > '4.0.0':
-                idx = self.menu_idx
+            idx = self.menu_idx
         _logger.debug("Scan information:")
 
         try:
@@ -624,11 +613,8 @@ class QSpecFileWidget(QSelectorWidget.QSelectorWidget):
         _logger.debug("Overwritten _addClicked method")
 
         #get selected scan keys
-        if QTVERSION < '4.0.0':
-            scan_sel= [sn for sn in self.scans if self.list.findItem(sn,1).isSelected()]
-        else:
-            itemlist = self.list.selectedItems()
-            scan_sel = [str(item.text(1)) for item in itemlist]
+        itemlist = self.list.selectedItems()
+        scan_sel = [str(item.text(1)) for item in itemlist]
 
         #get selected counter keys
         cnt_sel = self.cntTable.getCounterSelection()

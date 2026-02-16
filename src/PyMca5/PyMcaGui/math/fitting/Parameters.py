@@ -544,23 +544,17 @@ class Parameters(QTable):
         _logger.debug("parameter %s", parameter)
         _logger.debug("fields = %s", fields)
         _logger.debug("asked to be read only")
-        if QTVERSION < '4.0.0':
-            self.setfield(parameter, fields, qttable.QTableItem.Never)
-        else:
-            editflags = qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled
-            self.setfield(parameter, fields, editflags)
+        editflags = qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled
+        self.setfield(parameter, fields, editflags)
 
     def setReadWrite(self, parameter, fields):
         _logger.debug("parameter %s", parameter)
         _logger.debug("fields = %s", fields)
         _logger.debug("asked to be read write")
-        if QTVERSION < '4.0.0':
-            self.setfield(parameter, fields, qttable.QTableItem.OnTyping)
-        else:
-            editflags = qt.Qt.ItemIsSelectable |\
-                        qt.Qt.ItemIsEnabled |\
-                        qt.Qt.ItemIsEditable
-            self.setfield(parameter, fields, editflags)
+        editflags = qt.Qt.ItemIsSelectable |\
+                    qt.Qt.ItemIsEnabled |\
+                    qt.Qt.ItemIsEditable
+        self.setfield(parameter, fields, editflags)
 
     def setfield(self, parameter, fields, EditType):
         _logger.debug("setfield. parameter = %s", parameter)
@@ -589,20 +583,15 @@ class Parameters(QTable):
                             col = self.parameters[param]['fields'].index(field)
                         if field != 'code':
                             key = field + "_item"
-                            if QTVERSION < '4.0.0':
-                                self.parameters[param][key] = qttable.QTableItem(self, EditType,
-                                        self.parameters[param][field])
-                                self.setItem(row, col, self.parameters[param][key])
+                            item = self.item(row, col)
+                            if item is None:
+                                item = qt.QTableWidgetItem()
+                                item.setText(self.parameters[param][field])
+                                self.setItem(row, col, item)
                             else:
-                                item = self.item(row, col)
-                                if item is None:
-                                    item = qt.QTableWidgetItem()
-                                    item.setText(self.parameters[param][field])
-                                    self.setItem(row, col, item)
-                                else:
-                                    item.setText(self.parameters[param][field])
-                                self.parameters[param][key] = item
-                                item.setFlags(EditType)
+                                item.setText(self.parameters[param][field])
+                            self.parameters[param][key] = item
+                            item.setFlags(EditType)
         self.__configuring = _oldvalue
 
     def configure(self, *vars, **kw):
@@ -651,13 +640,10 @@ class Parameters(QTable):
             if 'code' in kw:
                 newvalue = QString(kw['code'])
                 self.parameters[name]['code'] = newvalue
-                if QTVERSION < '4.0.0':
-                    self.parameters[name]['code_item'].setCurrentItem(newvalue)
-                else:
-                    for i in range(self.parameters[name]['code_item'].count()):
-                        if str(newvalue) == str(self.parameters[name]['code_item'].itemText(i)):
-                            self.parameters[name]['code_item'].setCurrentIndex(i)
-                            break
+                for i in range(self.parameters[name]['code_item'].count()):
+                    if str(newvalue) == str(self.parameters[name]['code_item'].itemText(i)):
+                        self.parameters[name]['code_item'].setCurrentIndex(i)
+                        break
                 if str(self.parameters[name]['code']) == 'QUOTED':
                     if 'val1' in kw:
                         self.parameters[name]['vmin'] = self.parameters[name]['val1']

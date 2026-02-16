@@ -79,10 +79,7 @@ class ParametersTab(qt.QTabWidget):
             self.addTab(table,str(name))
         if fitparameterslist is not None:
             table.fillfromfit(fitparameterslist)
-        if QTVERSION < '4.0.0':
-            self.showPage(self.views[name])
-        else:
-            self.setCurrentWidget(self.views[name])
+        self.setCurrentWidget(self.views[name])
         self.current=name
 
     def renameview(self,oldname=None,newname=None):
@@ -131,14 +128,10 @@ class ParametersTab(qt.QTabWidget):
             return error
         if view in self.views.keys():
                 self.tabs.remove(view)
-                if QTVERSION < '4.0.0':
-                    self.removePage(self.tables[view])
-                    self.removePage(self.views[view])
-                else:
-                    index = self.indexOf(self.tables[view])
-                    self.removeTab(index)
-                    index = self.indexOf(self.views[view])
-                    self.removeTab(index)
+                index = self.indexOf(self.tables[view])
+                self.removeTab(index)
+                index = self.indexOf(self.views[view])
+                self.removeTab(index)
                 del self.tables[view]
                 del self.views[view]
                 error =0
@@ -185,39 +178,25 @@ class ParametersTab(qt.QTabWidget):
             name = self.current
         table = self.tables[name]
         lemon = ("#%x%x%x" % (255,250,205)).upper()
-        if QTVERSION < '4.0.0':
-            hb = table.horizontalHeader().paletteBackgroundColor()
-            hcolor = ("#%x%x%x" % (hb.red(), hb.green(), hb.blue())).upper()
-        else:
-            _logger.debug("Actual color to ge got")
-            hcolor = ("#%x%x%x" % (230,240,249)).upper()
+        _logger.debug("Actual color to ge got")
+        hcolor = ("#%x%x%x" % (230,240,249)).upper()
         text=""
         text+=("<nobr>")
         text+=( "<table>")
         text+=( "<tr>")
-        if QTVERSION < '4.0.0':
-            ncols = table.numCols()
-        else:
-            ncols = table.columnCount()
+        ncols = table.columnCount()
         for l in range(ncols):
             text+=('<td align="left" bgcolor="%s"><b>' % hcolor)
-            if QTVERSION < '4.0.0':
-                text+=(str(table.horizontalHeader().label(l)))
-            else:
-                text+=(str(table.horizontalHeaderItem(l).text()))
+            text+=(str(table.horizontalHeaderItem(l).text()))
             text+=("</b></td>")
         text+=("</tr>")
-        if QTVERSION < '4.0.0': nrows = table.numRows()
-        else: nrows = table.rowCount()
+        nrows = table.rowCount()
         for r in range(nrows):
             text+=("<tr>")
-            if QTVERSION < '4.0.0':
-                newtext = str(table.text(r,0))
-            else:
-                item = table.item(r, 0)
-                newtext = ""
-                if item is not None:
-                    newtext = str(item.text())
+            item = table.item(r, 0)
+            newtext = ""
+            if item is not None:
+                newtext = str(item.text())
             if len(newtext):
                 color = "white"
                 b="<b>"
@@ -232,13 +211,10 @@ class ParametersTab(qt.QTabWidget):
             except Exception:
                 pass
             for c in range(ncols):
-                if QTVERSION < '4.0.0':
-                    newtext = str(table.text(r,c))
-                else:
-                    item = table.item(r, c)
-                    newtext = ""
-                    if item is not None:
-                        newtext = str(item.text())
+                item = table.item(r, c)
+                newtext = ""
+                if item is not None:
+                    newtext = str(item.text())
                 if len(newtext):
                     finalcolor = color
                 else:
@@ -252,13 +228,10 @@ class ParametersTab(qt.QTabWidget):
                     text+=("</td>")
                 else:
                     text+=("</b></td>")
-            if QTVERSION < '4.0.0':
-                newtext = str(table.text(r,0))
-            else:
-                item = table.item(r, 0)
-                newtext = ""
-                if item is not None:
-                    newtext = str(item.text())
+            item = table.item(r, 0)
+            newtext = ""
+            if item is not None:
+                newtext = str(item.text())
             if len(newtext):
                 text+=("</b>")
             text+=("</tr>")
@@ -279,41 +252,26 @@ class ParametersTab(qt.QTabWidget):
                 name = self.current
             table = self.tables[name]
             text=""
-            if QTVERSION < '4.0.0':
-                ncols = table.numCols()
-            else:
-                ncols = table.columnCount()
+            ncols = table.columnCount()
             for l in range(ncols):
-                if QTVERSION < '4.0.0':
-                    text+=(str(table.horizontalHeader().label(l)))
-                else:
-                    text+=(str(table.horizontalHeaderItem(l).text()))+"\t"
+                text+=(str(table.horizontalHeaderItem(l).text()))+"\t"
             text+=("\n")
-            if QTVERSION < '4.0.0':
-                nrows = table.numRows()
-            else:
-                nrows = table.rowCount()
+            nrows = table.rowCount()
             for r in range(nrows):
-                if QTVERSION < '4.0.0':
-                    newtext = str(table.text(r,0))
-                else:
-                    item = table.item(r, 0)
-                    newtext = ""
-                    if item is not None:
-                        newtext = str(item.text())+"\t"
+                item = table.item(r, 0)
+                newtext = ""
+                if item is not None:
+                    newtext = str(item.text())+"\t"
                 for c in range(ncols):
-                    if QTVERSION < '4.0.0':
-                        newtext = str(table.text(r,c))
+                    newtext = ""
+                    if c != 4:
+                        item = table.item(r, c)
+                        if item is not None:
+                            newtext = str(item.text())
                     else:
-                        newtext = ""
-                        if c != 4:
-                            item = table.item(r, c)
-                            if item is not None:
-                                newtext = str(item.text())
-                        else:
-                            item = table.cellWidget(r, c)
-                            if item is not None:
-                                newtext = str(item.currentText())
+                        item = table.cellWidget(r, c)
+                        if item is not None:
+                            newtext = str(item.currentText())
                     text+=(newtext)+"\t"
                 text+=("\n")
             text+=("\n")

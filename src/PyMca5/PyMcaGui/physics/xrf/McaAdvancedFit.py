@@ -1470,10 +1470,7 @@ class McaAdvancedFit(qt.QWidget):
         self.browsertext.setSearchPaths([QString(dirname)])
         #self.browsertext.setSource(qt.QUrl(QString(basename)))
         self.browsertext.clear()
-        if QTVERSION < '4.2.0':
-            self.browsertext.insertHtml(text)
-        else:
-            self.browsertext.setText(text)
+        self.browsertext.setText(text)
         self.browsertext.show()
         self.showLastReport()
 
@@ -2489,37 +2486,23 @@ class Top(qt.QWidget):
         #function
         FunLabel = qt.QLabel(w)
         FunLabel.setText(str("Function"))
-        if QTVERSION < '4.0.0':
-            self.FunComBox = qt.QComboBox(0,w,"FunComBox")
-            self.FunComBox.insertStrList(["Mca Hypermet"])
-            self.FunComBox.insertStrList(["Mca Pseudo-Voigt"])
-        else:
-            self.FunComBox = qt.QComboBox(w)
-            self.FunComBox.insertItem(0, "Mca Hypermet")
-            self.FunComBox.insertItem(1, "Mca Pseudo-Voigt")
+        self.FunComBox = qt.QComboBox(w)
+        self.FunComBox.insertItem(0, "Mca Hypermet")
+        self.FunComBox.insertItem(1, "Mca Pseudo-Voigt")
         wlayout.addWidget(FunLabel,0,0)
         wlayout.addWidget(self.FunComBox,0,1)
         #background
         BkgLabel = qt.QLabel(w)
         BkgLabel.setText(str("Background"))
-        if QTVERSION < '4.0.0':
-            self.BkgComBox = qt.QComboBox(0,w,"BkgComBox")
-            self.BkgComBox.insertStrList(['No Background',
-                                          'Constant',
-                                          'Linear',
-                                          'Parabolic',
-                                          'Linear Polynomial',
-                                          'Exp. Polynomial'])
-        else:
-            self.BkgComBox = qt.QComboBox(w)
-            options = ['No Background',
-                       'Constant',
-                       'Linear',
-                       'Parabolic',
-                       'Linear Polynomial',
-                       'Exp. Polynomial']
-            for item in options:
-                self.BkgComBox.insertItem(options.index(item), item)
+        self.BkgComBox = qt.QComboBox(w)
+        options = ['No Background',
+                   'Constant',
+                   'Linear',
+                   'Parabolic',
+                   'Linear Polynomial',
+                   'Exp. Polynomial']
+        for item in options:
+            self.BkgComBox.insertItem(options.index(item), item)
 
         self.FunComBox.activated[int].connect(self.mysignal)
 
@@ -2649,10 +2632,7 @@ class Top(qt.QWidget):
 
         key = 'continuum'
         if key in ddict:
-            if QTVERSION < '4.0.0':
-                self.BkgComBox.setCurrentItem(ddict[key])
-            else:
-                self.BkgComBox.setCurrentIndex(ddict[key])
+            self.BkgComBox.setCurrentIndex(ddict[key])
 
     def getParameters(self):
         ddict={}
@@ -2691,10 +2671,7 @@ class Top(qt.QWidget):
             ddict['escapeflag'] = 1
         else:
             ddict['escapeflag'] = 0
-        if QTVERSION < '4.0.0':
-            ddict['continuum'] = self.BkgComBox.currentItem()
-        else:
-            ddict['continuum'] = self.BkgComBox.currentIndex()
+        ddict['continuum'] = self.BkgComBox.currentIndex()
         return ddict
 
     def mysignal(self, *var):

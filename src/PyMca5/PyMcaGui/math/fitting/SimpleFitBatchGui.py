@@ -124,7 +124,7 @@ class SimpleFitBatchParameters(qt.QWidget):
         else:
             self._lastInputFileFilter = fileFilter
         self._inputDir = os.path.dirname(fileList[0])
-        if (QTVERSION < '4.2.0') or (not len(self._fileList)):
+        if not len(self._fileList):
             self.setFileList(fileList)
             self.raise_()
             return

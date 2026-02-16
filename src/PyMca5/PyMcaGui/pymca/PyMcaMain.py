@@ -129,10 +129,8 @@ if __name__ == '__main__':
     _logger.info("%s set to %s" % ("HDF5_USE_FILE_LOCKING",
                                     os.environ["HDF5_USE_FILE_LOCKING"]))
     if binding is None:
-        if qtversion == '3':
-            raise NotImplementedError("Qt3 is no longer supported")
-        elif qtversion == '4':
-            raise NotImplementedError("Qt4 is no longer supported")
+        if qtversion in ('3', '4'):
+            raise NotImplementedError("Qt%d is no longer supported" % int(qtversion))
         elif qtversion == '5':
             try:
                 import PyQt5.QtCore
@@ -326,12 +324,11 @@ from PyMca5.PyMcaIO import ConfigDict
 from PyMca5 import PyMcaDirs
 
 XIA_CORRECT = False
-if QTVERSION > '4.3.0':
-    try:
-        from PyMca5.PyMcaCore import XiaCorrect
-        XIA_CORRECT = True
-    except Exception:
-        pass
+try:
+    from PyMca5.PyMcaCore import XiaCorrect
+    XIA_CORRECT = True
+except Exception:
+    pass
 
 SOURCESLIST = QDispatcher.QDataSource.source_types.keys()
 
@@ -398,10 +395,7 @@ class PyMcaMain(PyMcaMdi.PyMcaMdi):
                 self.mainTabWidget.addTab(self.scanWindow, "SCAN")
                 if OBJECT3D or isSilxGLAvailable:
                     self.mainTabWidget.addTab(self.glWindow, "OpenGL")
-                if QTVERSION < '5.0.0':
-                    self.mdi.addWindow(self.mainTabWidget)
-                else:
-                    self.mdi.addSubWindow(self.mainTabWidget)
+                self.mdi.addSubWindow(self.mainTabWidget)
                 #print "Markus patch"
                 #self.mainTabWidget.show()
                 #print "end Markus patch"

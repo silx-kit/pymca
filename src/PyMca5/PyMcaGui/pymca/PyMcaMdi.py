@@ -52,9 +52,8 @@ class PyMcaMdi(qt.QMainWindow):
         if fl is None:
             fl = qt.Qt.WA_DeleteOnClose
 
-        if QTVERSION > '5.0.0':
-            if sys.platform.startswith("darwin"):
-                self.menuBar().setNativeMenuBar(False)
+        if sys.platform.startswith("darwin"):
+            self.menuBar().setNativeMenuBar(False)
 
         self.options= {}
         self.options["FileToolBar"]= options.get("FileToolBar", 1)
@@ -71,11 +70,8 @@ class PyMcaMdi(qt.QMainWindow):
         #self.splitterLayout.setSpacing(0)
 
         self.printer= qt.QPrinter()
-        if QTVERSION > '5.0.0':
-            self.mdi = qt.QMdiArea(self.splitter)
-        else:
-            self.mdi = qt.QWorkspace(self.splitter)
-            self.mdi.setScrollBarsEnabled(1)
+        self.mdi = qt.QMdiArea(self.splitter)
+
         if not hasattr(self.mdi, "windowList"):
             # Qt5
             self.mdi.windowList = self.mdi.subWindowList
@@ -88,7 +84,7 @@ class PyMcaMdi(qt.QMainWindow):
             self.mdi.activeSubWindow = self.mdi.activeWindow
             self.mdi.tileSubWindows = self.mdi.tile
             self.mdi.cascadeSubWindows = self.mdi.cascade
-        #if QTVERSION > '4.0.0':self.mdi.setBackground(qt.QBrush(qt.QColor(238,234,238)))
+        #self.mdi.setBackground(qt.QBrush(qt.QColor(238,234,238)))
         #self.setCentralWidget(self.mdi)
         #self.splitterLayout.addWidget(self.mdi)
 
@@ -99,10 +95,8 @@ class PyMcaMdi(qt.QMainWindow):
 
         if QTVERSION > '6.0.0':
             self.windowMapper.mappedObject[qt.QObject].connect(self.mdi.setActiveSubWindow)
-        elif QTVERSION > '5.0.0':
-            self.windowMapper.mapped[qt.QWidget].connect(self.mdi.setActiveSubWindow)
         else:
-            self.windowMapper.mapped[qt.QWidget].connect(self.mdi.setActiveWindow)
+            self.windowMapper.mapped[qt.QWidget].connect(self.mdi.setActiveSubWindow)
 
 
         #self.setDockEnabled(qt.Qt.DockTop, 0)
@@ -110,8 +104,7 @@ class PyMcaMdi(qt.QMainWindow):
 
 
         self.initIcons()
-        if QTVERSION > '4.0.0':
-            self.createActions()
+        self.createActions()
 
         self.initMenuBar()
         self.initToolBar()

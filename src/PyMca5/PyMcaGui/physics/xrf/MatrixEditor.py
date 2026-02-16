@@ -104,12 +104,9 @@ class MatrixEditor(qt.QWidget):
         self.__gridSampleBox = qt.QWidget(sampleBox)
         grid = self.__gridSampleBox
         sampleBoxLayout.addWidget(grid)
-        if QTVERSION < '4.0.0':
-            gridLayout=qt.QGridLayout(grid,6,2,11,4)
-        else:
-            gridLayout = qt.QGridLayout(grid)
-            gridLayout.setContentsMargins(11, 11, 11, 11)
-            gridLayout.setSpacing(4)
+        gridLayout = qt.QGridLayout(grid)
+        gridLayout.setContentsMargins(11, 11, 11, 11)
+        gridLayout.setSpacing(4)
 
         #the angles
         angle1Label  = qt.QLabel(grid)
@@ -127,14 +124,8 @@ class MatrixEditor(qt.QWidget):
         self.__angle3Line  = MyQLineEdit(grid)
         self.__angle3Line.setReadOnly(False)
         self.__angle3Line.setDisabled(True)
-        if QTVERSION < '4.0.0':
-            angle1Label.setAlignment(qt.QLabel.WordBreak | \
-                                     qt.QLabel.AlignVCenter)
-            angle2Label.setAlignment(qt.QLabel.WordBreak | \
-                                     qt.QLabel.AlignVCenter)
-        else:
-            angle1Label.setAlignment(qt.Qt.AlignVCenter)
-            angle2Label.setAlignment(qt.Qt.AlignVCenter)
+        angle1Label.setAlignment(qt.Qt.AlignVCenter)
+        angle2Label.setAlignment(qt.Qt.AlignVCenter)
 
         self.__angle3Label.setChecked(0)
 
@@ -150,11 +141,7 @@ class MatrixEditor(qt.QWidget):
         if density:
             densityLabel  = qt.QLabel(grid)
             densityLabel.setText("Sample Density (g/cm3):")
-            if QTVERSION < '4.0.0':
-                densityLabel.setAlignment(qt.QLabel.WordBreak | \
-                                          qt.QLabel.AlignVCenter)
-            else:
-                densityLabel.setAlignment(qt.Qt.AlignVCenter)
+            densityLabel.setAlignment(qt.Qt.AlignVCenter)
             self.__densityLine  = MyQLineEdit(grid)
             self.__densityLine.setReadOnly(False)
             gridLayout.addWidget(densityLabel, rowoffset, 0)
@@ -166,11 +153,7 @@ class MatrixEditor(qt.QWidget):
         if thickness:
             thicknessLabel  = qt.QLabel(grid)
             thicknessLabel.setText("Sample Thickness   (cm):")
-            if QTVERSION < '4.0.0':
-                thicknessLabel.setAlignment(qt.QLabel.WordBreak | \
-                                            qt.QLabel.AlignVCenter)
-            else:
-                thicknessLabel.setAlignment(qt.Qt.AlignVCenter)
+            thicknessLabel.setAlignment(qt.Qt.AlignVCenter)
             self.__thicknessLine  = MyQLineEdit(grid)
             self.__thicknessLine.setReadOnly(False)
             gridLayout.addWidget(thicknessLabel, rowoffset, 0)
@@ -233,11 +216,8 @@ class MatrixEditor(qt.QWidget):
             msg=qt.QMessageBox(self)
             msg.setIcon(qt.QMessageBox.Critical)
             msg.setText("Incident beam angle has to be in the range [-90, 90]")
-            if QTVERSION < '4.0.0':
-                msg.exec_loop()
-            else:
-                msg.setWindowTitle("Angle Error")
-                msg.exec()
+            msg.setWindowTitle("Angle Error")
+            msg.exec()
             self.__angle1Line.setFocus()
             return
 
@@ -265,11 +245,8 @@ class MatrixEditor(qt.QWidget):
             msg=qt.QMessageBox(self)
             msg.setIcon(qt.QMessageBox.Critical)
             msg.setText("Fluorescent beam angle has to be in the range ]0, 180[")
-            if QTVERSION < '4.0.0':
-                msg.exec_loop()
-            else:
-                msg.setWindowTitle("Angle Error")
-                msg.exec()
+            msg.setWindowTitle("Angle Error")
+            msg.exec()
             self.__angle2Line.setFocus()
             return
 
@@ -305,18 +282,6 @@ class MyQLineEdit(qt.QLineEdit):
     def __init__(self,parent=None,name=None):
         qt.QLineEdit.__init__(self,parent)
         self.editingFinished.connect(self.__mySlot)
-
-    if QTVERSION < '4.0.0':
-        def focusInEvent(self,event):
-            self.backgroundcolor = self.paletteBackgroundColor()
-            self.setPaletteBackgroundColor(qt.QColor('yellow'))
-
-        def focusOutEvent(self,event):
-            self.setPaletteBackgroundColor(qt.QColor('white'))
-            self.__mySlot()
-
-        def setPaletteBackgroundColor(self, color):
-            qt.QLineEdit.setPaletteBackgroundColor(self, color)
 
     def __mySlot(self):
         qstring = self.text()

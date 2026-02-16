@@ -487,10 +487,6 @@ class QPeriodicList(qt.QTreeWidget):
             #return self.selectedItems()
 
     #TODO: Implement this in Qt4
-    if QTVERSION < "4.0.0":
-        def setSelection(self, symbolList):
-            for idx in range(len(self.items)):
-                    self.items[idx].setSelected(Elements[idx][0] in symbolList)
 
 
 def testwidget():

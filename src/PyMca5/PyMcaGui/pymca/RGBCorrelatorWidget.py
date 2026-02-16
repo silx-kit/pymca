@@ -1682,10 +1682,7 @@ class ImageShapeDialog(qt.QDialog):
             self.columns.setText("%g" % shape[1])
             self._size = shape[0] * shape[1]
             self._shape = shape
-            if QTVERSION < "4.0.0":
-                self.setCaption("Resize %d x %d image" % (shape[0], shape[1]))
-            else:
-                self.setWindowTitle("Reshape %d x %d image" % (shape[0], shape[1]))
+            self.setWindowTitle("Reshape %d x %d image" % (shape[0], shape[1]))
         label2 = MyQLabel(self, bold=False, color=qt.QApplication.instance().palette().color(qt.QPalette.WindowText))
         label2.setText("Number of columns = ")
         self.cancelButton = qt.QPushButton(self)

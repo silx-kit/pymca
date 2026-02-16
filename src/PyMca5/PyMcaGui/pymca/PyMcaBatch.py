@@ -526,15 +526,9 @@ class McaBatchGUI(qt.QWidget):
         self.__grid= qt.QWidget(self)
         self._layout.addWidget(self.__grid)
         #self.__grid.setGeometry(qt.QRect(30,30,288,156))
-        if QTVERSION < '4.0.0':
-            grid = qt.QGridLayout(self.__grid,3,3,11,6)
-            grid.setColStretch(0,0)
-            grid.setColStretch(1,1)
-            grid.setColStretch(2,0)
-        else:
-            grid = qt.QGridLayout(self.__grid)
-            grid.setContentsMargins(11, 11, 11, 11)
-            grid.setSpacing(6)
+        grid = qt.QGridLayout(self.__grid)
+        grid.setContentsMargins(11, 11, 11, 11)
+        grid.setSpacing(6)
         #input list
         listrow = 0
         listlabel = qt.QLabel(self.__grid)
@@ -559,8 +553,6 @@ class McaBatchGUI(qt.QWidget):
         configrow = 1 + row_offset
         configlabel = qt.QLabel(self.__grid)
         configlabel.setText("Fit Configuration File:")
-        if QTVERSION < '4.0.0':
-            configlabel.setAlignment(qt.QLabel.WordBreak | qt.QLabel.AlignVCenter)
         self.__configLine = qt.QLineEdit(self.__grid)
         self.__configLine.setReadOnly(True)
         self.__configButton = qt.QPushButton(self.__grid)
@@ -575,8 +567,6 @@ class McaBatchGUI(qt.QWidget):
         outrow = 2 + row_offset
         outlabel = qt.QLabel(self.__grid)
         outlabel.setText("Output dir:")
-        if QTVERSION < '4.0.0':
-            outlabel.setAlignment(qt.QLabel.WordBreak | qt.QLabel.AlignVCenter)
         self.__outLine = qt.QLineEdit(self.__grid)
         self.__outLine.setReadOnly(True)
         #self.__outLine.setSizePolicy(qt.QSizePolicy(qt.QSizePolicy.Maximum, qt.QSizePolicy.Fixed))
@@ -624,10 +614,7 @@ class McaBatchGUI(qt.QWidget):
         self.__imgBox = qt.QCheckBox(vbox2)
         self.__imgBox.setText('Generate Peak Images')
         palette = self.__imgBox.palette()
-        if QTVERSION < '4.0.0':
-            palette.setDisabled(palette.active())
-        else:
-            _logger.debug("palette set disabled")
+        _logger.debug("palette set disabled")
         self.__imgBox.setChecked(True)
         self.__imgBox.setEnabled(False)
         vbox2.l.addWidget(self.__imgBox)
@@ -783,12 +770,8 @@ class McaBatchGUI(qt.QWidget):
             label= qt.QLabel(boxFStep)
             label.setText("File Step:")
             self.__fileSpin = qt.QSpinBox(boxFStep)
-            if QTVERSION < '4.0.0':
-                self.__fileSpin.setMinValue(1)
-                self.__fileSpin.setMaxValue(10)
-            else:
-                self.__fileSpin.setMinimum(1)
-                self.__fileSpin.setMaximum(10)
+            self.__fileSpin.setMinimum(1)
+            self.__fileSpin.setMaximum(10)
             self.__fileSpin.setValue(1)
             boxFStep.l.addWidget(label)
             boxFStep.l.addWidget(self.__fileSpin)
@@ -803,12 +786,8 @@ class McaBatchGUI(qt.QWidget):
             label= qt.QLabel(boxMStep)
             label.setText("MCA Step:")
             self.__mcaSpin = qt.QSpinBox(boxMStep)
-            if QTVERSION < '4.0.0':
-                self.__mcaSpin.setMinValue(1)
-                self.__mcaSpin.setMaxValue(10)
-            else:
-                self.__mcaSpin.setMinimum(1)
-                self.__mcaSpin.setMaximum(10)
+            self.__mcaSpin.setMinimum(1)
+            self.__mcaSpin.setMaximum(10)
             self.__mcaSpin.setValue(1)
 
             boxMStep.l.addWidget(label)
@@ -831,12 +810,8 @@ class McaBatchGUI(qt.QWidget):
         label= qt.QLabel(box3)
         label.setText("ROI Width (eV):")
         self.__roiSpin = qt.QSpinBox(box3)
-        if QTVERSION < '4.0.0':
-            self.__roiSpin.setMinValue(10)
-            self.__roiSpin.setMaxValue(1000)
-        else:
-            self.__roiSpin.setMinimum(10)
-            self.__roiSpin.setMaximum(1000)
+        self.__roiSpin.setMinimum(10)
+        self.__roiSpin.setMaximum(1000)
         self.__roiSpin.setValue(int(roiwidth))
         box3.l.addWidget(label)
         box3.l.addWidget(self.__roiSpin)
@@ -858,12 +833,8 @@ class McaBatchGUI(qt.QWidget):
         label= qt.QLabel(box4)
         label.setText("Number of processes:")
         self.__splitSpin = qt.QSpinBox(box4)
-        if QTVERSION < '4.0.0':
-            self.__splitSpin.setMinValue(0)
-            self.__splitSpin.setMaxValue(1000)
-        else:
-            self.__splitSpin.setMinimum(0)
-            self.__splitSpin.setMaximum(1000)
+        self.__splitSpin.setMinimum(0)
+        self.__splitSpin.setMaximum(1000)
         self.__splitSpin.setValue(max(nproc, 0))
         # nproc == 0: run fit in single thread
         # nproc != 0: run fit in one or more processes
@@ -984,11 +955,8 @@ class McaBatchGUI(qt.QWidget):
         if len(self.fileList):
             self.inputDir = os.path.dirname(self.fileList[0])
             PyMcaDirs.inputDir = os.path.dirname(self.fileList[0])
-        if QTVERSION < '4.0.0':
-            self.__listView.setText(text)
-        else:
-            self.__listView.clear()
-            self.__listView.insertPlainText(text)
+        self.__listView.clear()
+        self.__listView.insertPlainText(text)
 
     def _hdf5Selection(self, filename):
         selection = {}
@@ -1428,10 +1396,7 @@ class McaBatchGUI(qt.QWidget):
             self.raise_()
             return False
         cmd.setCommand(myself)
-        if QTVERSION < '4.0.0':
-            self._datviewer_path = None
-        else:
-            self._datviewer_path = toolPath('PyMcaPostBatch')
+        self._datviewer_path = toolPath('PyMcaPostBatch')
         self._edfviewer_path = toolPath('EdfFileSimpleViewer')
         return True
 
@@ -1631,24 +1596,15 @@ class McaBatch(McaAdvancedFitBatch.McaAdvancedFitBatch, QThread):
                  'mcastep':self.mcaStep,
                  'chunk':self.chunk,
                  'savedimages':savedimages}
-        if QTVERSION < '4.0.0':
-            self.postEvent(self.parent, McaCustomEvent.McaCustomEvent(ddict))
-        else:
-            qt.QApplication.postEvent(self.parent, McaCustomEvent.McaCustomEvent(ddict))
+        qt.QApplication.postEvent(self.parent, McaCustomEvent.McaCustomEvent(ddict))
         if self.pleasePause:
             self.__pauseMethod()
 
     def __pauseMethod(self):
-        if QTVERSION < '4.0.0':
-            self.postEvent(self.parent, McaCustomEvent.McaCustomEvent({'event':'batchPaused'}))
-        else:
-            qt.QApplication.postEvent(self.parent, McaCustomEvent.McaCustomEvent({'event':'batchPaused'}))
+        qt.QApplication.postEvent(self.parent, McaCustomEvent.McaCustomEvent({'event':'batchPaused'}))
         while(self.pleasePause):
             time.sleep(1)
-        if QTVERSION < '4.0.0':
-            self.postEvent(self.parent, McaCustomEvent.McaCustomEvent({'event':'batchResumed'}))
-        else:
-            qt.QApplication.postEvent(self.parent, McaCustomEvent.McaCustomEvent({'event':'batchResumed'}))
+        qt.QApplication.postEvent(self.parent, McaCustomEvent.McaCustomEvent({'event':'batchResumed'}))
 
 
 class McaBatchWindow(qt.QWidget):
@@ -1658,12 +1614,8 @@ class McaBatchWindow(qt.QWidget):
 
     def __init__(self,parent=None, name="BatchWindow", fl=0, actions = 0, outputdir=None, html=0,
                     htmlindex = None, table=2, chunk=None, exitonend=False, showresult=True):
-        if QTVERSION < '4.0.0':
-            qt.QWidget.__init__(self, parent, name, fl)
-            self.setCaption(name)
-        else:
-            qt.QWidget.__init__(self, parent)
-            self.setWindowTitle(name)
+        qt.QWidget.__init__(self, parent)
+        self.setWindowTitle(name)
         self.chunk = chunk
         self.exitonend = exitonend
         self._showResult = showresult
@@ -1671,12 +1623,9 @@ class McaBatchWindow(qt.QWidget):
         #self.l.setAutoAdd(1)
         self.bars =qt.QWidget(self)
         self.l.addWidget(self.bars)
-        if QTVERSION < '4.0.0':
-            self.barsLayout = qt.QGridLayout(self.bars,2,3)
-        else:
-            self.barsLayout = qt.QGridLayout(self.bars)
-            self.barsLayout.setContentsMargins(2, 2, 2, 2)
-            self.barsLayout.setSpacing(3)
+        self.barsLayout = qt.QGridLayout(self.bars)
+        self.barsLayout.setContentsMargins(2, 2, 2, 2)
+        self.barsLayout.setSpacing(3)
         self.progressBar = qt.QProgressBar(self.bars)
         self.progressLabel = qt.QLabel(self.bars)
         self.progressLabel.setText('File Progress:')
@@ -1774,12 +1723,8 @@ class McaBatchWindow(qt.QWidget):
         nfiles = len(indexlist)
         self.status.setText("Processing file %s" % file)
         e = time.time()
-        if QTVERSION < '4.0.0':
-            self.progressBar.setTotalSteps(nfiles)
-            self.progressBar.setProgress(index)
-        else:
-            self.progressBar.setMaximum(nfiles)
-            self.progressBar.setValue(index)
+        self.progressBar.setMaximum(nfiles)
+        self.progressBar.setValue(index)
         if self.time0 is not None:
             t = (e - self.time0) * (nfiles - index)
             self.time0 =e
@@ -1797,16 +1742,10 @@ class McaBatchWindow(qt.QWidget):
         _logger.debug("onImage %s",  key)
         i = keylist.index(key) + 1
         n = len(keylist)
-        if QTVERSION < '4.0.0':
-            self.imageBar.setTotalSteps(n)
-            self.imageBar.setProgress(i)
-            self.mcaBar.setTotalSteps(1)
-            self.mcaBar.setProgress(0)
-        else:
-            self.imageBar.setMaximum(n)
-            self.imageBar.setValue(i)
-            self.mcaBar.setMaximum(1)
-            self.mcaBar.setValue(0)
+        self.imageBar.setMaximum(n)
+        self.imageBar.setValue(i)
+        self.mcaBar.setMaximum(1)
+        self.mcaBar.setValue(0)
 
     #def onMca(self, mca, nmca, mcastep):
     def onMca(self, ddict):
@@ -1840,12 +1779,8 @@ class McaBatchWindow(qt.QWidget):
                 _logger.warning("If your batch is stopped, please report this")
                 _logger.warning("error sending the above mentioned file and the")
                 _logger.warning("associated fit configuration file.")
-        if QTVERSION < '4.0.0':
-            self.mcaBar.setTotalSteps(nmca)
-            self.mcaBar.setProgress(mca)
-        else:
-            self.mcaBar.setMaximum(nmca)
-            self.mcaBar.setValue(mca)
+        self.mcaBar.setMaximum(nmca)
+        self.mcaBar.setValue(mca)
         if sys.platform == 'darwin':
             qApp = qt.QApplication.instance()
             qApp.processEvents()
@@ -1936,16 +1871,10 @@ class McaBatchWindow(qt.QWidget):
     def onEnd(self, dict):
         _logger.debug("Batch finished")
         self.__ended = True
-        if QTVERSION < '4.0.0':
-            n = self.progressBar.progress()
-            self.progressBar.setProgress(n + dict['filestep'])
-            n = self.mcaBar.progress()
-            self.mcaBar.setProgress(n + dict['mcastep'])
-        else:
-            n = self.progressBar.value()
-            self.progressBar.setValue(n + dict['filestep'])
-            n = self.mcaBar.value()
-            self.mcaBar.setValue(n + dict['mcastep'])
+        n = self.progressBar.value()
+        self.progressBar.setValue(n + dict['filestep'])
+        n = self.mcaBar.value()
+        self.mcaBar.setValue(n + dict['mcastep'])
         self.status.setText  ("Batch Finished")
         self.timeLeft.setText("Estimated time left = 0 sec")
         if self.actions:

@@ -42,8 +42,7 @@ if __name__== '__main__':
             pass
 from PyMca5.PyMcaGui import PyMcaQt as qt
 QTVERSION = qt.qVersion()
-if QTVERSION >= '4.0.0':
-    qt.Qt.WDestructiveClose = "TO BE DONE"
+qt.Qt.WDestructiveClose = "TO BE DONE"
 from PyMca5.PyMcaGui.io import PyMcaFileDialogs
 from PyMca5.PyMcaGui.plotting.PyMca_Icons import IconDict
 from PyMca5.PyMcaGui.pymca import McaCustomEvent

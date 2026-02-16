@@ -95,22 +95,14 @@ class McaTable(QTable):
                 xbegin=QString("%6g" % (result['xbegin']))
                 xend=QString("%6g" % (result['xend']))
                 fitlabel,fitpars, fitsigmas = self.__getfitpar(result)
-                if QTVERSION < '4.0.0':
-                    qt.QHeader.setLabel(self.horizontalHeader(),1,"Fit "+fitlabel)
-                else:
-                    item = self.horizontalHeaderItem(1)
-                    item.setText("Fit "+fitlabel)
+                item = self.horizontalHeaderItem(1)
+                item.setText("Fit "+fitlabel)
                 i = 0
                 for (pos,area,sigma,fwhm) in result['mca_areas']:
                     line0=line0+1
-                    if QTVERSION < '4.0.0':
-                        nlines=self.numRows()
-                        if (line0 > nlines):
-                            self.setNumRows(line0)
-                    else:
-                        nlines=self.rowCount()
-                        if (line0 > nlines):
-                            self.setRowCount(line0)
+                    nlines=self.rowCount()
+                    if (line0 > nlines):
+                        self.setRowCount(line0)
                     line=line0-1
                     #pos=QString(str(pos))
                     #area=QString(str(area))
@@ -146,8 +138,7 @@ class McaTable(QTable):
                             item.setText(field)
                         if recolor:
                             #function introduced in Qt 4.2.0
-                            if QTVERSION >= '4.2.0':
-                                item.setBackground(qt.QBrush(color))
+                            item.setBackground(qt.QBrush(color))
                         item.setFlags(qt.Qt.ItemIsSelectable|qt.Qt.ItemIsEnabled)
                         col=col+1
                     if recolor:
