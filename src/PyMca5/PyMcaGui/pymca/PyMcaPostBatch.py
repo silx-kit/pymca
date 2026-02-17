@@ -31,6 +31,14 @@ __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 import sys
 import os
 import logging
+if __name__== '__main__':
+    # avoid issues if some module or dependency tries to use multiprocessing in frozen binaries
+    if getattr(sys, "frozen", False):
+        try:
+            import multiprocessing
+            multiprocessing.freeze_support()
+        except Exception:
+            pass
 _logger = logging.getLogger(__name__)
 if __name__ == "__main__":    
     # We are going to read. Disable file locking.
