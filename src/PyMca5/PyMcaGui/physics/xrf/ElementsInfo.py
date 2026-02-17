@@ -32,14 +32,6 @@ __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 import sys
 import logging
-if __name__== '__main__':
-    # avoid issues if some module or dependency tries to use multiprocessing in frozen binaries
-    if getattr(sys, "frozen", False):
-        try:
-            import multiprocessing
-            multiprocessing.freeze_support()
-        except Exception:
-            pass
 from PyMca5.PyMcaGui import PyMcaQt as qt
 from PyMca5.PyMcaPhysics.xrf import ElementHtml
 from PyMca5.PyMcaPhysics.xrf import Elements

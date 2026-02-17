@@ -32,15 +32,6 @@ import sys
 import os
 import numpy
 import time
-if __name__== '__main__':
-    # avoid issues if some module or dependency tries to use multiprocessing in frozen binaries
-    if getattr(sys, "frozen", False):
-        try:
-            import multiprocessing
-            multiprocessing.freeze_support()
-        except Exception:
-            pass
-
 from PyMca5.PyMcaGui import PyMcaQt as qt
 QTVERSION = qt.qVersion()
 if QTVERSION >= '4.0.0':
