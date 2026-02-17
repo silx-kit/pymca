@@ -179,10 +179,12 @@ __version__ = PyMca5.version()
 if __name__ == "__main__":
     sys.excepthook = qt.exceptionHandler
 
-    # To avoid "Dark mode"; this force main windows to be light (but not all submenus)
     if sys.platform == 'win32':
+        # To avoid "Dark mode"; this force main windows to be light (but not all submenus)
         _ = os.environ.setdefault("QT_QPA_PLATFORM", "windows:darkmode=0")
-    
+        # minimal fix for matplotlib fonts when Windows scale (DPI) is not 100%
+        _ = os.environ["QT_ENABLE_HIGHDPI_SCALING"] = "0"
+
     app = qt.QApplication(sys.argv)
     
     # To avoid "Dark mode"; without this part some menus will be still dark

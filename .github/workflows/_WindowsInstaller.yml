@@ -37,7 +37,7 @@ jobs:
           pip install $(python -c "import glob; print(' '.join(glob.glob('wheels/*cp313*.whl')))") 
           pip install Cython
           pip install numpy==2.2.6 
-          pip install Pyside6==6.9.1
+          pip install Pyside6==6.8.3
           pip install h5py
           pip install fisx
           pip install hdf5plugin
