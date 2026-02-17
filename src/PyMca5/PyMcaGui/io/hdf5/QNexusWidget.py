@@ -859,7 +859,7 @@ class QNexusWidget(qt.QWidget):
                             shape = None
                         self._shapeList.append(shape)
                         self.cntTable.build(self._cntList, self._aliasList, shapelist=self._shapeList)
-            elif ddict.get('_isLink', False) and ("silx" in sys.modules):
+            elif (ddict.get('color') == qt.QApplication.instance().palette().color(qt.QPalette.BrightText) or ddict.get('color') == qt.Qt.blue) and ("silx" in sys.modules):
                 # there is an action to be applied
                 self.showInfoWidget(ddict["file"], ddict["name"], dset=False)
             elif ddict['type'] in ['NXentry', 'Entry']:

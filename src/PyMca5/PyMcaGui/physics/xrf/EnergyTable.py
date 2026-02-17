@@ -291,10 +291,7 @@ class EnergyTable(QTable):
         if flaglist   is  None:flaglist  =[]
         if scatterlist   is  None:scatterlist  = []
         if scattercolor is None: 
-            try:
-                scattercolor = qt.QApplication.instance().palette().color(qt.QPalette.Highlight)
-            except Exception:
-                scattercolor = qt.QColor(255, 20, 147)
+            scattercolor = qt.QColor(255, 20, 147)
         if offset is None:offset = 0
         self.energyList  = energylist
         self.weightList  = weightlist
@@ -612,11 +609,18 @@ class EnergyTable(QTable):
 class ColorQTableItem(qt.QCheckBox):
          def __init__(self, table, text, color=None, bold=0):
             qt.QCheckBox.__init__(self, table)
+            try:
+                _palette = qt.QApplication.instance().palette()
+                self._textColor = _palette.color(qt.QPalette.WindowText)
+                self._backgroundColor = _palette.color(qt.QPalette.Base)
+            except Exception:
+                self._textColor = qt.QColor(qt.Qt.black)                
+                self._backgroundColor = qt.QColor(255, 255, 255)
+            self._selectedTextColor = qt.QColor(qt.Qt.black)
+            self._selectedBackgroundColor = qt.QColor(255, 20, 147)
+
             if color is None:
-                try:
-                    color = qt.QApplication.instance().palette().color(qt.QPalette.Base)
-                except Exception:
-                    color = qt.QColor(255, 255, 255)
+                color = self._backgroundColor
             self.setColor(color)
             self.bold  = bold
             self.setText(text)
@@ -625,8 +629,12 @@ class ColorQTableItem(qt.QCheckBox):
 
          def setColor(self, color):
              self.color = color
-             if hasattr(color, "name"):
-                 self.setStyleSheet("background-color: %s" % color.name())
+             if color == self._backgroundColor:
+                 self.setStyleSheet("color: %s; background-color: %s" % \
+                     (self._textColor.name(), self._backgroundColor.name()))
+             else:
+                 self.setStyleSheet("color: %s; background-color: %s" % \
+                     (self._selectedTextColor.name(),  self._selectedBackgroundColor.name()))
 
          def paintEvent(self, painter):
             #this is the other (self.palette() is not appropriate)

@@ -171,7 +171,9 @@ class QtMcaAdvancedFitReport:
              text+= "<H2><a NAME=""%s""></a><FONT color=#009999>" % key
              text+= "%s:" % key
              text+= "</FONT></H2>"
+             text+= '<div style="color:#000000">'
              text+= self.otherhtmltext[key]
+             text+= '</div>'
              text+="<br>"
         text+=self.getFooter()
         return text
@@ -191,7 +193,7 @@ class QtMcaAdvancedFitReport:
         text+= "<HEAD>"
         text+= "<TITLE>PyMCA : Advanced Fit Results</TITLE>"
         text+= "</HEAD>"
-        text+= "<BODY ALINK=#ff6600 LINK=#0000cc VLINK=#0000cc marginwidth=10 marginheight=10  topmargin=10 leftmargin=10>"
+        text+= '<BODY style="color:#000000; background-color:#FFFFFF" ALINK=#ff6600 LINK=#0000cc VLINK=#0000cc marginwidth=10 marginheight=10  topmargin=10 leftmargin=10>'
         text+= "<CENTER>"
         text+= "<TABLE WIDTH=100%% border=0 Height=70>"
         text+= "  <TR>"
@@ -234,7 +236,7 @@ class QtMcaAdvancedFitReport:
         text+= "<nobr><H2><FONT color=#009999>"
         text+= "Computed File :&nbsp;"
         text+= "</FONT>"
-        text+= "<FONT>"
+        text+= "<FONT color=#000000>"
         if self.fitfile is not None:
             if os.path.basename(self.fitfile) == self.fitfile:
                 text+= "<b><I>%s</I></b>" % (os.getcwd()+"/"+self.fitfile)
@@ -257,7 +259,7 @@ class QtMcaAdvancedFitReport:
         text+= "<LEFT>"
         text+= "<TABLE border=0>"
         text+= "<TR><TD><SPACER TYPE=BLOCK WIDTH=50></TD><TD>"
-        text+= "<TABLE border=0 cellpadding=1 cellspacing=2>"
+        text+= '<TABLE border=0 cellpadding=1 cellspacing=2 style="color:#000000">'
         text+= "  <TR><TH ALIGN=LEFT>Source : &nbsp;</TH><TD ALIGN=LEFT>%s</TD></TR>"    % (self.sourcename)
         text+= "  <TR><TH ALIGN=LEFT>Selection : &nbsp;</TH><TD ALIGN=LEFT>%s</TD></TR>" % (self.selection)
         text+= "  <TR><TH ALIGN=LEFT>Parameters : &nbsp;</TH><TD ALIGN=LEFT>"
@@ -332,7 +334,7 @@ class QtMcaAdvancedFitReport:
         text+="Fit Parameters :"
         text+="</FONT></H2>"
         text+="<CENTER>"
-        text+="<TABLE border=0 cellpadding=0 cellspacing=2 width=80%>"
+        text+="<TABLE border=0 cellpadding=0 cellspacing=2 width=80% style=\"color:#000000\">"
         text+="<TR>"
         text+="    <TD><TABLE border=1 cellpadding=1 cellspacing=0 width=100%>"
         text+="        <TR align=center>"
@@ -544,9 +546,9 @@ class QtMcaAdvancedFitReport:
         text+= "    <tr><td colspan=2 bgcolor=#cc0066 height=5><spacer type=block height=5 width=0></td></tr>"
         text+= "    <tr><td colspan=2 height=5><spacer type=block height=5 width=0></td></tr>"
         text+= "    <TR>"
-        text+= "        <TD><FONT size=1 >created:  %s</font></TD>" % time.ctime(now)
+        text+= '        <TD><FONT size=1 color=#000000>created:  %s</font></TD>' % time.ctime(now)
         #text+= "        <TD ALIGN=RIGHT><FONT size=1 >last modified: %s" % time.ctime(now)
-        text+= "        <TD ALIGN=RIGHT><FONT size=1 >last modified: %s by" % time.ctime(now)
+        text+= '        <TD ALIGN=RIGHT><FONT size=1 color=#000000>last modified: %s by' % time.ctime(now)
         #text+= "        <A STYLE=""color: #0000cc"" HREF=""mailto:papillon@esrf.fr"">papillon@esrf.fr</A></FONT></TD>"
         if sys.platform == 'win32':
             try:
@@ -677,32 +679,34 @@ class QtMcaAdvancedFitReport:
             labels=['Element','Group','Fit&nbsp; Area','Sigma']
         else:
             labels=['Element','Group','Fit&nbsp; Area','Sigma','Energy','Ratio','FWHM','Chi&nbsp; square']
+        lemmon = ("#%x%x%x" % (255,250,205)).upper()
+        hcolor = ("#%x%x%x" % (230,240,249)).upper()
         text += "<CENTER>"
         text += ("<nobr>")
         text += '<table width="80%" border="0" cellspacing="1" cellpadding="1" >'
         text += ( "<tr><b>")
         for l in range(len(labels)):
             if l < 2:
-                text += '<td align="left"><b>%s</b></td>' % labels[l]
+                text += '<td align="left" bgcolor=%s style="color:#000000"><b>%s</b></td>' % (hcolor,labels[l])
             elif (l > 3) or (self.tableFlag == 1):
-                text += '<td align="right"><b>%s</b></td>' % labels[l]
+                text += '<td align="right" bgcolor=%s style="color:#000000"><b>%s</b></td>' % (hcolor,labels[l])
             else:
-                text += '<td align="center"><b>%s</b></td>' % labels[l]
+                text += '<td align="center" bgcolor=%s style="color:#000000"><b>%s</b></td>' % (hcolor,labels[l])
         text+="</b></tr>\n"
 
         for group in result['groups']:
             text+=("<tr>")
             ele,group0 = group.split()
-            text += '<td align="left"><b>%s</b></td>' % ele
-            text += '<td align="left"><b>%s</b></td>' % group0
+            text += '<td align="left" style="color:#000000"><b>%s</b></td>' % ele
+            text += '<td align="left" style="color:#000000"><b>%s</b></td>' % group0
             fitarea    = "%.6e" % result[group]['fitarea']
             sigmaarea  = "%.2e" % result[group]['sigmaarea']
-            text += '<td align="right"><b>%s</b></td>' % fitarea
-            text += '<td align="right"><b>%s</b></td>' % sigmaarea
-            text += '<td align="right"><b>&nbsp;</b></td>'
-            text += '<td align="right"><b>&nbsp;</b></td>'
-            text += '<td align="right"><b>&nbsp;</b></td>'
-            text += '<td align="right"><b>&nbsp;</b></td>'
+            text += '<td align="right" style="color:#000000"><b>%s</b></td>' % fitarea
+            text += '<td align="right" style="color:#000000"><b>%s</b></td>' % sigmaarea
+            text += '<td align="right" style="color:#000000"><b>&nbsp;</b></td>'
+            text += '<td align="right" style="color:#000000"><b>&nbsp;</b></td>'
+            text += '<td align="right" style="color:#000000"><b>&nbsp;</b></td>'
+            text += '<td align="right" style="color:#000000"><b>&nbsp;</b></td>'
             text += '</tr>\n'
             if type(result[group]['peaks']) != type([]):
                 iterator = [result[group]['peaks']]
@@ -722,9 +726,9 @@ class QtMcaAdvancedFitReport:
                 fields = [name,area,sigma,energy,ratio,fwhm,chisq]
                 for field in fields:
                     if field == name:
-                        text+=('<td align="left">%s</td>' % field)
+                        text+=('<td align="left"  bgcolor=%s style="color:#000000">%s</td>' % (lemmon,field))
                     else:
-                        text+=('<td align="right">%s</td>' % field)
+                        text+=('<td align="right" bgcolor=%s style="color:#000000">%s</td>' % (lemmon,field))
                 text+="</tr>\n"
             if type(result[group]['escapepeaks']) != type([]):
                 iterator = [result[group]['escapepeaks']]
@@ -749,9 +753,9 @@ class QtMcaAdvancedFitReport:
                     fields = [name,area,sigma,energy,ratio,fwhm,chisq]
                     for field in fields:
                         if field == name:
-                            text+=('<td align="left">%s</td>' % field)
+                            text+=('<td align="left"  bgcolor=%s style="color:#000000">%s</td>' % (lemmon,field))
                         else:
-                            text+=('<td align="right">%s</td>' % field)
+                            text+=('<td align="right" bgcolor=%s style="color:#000000">%s</td>' % (lemmon,field))
                     text+="</tr>\n"
         text+=("</table>")
         text+=("</nobr>")

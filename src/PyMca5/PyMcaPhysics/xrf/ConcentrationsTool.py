@@ -81,20 +81,23 @@ class ConcentrationsConversion(object):
                     result['layerlist'] = [result['layerlist']]
                 for label in result['layerlist']:
                     labels += [label]
+            lemmon = ("#%x%x%x" % (255, 250, 205)).upper()
+            white = '#FFFFFF'
+            hcolor = ("#%x%x%x" % (230, 240, 249)).upper()
             text += "<CENTER>"
             text += "<nobr>"
             text += '<table width="80%" border="0" cellspacing="1" cellpadding="1" >'
             text += "<tr>"
             for l in range(len(labels)):
                 if l < 2:
-                    text += '<td align="left"><b>%s</b></td>' % \
-                        labels[l]
+                    text += '<td align="left" bgcolor=%s style="color:#000000"><b>%s</b></td>' %\
+                        (hcolor, labels[l])
                 elif l == 2:
-                    text += '<td align="center"><b>%s</b></td>' % \
-                        labels[l]
+                    text += '<td align="center" bgcolor=%s style="color:#000000"><b>%s</b></td>' %\
+                        (hcolor, labels[l])
                 else:
-                    text += '<td align="right"><b>%s</b></td>' % \
-                        labels[l]
+                    text += '<td align="right" bgcolor=%s style="color:#000000"><b>%s</b></td>' %\
+                        (hcolor, labels[l])
             text += "</tr>"
             line = 0
             for group in result['groups']:
@@ -121,12 +124,16 @@ class ConcentrationsConversion(object):
                             else:
                                 fraction = "%.4g" % result[layer]['mass fraction'][group]
                         fields += [fraction]
+                if line % 2:
+                    color = lemmon
+                else:
+                    color = white
                 i = 0
                 for field in fields:
                     if (i<2):
-                        text += '<td align="left">%s</td>' % field
+                        text += '<td align="left"  bgcolor=%s style="color:#000000">%s</td>' % (color, field)
                     else:
-                        text += '<td align="right">%s</td>' % field
+                        text += '<td align="right" bgcolor=%s style="color:#000000">%s</td>' % (color, field)
                     i += 1
                 text += '</tr>'
                 line += 1
