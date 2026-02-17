@@ -47,7 +47,7 @@ class testHDF5Utils(unittest.TestCase):
         self.assertEqual(HDF5Utils.get_hdf5_group_keys(filename), names)
         self.assertEqual(HDF5Utils.safe_hdf5_group_keys(filename), names)
 
-    @unittest.skipIf("multiprocessing" not in sys.modules), "skipped multiprocessing missing")
+    @unittest.skipIf("multiprocessing" not in sys.modules, "skipped multiprocessing missing")
     def testSegFault(self):
         self.assertEqual(_safe_cause_segfault(default=123), 123)
 
