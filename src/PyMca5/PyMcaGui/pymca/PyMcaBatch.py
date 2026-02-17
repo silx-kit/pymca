@@ -36,14 +36,6 @@ import signal
 import atexit
 import logging
 import traceback
-if __name__== '__main__':
-    # avoid issues if some module or dependency tries to use multiprocessing in frozen binaries
-    if getattr(sys, "frozen", False):
-        try:
-            import multiprocessing
-            multiprocessing.freeze_support()
-        except Exception:
-            pass
 from glob import glob
 from contextlib import contextmanager
 try:
