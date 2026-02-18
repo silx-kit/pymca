@@ -172,7 +172,7 @@ class FitPeakSelect(qt.QWidget):
         hboxLayout.setContentsMargins(0, 0, 0, 0)
         hboxLayout.setSpacing(20)
         hboxLayout.addWidget(qt.HorizontalSpacer(hbox))
-        l1=MyQLabel(hbox, bold=True, color=qt.QApplication.instance().palette().color(qt.QPalette.WindowText))
+        l1=MyQLabel(hbox, bold=True, color=qt.Qt.red)
         hboxLayout.addWidget(l1)
 
         self.energyValue = None

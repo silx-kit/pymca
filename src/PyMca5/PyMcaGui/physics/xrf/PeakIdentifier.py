@@ -219,23 +219,14 @@ class PeakIdentifier(qt.QWidget):
     def getHtmlText(self, ddict):
         text  = ""
         labels=['Element','Line','Energy','Rate']
-        try:
-            _palette = qt.QApplication.instance().palette()
-            _Base = _palette.color(qt.QPalette.Base)
-            _mid = _palette.color(qt.QPalette.Midlight)
-            lemmon = _Base.name().upper()
-            hcolor = _mid.name().upper()
-        except Exception:
-            lemmon = ("#%x%x%x" % (255,250,205))
-            lemmon = lemmon.upper()
-            hcolor = ("#%x%x%x" % (230,240,249))
-            hcolor = hcolor.upper()
+        lemmon = ("#%x%x%x" % (255,250,205)).upper()
+        hcolor = ("#%x%x%x" % (230,240,249)).upper()
         text+="<CENTER>"
         text+=("<nobr>")
         text+=( "<table WIDTH=80%%>")
         text+=( "<tr>")
         for l in labels:
-            text+=('<td align="left" bgcolor="%s"><b>' % hcolor)
+            text+=('<td align="left" bgcolor="%s" style="color:#000000"><b>' % hcolor)
             text+=l
             text+=("</b></td>")
         text+=("</tr>")
@@ -268,9 +259,9 @@ class PeakIdentifier(qt.QWidget):
                 fields = [name,energy,ratio]
                 for field in fields:
                     if field == name:
-                        text+=('<td align="left"  bgcolor="%s">%s</td>' % (lemmon,field))
+                        text+=('<td align="left"  bgcolor="%s" style="color:#000000">%s</td>' % (lemmon,field))
                     else:
-                        text+=('<td align="right" bgcolor="%s">%s</td>' % (lemmon,field))
+                        text+=('<td align="right" bgcolor="%s" style="color:#000000">%s</td>' % (lemmon,field))
                 text+="</tr>"
         text+=("</table>")
         text+=("</nobr>")
@@ -291,7 +282,7 @@ class MyQLineEdit(qt.QLineEdit):
 
     def focusInEvent(self,event):
         self.setPaletteBackgroundColor(
-            qt.QApplication.instance().palette().color(qt.QPalette.Highlight))
+            qt.QApplication.instance().palette().color(qt.QPalette.Midlight))
         # TODO not like focusOutEvent ?
         '''
         qt.QLineEdit.focusInEvent(self, event)
