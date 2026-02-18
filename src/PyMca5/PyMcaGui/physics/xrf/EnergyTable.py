@@ -628,14 +628,6 @@ class ColorQTableItem(qt.QCheckBox):
                  self.setStyleSheet("color: %s; background-color: %s" % \
                      (self._selectedTextColor.name(),  self._selectedBackgroundColor.name()))
 
-         def paintEvent(self, painter):
-            #this is the other (self.palette() is not appropriate)
-            palette = qt.QPalette()
-            role = self.backgroundRole()
-            palette.setColor(role, self.color)
-            self.setPalette(palette)
-            return qt.QCheckBox.paintEvent(self, painter)
-
 def main(args):
     app=qt.QApplication(args)
     #tab = AttenuatorsTableWidget(None)

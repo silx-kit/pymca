@@ -463,6 +463,11 @@ class XiaCorrectWizard(qt.QWizard):
         self.setModal(modal)
         #fl)
 
+        try:
+            self.setWizardStyle(qt.QWizard.ClassicStyle)
+        except AttributeError:
+            self.setWizardStyle(qt.QWizard.WizardStyle.ClassicStyle)
+
         self.setWindowTitle("Xia Correction Tool")
         self.resize(qt.QSize(400,300))
 
