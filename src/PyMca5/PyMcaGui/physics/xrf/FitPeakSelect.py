@@ -172,7 +172,7 @@ class FitPeakSelect(qt.QWidget):
         hboxLayout.setContentsMargins(0, 0, 0, 0)
         hboxLayout.setSpacing(20)
         hboxLayout.addWidget(qt.HorizontalSpacer(hbox))
-        l1=MyQLabel(hbox, bold=True, color=qt.Qt.red)
+        l1=MyQLabel(hbox, bold=True, color=qt.QApplication.instance().palette().color(qt.QPalette.Text))
         hboxLayout.addWidget(l1)
 
         self.energyValue = None
@@ -431,10 +431,8 @@ class MyQLineEdit(qt.QLineEdit):
         self.setPaletteBackgroundColor(qt.QApplication.instance().palette().color(qt.QPalette.Base))
 
 class MyQLabel(qt.QLabel):
-    def __init__(self, parent=None, bold=True, color=None):
+    def __init__(self, parent=None, bold=True, color=qt.Qt.red):
         qt.QLabel.__init__(self,parent)
-        if color is None:
-            color = qt.QApplication.instance().palette().color(qt.QPalette.WindowText)
         palette = qt.QPalette(self.palette())
         role = self.foregroundRole()
         palette.setColor(role,color)
