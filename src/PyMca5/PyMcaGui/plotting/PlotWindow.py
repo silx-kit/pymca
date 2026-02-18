@@ -1507,10 +1507,7 @@ class PlotWindow(PlotWidget.PlotWidget):
         legendList = [] * len(self._curveList)
         for i in range(len(self._curveList)):
             legend = self._curveList[i]
-            try:
-                _defaultColor = qt.QApplication.instance().palette().color(qt.QPalette.WindowText).name()
-            except Exception:
-                _defaultColor = '#000000'
+            _defaultColor = qt.QApplication.instance().palette().color(qt.QPalette.WindowText).name()
             color = self._curveDict[legend][3].get('plot_color',
                                                          _defaultColor)
             color = qt.QColor(color)

@@ -318,13 +318,9 @@ class H5NodeProxy(object):
 
             self._hasChildren = is_group(node)
             #self._attrs = []
-            try:
-                # get the default text foreground color
-                foregroundTextColor = qt.QApplication.instance().palette().color(qt.QPalette.Text)
-                NXdataColor = qt.QApplication.instance().palette().color(qt.QPalette.BrightText)
-            except Exception:
-                foregroundTextColor = qt.Qt.black
-                NXdataColor = qt.Qt.blue
+            # get the default text foreground color
+            foregroundTextColor = qt.QApplication.instance().palette().color(qt.QPalette.Text)
+            NXdataColor = qt.QApplication.instance().palette().color(qt.QPalette.BrightText)
             self._color = qt.QColor(foregroundTextColor)
             if hasattr(node, 'attrs'):
                 attrs = list(node.attrs)

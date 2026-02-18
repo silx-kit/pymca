@@ -299,12 +299,8 @@ class EnergyTable(QTable):
         self.offset      = offset
         self.scatterList = scatterlist
         self._scatterColor = scattercolor
-        try:
-            self._textBackgroundColor = \
-                qt.QApplication.instance().palette().color(qt.QPalette.Base)
-        except Exception:
-            _logger.warning("Cannot obtain text background color")
-            self._textBackgroundColor = qt.QColor(255, 255, 255)
+        self._textBackgroundColor = \
+            qt.QApplication.instance().palette().color(qt.QPalette.Base)
 
         self.verticalHeader().hide()
         self.dataColumns = 30
@@ -609,13 +605,9 @@ class EnergyTable(QTable):
 class ColorQTableItem(qt.QCheckBox):
          def __init__(self, table, text, color=None, bold=0):
             qt.QCheckBox.__init__(self, table)
-            try:
-                _palette = qt.QApplication.instance().palette()
-                self._textColor = _palette.color(qt.QPalette.WindowText)
-                self._backgroundColor = _palette.color(qt.QPalette.Base)
-            except Exception:
-                self._textColor = qt.QColor(qt.Qt.black)                
-                self._backgroundColor = qt.QColor(255, 255, 255)
+            _palette = qt.QApplication.instance().palette()
+            self._textColor = _palette.color(qt.QPalette.WindowText)
+            self._backgroundColor = _palette.color(qt.QPalette.Base)
             self._selectedTextColor = qt.QColor(qt.Qt.black)
             self._selectedBackgroundColor = qt.QColor(255, 20, 147)
 

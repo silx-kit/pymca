@@ -1760,10 +1760,7 @@ class MyQLabel(qt.QLabel):
     def __init__(self, parent=None, name=None, fl=0, bold=True, color=None):
         qt.QLabel.__init__(self, parent)
         if color is None:
-            try:
-                color = qt.QApplication.instance().palette().color(qt.QPalette.WindowText)
-            except Exception:
-                color = qt.Qt.red
+            color = qt.QApplication.instance().palette().color(qt.QPalette.WindowText)
         if qt.qVersion() < "4.0.0":
             self.color = color
             self.bold = bold
