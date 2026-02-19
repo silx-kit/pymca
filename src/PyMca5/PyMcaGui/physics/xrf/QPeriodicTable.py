@@ -183,6 +183,7 @@ class ElementButton(qt.QPushButton):
 
         self.brush = qt.QBrush()
         self.clicked.connect(self.clickedSlot)
+        self.__setBrush()
 
     def sizeHint(self):
         return qt.QSize(40, 40)

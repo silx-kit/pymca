@@ -228,6 +228,7 @@ class RGBCorrelatorWidget(qt.QWidget):
         self.nanColorButton.setText('nan')
         self.nanColorButton.setToolTip("Toggle black/white color for 'nan' pixels")
         self.toggleNanColor(initial=True)
+        self.nanColorButton.setFixedHeight(self.loadButton.sizeHint().height())
 
         if TOMOGUI_FLAG:
             self.tomographyButton = qt.QToolButton(hbox)
@@ -372,22 +373,15 @@ class RGBCorrelatorWidget(qt.QWidget):
     def toggleNanColor(self, initial=False):
         self.currentNanColor = 'white' if self.currentNanColor == 'black' else 'black'
 
-        bg = self.currentNanColor
-        text = 'red' if bg == 'black' else 'black'
-        hover = '#333' if bg == 'black' else '#ddd'
+        bg = qt.QColor(self.currentNanColor)
+        text = qt.QColor(qt.Qt.red) if self.currentNanColor == 'black' else qt.QColor(qt.Qt.black)
 
-        self.nanColorButton.setStyleSheet(f"""
-            QToolButton {{
-                background-color: {bg};
-                color: {text};
-                border-radius: 4px;
-                padding: 3px;
-                border: 1px solid #ccc;
-            }}
-            QToolButton:hover {{
-                background-color: {hover};
-            }}
-        """)
+        palette = qt.QPalette(self.nanColorButton.palette())
+        palette.setColor(qt.QPalette.Button, bg)
+        palette.setColor(qt.QPalette.ButtonText, text)
+        palette.setColor(qt.QPalette.Window, bg)
+        palette.setColor(qt.QPalette.WindowText, text)
+        self.nanColorButton.setPalette(palette)
         if not initial:
             if self.__imageLength is not None:
                 self.update()
