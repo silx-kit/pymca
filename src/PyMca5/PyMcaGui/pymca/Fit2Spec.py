@@ -28,78 +28,110 @@ __author__ = "V.A. Sole - ESRF Data Analysis"
 __contact__ = "sole@esrf.fr"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
+
+from PyMca5.PyMcaGui import PyMcaAppInit
+
+if __name__== '__main__':
+    PyMcaAppInit.init_before_app_import()
+
 import os
 import sys
 import time
-from . import McaCustomEvent
-from PyMca5.PyMcaIO import ConfigDict
-ROIWIDTH = 250.
 
 from PyMca5.PyMcaGui import PyMcaQt as qt
+from PyMca5.PyMcaIO import ConfigDict
+from PyMca5.PyMcaMisc import CliUtils
+
+from . import McaCustomEvent
+
+ROIWIDTH = 250.
+
 
 class Fit2SpecGUI(qt.QWidget):
-    def __init__(self,parent=None,name="Fit to Spec Conversion",
-                filelist=None,outputdir=None, actions=0):
-        qt.QWidget.__init__(self,parent,name)
-        layout = qt.QVBoxLayout(self)
-        layout.setAutoAdd(1)
-        self.setCaption(name)
-        self.__build(actions)
-        if filelist is None: filelist = []
-        self.outputDir  = None
+    def __init__(self, parent=None, name="Fit to Spec Conversion",
+                 filelist=None, outputdir=None, actions=0):
+        super().__init__(parent)
+        self.setWindowTitle(name)
+
+        # Main vertical layout
+        main_layout = qt.QVBoxLayout(self)
+        main_layout.setContentsMargins(15, 15, 15, 15)
+        main_layout.setSpacing(10)
+
+        # Form grid (input files + output dir)
+        self.__grid = qt.QWidget(self)
+        grid = qt.QGridLayout(self.__grid)
+        grid.setHorizontalSpacing(10)
+        grid.setVerticalSpacing(10)
+        grid.setColumnStretch(0, 0)
+        grid.setRowStretch(0, 1)
+        grid.setColumnStretch(1, 1)
+        grid.setColumnStretch(2, 0)
+
+        # Input file list
+        list_label = qt.QLabel("Input File list:", self.__grid)
+        list_label.setAlignment(qt.Qt.AlignVCenter | qt.Qt.AlignLeft)
+        list_label.setWordWrap(True)
+
+        self.__listView = qt.QTextEdit(self.__grid)
+        self.__listView.setReadOnly(True)
+        self.__listView.setMinimumHeight(120)
+        self.__listView.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
+
+        self.__listButton = qt.QPushButton("Browse", self.__grid)
+        self.__listButton.clicked.connect(self.browseList)
+
+        grid.addWidget(list_label, 0, 0, alignment=qt.Qt.AlignTop | qt.Qt.AlignLeft)
+        grid.addWidget(self.__listView, 0, 1)
+        grid.addWidget(self.__listButton, 0, 2, alignment=qt.Qt.AlignTop | qt.Qt.AlignRight)
+
+        # Output directory
+        out_label = qt.QLabel("Output dir:", self.__grid)
+        out_label.setAlignment(qt.Qt.AlignLeft | qt.Qt.AlignVCenter)
+        out_label.setWordWrap(True)
+
+        self.__outLine = qt.QLineEdit(self.__grid)
+        self.__outLine.setReadOnly(True)
+        self.__outLine.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Fixed)
+
+        self.__outButton = qt.QPushButton("Browse", self.__grid)
+        self.__outButton.clicked.connect(self.browseOutputDir)
+
+        grid.addWidget(out_label, 1, 0, alignment=qt.Qt.AlignLeft)
+        grid.addWidget(self.__outLine, 1, 1)
+        grid.addWidget(self.__outButton, 1, 2, alignment=qt.Qt.AlignLeft)
+
+        main_layout.addWidget(self.__grid)
+
+        # Action buttons
+        if actions:
+            self.__buildActions()
+
+        # Initialize file list & output dir
+        if filelist is None:
+            filelist = []
+        self.outputDir = None
         self.setFileList(filelist)
         self.setOutputDir(outputdir)
 
-    def __build(self,actions):
-        self.__grid= qt.QWidget(self)
-        #self.__grid.setGeometry(qt.QRect(30,30,288,156))
-        grid       = qt.QGridLayout(self.__grid,2,3,11,6)
-        grid.setColStretch(0,0)
-        grid.setColStretch(1,1)
-        grid.setColStretch(2,0)
-        #input list
-        listrow  = 0
-        listlabel   = qt.QLabel(self.__grid)
-        listlabel.setText("Input File list:")
-        listlabel.setAlignment(qt.QLabel.WordBreak | qt.QLabel.AlignVCenter)
-        self.__listView   = qt.QTextView(self.__grid)
-        self.__listView.setMaximumHeight(30*listlabel.sizeHint().height())
-        self.__listButton = qt.QPushButton(self.__grid)
-        self.__listButton.setText('Browse')
-        self.__listButton.clicked.connect(self.browseList)
-        grid.addWidget(listlabel,        listrow, 0, qt.Qt.AlignTop|qt.Qt.AlignLeft)
-        grid.addWidget(self.__listView,  listrow, 1)
-        grid.addWidget(self.__listButton,listrow, 2, qt.Qt.AlignTop|qt.Qt.AlignRight)
-
-        #output dir
-        outrow    = 1
-        outlabel   = qt.QLabel(self.__grid)
-        outlabel.setText("Output dir:")
-        outlabel.setAlignment(qt.QLabel.WordBreak | qt.QLabel.AlignVCenter)
-        self.__outLine = qt.QLineEdit(self.__grid)
-        self.__outLine.setReadOnly(True)
-        #self.__outLine.setSizePolicy(qt.QSizePolicy(qt.QSizePolicy.Maximum, qt.QSizePolicy.Fixed))
-        self.__outButton = qt.QPushButton(self.__grid)
-        self.__outButton.setText('Browse')
-        self.__outButton.clicked.connect(self.browseOutputDir)
-        grid.addWidget(outlabel,         outrow, 0, qt.Qt.AlignLeft)
-        grid.addWidget(self.__outLine,   outrow, 1)
-        grid.addWidget(self.__outButton, outrow, 2, qt.Qt.AlignLeft)
-
-
-        if actions: self.__buildActions()
-
     def __buildActions(self):
-        box = qt.QHBox(self)
-        qt.HorizontalSpacer(box)
-        self.__dismissButton = qt.QPushButton(box)
-        qt.HorizontalSpacer(box)
-        self.__dismissButton.setText("Close")
-        self.__startButton   = qt.QPushButton(box)
-        qt.HorizontalSpacer(box)
-        self.__startButton.setText("Start")
+        box = qt.QHBoxLayout()
+        box.addStretch(1)
+
+        self.__dismissButton = qt.QPushButton("Close")
+        self.__startButton = qt.QPushButton("Start")
+
+        box.addWidget(self.__dismissButton)
+        box.addSpacing(20)
+        box.addWidget(self.__startButton)
+        box.addStretch(1)
+
         self.__dismissButton.clicked.connect(self.close)
         self.__startButton.clicked.connect(self.start)
+
+        container = qt.QWidget(self)
+        container.setLayout(box)
+        self.layout().addWidget(container)
 
     def setFileList(self,filelist=None):
         if filelist is None:
@@ -276,10 +308,14 @@ class Fit2SpecBatch(qt.QThread):
 
 class Fit2SpecWindow(qt.QWidget):
     def __init__(self,parent=None, name="BatchWindow", fl=0, actions = 0):
-        qt.QWidget.__init__(self, parent, name, fl)
+        super().__init__(parent)
+
+        self.setObjectName(name)
+        self.setWindowTitle(name)
+
         self.setCaption(name)
+
         self.l = qt.QVBoxLayout(self)
-        self.l.setAutoAdd(1)
         self.bars =qt.QWidget(self)
         self.barsLayout = qt.QGridLayout(self.bars,2,3)
         self.progressBar   = qt.QProgressBar(self.bars)
@@ -293,10 +329,12 @@ class Fit2SpecWindow(qt.QWidget):
         self.timeLeft      = qt.QLabel(self)
         self.timeLeft.setText("Estimated time left = ???? min")
         self.time0 = None
-        if actions: self.addButtons()
+
+        if actions:
+            self.addButtons()
+
         self.show()
         self.raiseW()
-
 
     def addButtons(self):
         self.actions = 1
@@ -358,67 +396,71 @@ class Fit2SpecWindow(qt.QWidget):
     def onResume(self):
         pass
 
-if __name__ == "__main__":
-    import getopt
-    options     = 'f'
-    longoptions = ['outdir=', 'listfile=']
-    filelist = None
-    outdir   = None
-    listfile = None
-    opts, args = getopt.getopt(
-                    sys.argv[1:],
-                    options,
-                    longoptions)
-    for opt,arg in opts:
-        if opt in ('--outdir'):
-            outdir = arg
-        elif opt in  ('--listfile'):
-            listfile  = arg
-    if listfile is None:
-        filelist=[]
-        for item in args:
-            filelist.append(item)
-    else:
-        fd = open(listfile)
-        filelist = fd.readlines()
-        fd.close()
-        for i in range(len(filelist)):
-            filelist[i]=filelist[i].replace('\n','')
 
-    app=qt.QApplication(sys.argv)
-    app.lastWindowClosed.conenct(app.quit)
+def main(args):
+    # Prepare file list
+    if args.listfile is None:
+        filelist = args.files or []
+    else:
+        with open(args.listfile, 'r') as fd:
+            filelist = [line.strip() for line in fd.readlines()]
+
+    # Qt application
+    app = qt.QApplication([])
+    PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
+
+    # Launch GUI if no files provided
     if len(filelist) == 0:
         w = Fit2SpecGUI(actions=1)
-        app.setMainWidget(w)
         w.show()
-        app.exec()
     else:
-        text = "Batch from %s to %s" % (os.path.basename(filelist[0]), os.path.basename(filelist[-1]))
-        window =  Fit2SpecWindow(name=text,actions=1)
-        b = Fit2SpecBatch(window,filelist,outdir)
+        # Otherwise launch batch processing
+        text = f"Batch from {os.path.basename(filelist[0])} to {os.path.basename(filelist[-1])}"
+        window = Fit2SpecWindow(name=text, actions=1)
+        b = Fit2SpecBatch(window, filelist, args.outdir)
+
+        # Cleanup and pause handling
         def cleanup():
             b.pleasePause = 0
             b.pleaseBreak = 1
-            b.wait()
-            qApp = qt.QApplication.instance()
-            qApp.processEvents()
+            if hasattr(b, "wait"):
+                b.wait()
+            qt.QApplication.instance().processEvents()
 
         def pause():
             if b.pleasePause:
-                b.pleasePause=0
+                b.pleasePause = 0
                 window.pauseButton.setText("Pause")
             else:
-                b.pleasePause=1
+                b.pleasePause = 1
                 window.pauseButton.setText("Continue")
+
         window.pauseButton.clicked.connect(pause)
         window.abortButton.clicked.connect(window.close)
         app.aboutToQuit.connect(cleanup)
+
         window.show()
         b.start()
-        app.setMainWidget(window)
-        app.exec()
+
+    # Auto-close Qt for tests
+    if args.cli_test:
+        qt.QTimer.singleShot(0, app.quit)
+
+    return app.exec()
 
 
+def build_parser():
+    parser = CliUtils.create_parser(description="Fit2Spec GUI launcher", add_qt_options=True)
 
-# PyMcaBatch.py --cfg=/mntdirect/_bliss/users/sole/COTTE/WithLead.cfg --outdir=/tmp/   /mntdirect/_bliss/users/sole/COTTE/ch09/ch09__mca_0003_0000_0007.edf /mntdirect/_bliss/users/sole/COTTE/ch09/ch09__mca_0003_0000_0008.edf /mntdirect/_bliss/users/sole/COTTE/ch09/ch09__mca_0003_0000_0009.edf /mntdirect/_bliss/users/sole/COTTE/ch09/ch09__mca_0003_0000_0010.edf /mntdirect/_bliss/users/sole/COTTE/ch09/ch09__mca_0003_0000_0011.edf /mntdirect/_bliss/users/sole/COTTE/ch09/ch09__mca_0003_0000_0012.edf /mntdirect/_bliss/users/sole/COTTE/ch09/ch09__mca_0003_0000_0013.edf &
-# PyMcaBatch.exe --cfg=E:/COTTE/WithLead.cfg --outdir=C:/tmp/   E:/COTTE/ch09/ch09__mca_0003_0000_0007.edf E:/COTTE/ch09/ch09__mca_0003_0000_0008.edf
+    parser.add_argument("--outdir", type=str, default=None, help="Output directory")
+    parser.add_argument("--listfile", type=str, default=None, help="File containing list of input files")
+
+    parser.add_argument("files", nargs="*", help="Files to process if --listfile not provided")
+
+    return parser
+
+
+if __name__ == "__main__":
+    PyMcaAppInit.init_before_app_create()
+    exit_code = CliUtils.cli_main(main, build_parser())
+    sys.exit(exit_code)

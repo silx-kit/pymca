@@ -30,9 +30,15 @@ __author__ = "V.A. Sole - ESRF"
 __contact__ = "sole@esrf.fr"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-from . import Elements
+
+import sys
 import math
 import numpy
+
+import sys
+from PyMca5.PyMcaMisc import CliUtils
+from . import Elements
+
 
 def continuumEbel(target, e0, e=None, window=None,
                   alphae=None, alphax=None,
@@ -508,111 +514,80 @@ def generateLists(target, e0, window=None,
     return finalenergy, finalweight, scatterflag
 
 
-if __name__ == "__main__":
-    import sys
-    import getopt
-    options = ''
-    longoptions = ['target=', 'voltage=', 'wele=', 'window=', 'wthickness=',
-                   'anglee=', 'anglex=',
-                   'cfg=', 'deltae=', 'transmission=', 'tthickness=']
-    opts, args = getopt.getopt(
-        sys.argv[1:],
-        options,
-        longoptions)
-    target = 'Ag'
-    voltage = 40
-    wele = 'Be'
-    wthickness = 0.0125
-    anglee = 70
-    anglex = 50
-    cfgfile = None
-    transmission = None
-    ttarget = None
-    filterlist = None
-    for opt, arg in opts:
-        if opt in ('--target'):
-            target = arg
-        elif opt in ('--tthickness'):
-            ttarget = float(arg)
-        if opt in ('--cfg'):
-            cfgfile = arg
-        if opt in ('--voltage'):
-            voltage = float(arg)
-        if opt in ('--wthickness'):
-            wthickness = float(arg)
-        if opt in ('--wele', 'window'):
-            wele = arg
-        if opt in ('--transmission'):
-            transmission = int(arg)
-        if opt in ('--anglee', '--alphae'):
-            anglee = float(arg)
-        if opt in ('--anglex', '--alphax'):
-            anglex = float(arg)
-    try:
-        e = numpy.arange(voltage * 10 + 1)[1:] / 10
-        y = continuumEbel(target, voltage, e,
-                          [wele, Elements.Element[wele]['density'],
-                           wthickness],
-                          alphae=anglee, alphax=anglex,
-                          transmission=transmission,
-                          targetthickness=ttarget,
-                          filterlist=filterlist)
-        fllines = characteristicEbel(target, voltage,
-                                     [wele, Elements.Element[wele]['density'],
-                                      wthickness],
-                                     alphae=anglee, alphax=anglex,
-                                     transmission=transmission,
-                                     targetthickness=ttarget,
-                                     filterlist=filterlist)
-        fsum = 0.0
-        for l in fllines:
-            print("%s %.4f %.3e" % (l[2], l[0], l[1]))
-            fsum += l[1]
-        energy, weight, scatter = \
-            generateLists(target, voltage,
-                          [wele, Elements.Element[wele]['density'], wthickness],
-                          alphae=anglee, alphax=anglex,
-                          transmission=transmission, targetthickness=ttarget,
-                          filterlist=filterlist)
+def main(args):
+    # Energy array
+    e = numpy.arange(args.voltage * 10 + 1)[1:] / 10
 
-        f = open("Tube_%s_%.1f_%s_%.5f_ae%.1f_ax%.1f.txt" % (target, voltage,
-                                                             wele, wthickness,
-                                                             anglee, anglex),
-                                                             "w+")
-        text = "energyweight="
-        for i in range(len(energy)):
-            if i == 0:
-                text += " %f" % weight[i]
-            else:
-                text += ", %f" % weight[i]
-        text += "\n"
-        f.write(text)
-        text = "energy="
-        for i in range(len(energy)):
-            if i == 0:
-                text += " %f" % energy[i]
-            else:
-                text += ", %f" % energy[i]
-        text += "\n"
-        f.write(text)
-        text = "energyflag="
-        for i in range(len(energy)):
-            if i == 0:
-                text += " %f" % 1
-            else:
-                text += ", %f" % 1
-        text += "\n"
-        f.write(text)
-        text = "energyscatter="
-        for i in range(len(energy)):
-            if i == 0:
-                text += " %f" % scatter[i]
-            else:
-                text += ", %f" % scatter[i]
-        text += "\n"
-        f.write(text)
-        f.close()
-    except Exception:
-        print("Usage:")
-        print("options = ", longoptions)
-        sys.exit(0)
+    # Compute spectra
+    _ = continuumEbel(
+        args.target,
+        args.voltage,
+        e,
+        [args.wele, Elements.Element[args.wele]['density'], args.wthickness],
+        alphae=args.anglee,
+        alphax=args.anglex,
+        transmission=args.transmission,
+        targetthickness=args.tthickness,
+        filterlist=None
+    )
+
+    fllines = characteristicEbel(
+        args.target,
+        args.voltage,
+        [args.wele, Elements.Element[args.wele]['density'], args.wthickness],
+        alphae=args.anglee,
+        alphax=args.anglex,
+        transmission=args.transmission,
+        targetthickness=args.tthickness,
+        filterlist=None
+    )
+
+    # Print characteristic lines
+    fsum = 0.0
+    for l in fllines:
+        print("%s %.4f %.3e" % (l[2], l[0], l[1]))
+        fsum += l[1]
+
+    energy, weight, scatter = generateLists(
+        args.target,
+        args.voltage,
+        [args.wele, Elements.Element[args.wele]['density'], args.wthickness],
+        alphae=args.anglee,
+        alphax=args.anglex,
+        transmission=args.transmission,
+        targetthickness=args.tthickness,
+        filterlist=None
+    )
+
+    # Write output file
+    fname = "Tube_%s_%.1f_%s_%.5f_ae%.1f_ax%.1f.txt" % (
+        args.target, args.voltage, args.wele, args.wthickness, args.anglee, args.anglex
+    )
+
+    with open(fname, "w") as f:
+        f.write("energyweight= " + ", ".join(str(w) for w in weight) + "\n")
+        f.write("energy= " + ", ".join(str(e) for e in energy) + "\n")
+        f.write("energyflag= " + ", ".join("1" for _ in energy) + "\n")
+        f.write("energyscatter= " + ", ".join(str(s) for s in scatter) + "\n")
+
+
+def build_parser():
+    parser = CliUtils.create_parser(description="Generate Tube Spectrum Files")
+
+    parser.add_argument("--target", default="Ag", type=str, help="Target element")
+    parser.add_argument("--voltage", default=40, type=float, help="Tube voltage (kV)")
+    parser.add_argument("--wele", "--window", default="Be", type=str, help="Window element")
+    parser.add_argument("--wthickness", default=0.0125, type=float, help="Window thickness (cm)")
+    parser.add_argument("--anglee", "--alphae", default=70, type=float, help="Emission angle (deg)")
+    parser.add_argument("--anglex", "--alphax", default=50, type=float, help="X-ray angle (deg)")
+    parser.add_argument("--cfg", default=None, type=str, help="Config file")
+    parser.add_argument("--deltae", default=None, type=float, help="Delta E (optional)")
+    parser.add_argument("--transmission", default=None, type=int, help="Transmission factor")
+    parser.add_argument("--tthickness", default=None, type=float, help="Target thickness")
+
+    return parser
+
+
+if __name__ == "__main__":
+    exit_code = CliUtils.cli_main(main, build_parser())
+    sys.exit(exit_code)

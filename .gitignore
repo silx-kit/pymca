@@ -69,3 +69,7 @@ src/PyMca5/PyMcaMath/mva/_cython_kmeans/*.c
 
 # Vim
 *.swp
+
+# Profiling
+profile_output
+test.profile

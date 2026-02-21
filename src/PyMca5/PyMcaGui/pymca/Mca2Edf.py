@@ -28,18 +28,17 @@ __author__ = "V.A. Sole - ESRF"
 __contact__ = "sole@esrf.fr"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
+
+from PyMca5.PyMcaGui import PyMcaAppInit
+
+if __name__== '__main__':
+    PyMcaAppInit.init_before_app_import()
+
 import sys
 import os
 import numpy
 import time
-if __name__== '__main__':
-    # avoid issues if some module or dependency tries to use multiprocessing in frozen binaries
-    if getattr(sys, "frozen", False):
-        try:
-            import multiprocessing
-            multiprocessing.freeze_support()
-        except Exception:
-            pass
+
 from PyMca5.PyMcaGui import PyMcaQt as qt
 QTVERSION = qt.qVersion()
 qt.Qt.WDestructiveClose = "TO BE DONE"
@@ -49,12 +48,14 @@ from PyMca5.PyMcaGui.pymca import McaCustomEvent
 from PyMca5.PyMcaIO import EdfFile
 from PyMca5.PyMcaCore import SpecFileLayer
 from PyMca5 import PyMcaDirs
+from PyMca5.PyMcaMisc import CliUtils
 
 if sys.platform.startswith("darwin"):
     import threading
     QThread = threading.Thread
 else:
     QThread = qt.QThread
+
 
 class Mca2EdfGUI(qt.QWidget):
     def __init__(self,parent=None,name="Mca to Edf Conversion",fl=qt.Qt.WDestructiveClose,
@@ -442,76 +443,75 @@ class Mca2EdfWindow(qt.QWidget):
     def onResume(self):
         pass
 
-def main():
-    import logging
-    from PyMca5.PyMcaCore.LoggingLevel import getLoggingLevel
-    import getopt
-    options     = 'f'
-    longoptions = ['outdir=', 'listfile=', 'mcastep=',
-                   'logging=', 'debug=']
-    filelist = None
-    outdir   = None
-    listfile = None
-    mcastep  = 1
-    opts, args = getopt.getopt(
-                    sys.argv[1:],
-                    options,
-                    longoptions)
-    for opt, arg in opts:
-        if opt in ('--outdir'):
-            outdir = arg
-        elif opt in  ('--listfile'):
-            listfile  = arg
-        elif opt in  ('--mcastep'):
-            mcastep  = int(arg)
 
-    logging.basicConfig(level=getLoggingLevel(opts))
-    if listfile is None:
-        filelist=[]
-        for item in args:
-            filelist.append(item)
+def main(args):
+    # Prepare file list
+    if args.listfile is None:
+        filelist = args.files or []
     else:
-        fd = open(listfile)
-        filelist = fd.readlines()
-        fd.close()
-        for i in range(len(filelist)):
-            filelist[i]=filelist[i].replace('\n','')
-    app=qt.QApplication(sys.argv)
-    app.lastWindowClosed.connect(app.quit)
+        with open(args.listfile, 'r') as fd:
+            filelist = [line.strip() for line in fd.readlines()]
+
+    # Qt application
+    app = qt.QApplication([])
+    PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
+
     if len(filelist) == 0:
+        # GUI-only mode
         w = Mca2EdfGUI(actions=1)
         w.show()
-        sys.exit(app.exec())
     else:
-        text = "Batch from %s to %s" % (os.path.basename(filelist[0]), \
-                                        os.path.basename(filelist[-1]))
-        window =  Mca2EdfWindow(name=text,actions=1)
-        b = Mca2EdfBatch(window,filelist,outdir,mcastep)
+        # Batch mode
+        text = f"Batch from {os.path.basename(filelist[0])} to {os.path.basename(filelist[-1])}"
+        window = Mca2EdfWindow(name=text, actions=1)
+        batch = Mca2EdfBatch(window, filelist, args.outdir, args.mcastep)
+
+        # Cleanup function for application exit
         def cleanup():
-            b.pleasePause = 0
-            b.pleaseBreak = 1
-            b.wait()
+            batch.pleasePause = 0
+            batch.pleaseBreak = 1
+            batch.wait()
             qApp = qt.QApplication.instance()
             qApp.processEvents()
 
+        # Pause toggle
         def pause():
-            if b.pleasePause:
-                b.pleasePause=0
+            if batch.pleasePause:
+                batch.pleasePause = 0
                 window.pauseButton.setText("Pause")
             else:
-                b.pleasePause=1
+                batch.pleasePause = 1
                 window.pauseButton.setText("Continue")
+
         window.pauseButton.clicked.connect(pause)
         window.abortButton.clicked.connect(window.close)
         app.aboutToQuit.connect(cleanup)
+
         window.show()
-        b.start()
-        sys.exit(app.exec())
+        batch.start()
+
+    # Auto-close Qt for tests
+    if args.cli_test:
+        qt.QTimer.singleShot(0, app.quit)
+
+    return app.exec()
+
+
+def build_parser():
+    parser = CliUtils.create_parser(description="Mca2Edf batch/GUI converter", add_qt_options=True)
+
+    parser.add_argument("--outdir", type=str, help="Output directory")
+    parser.add_argument("--listfile", type=str, help="List of input files")
+    parser.add_argument("--mcastep", type=int, default=1)
+
+    parser.add_argument("files", nargs="*", help="Files to process if --listfile is not provided")
+
+    return parser
+
 
 if __name__ == "__main__":
-    main()
+    PyMcaAppInit.init_before_app_create()
+    exit_code = CliUtils.cli_main(main, build_parser())
+    sys.exit(exit_code)
 
 # Mca2Edf.py  --outdir=/tmp --mcastep=1 *.mca
-
-# PyMcaBatch.py --cfg=/mntdirect/_bliss/users/sole/COTTE/WithLead.cfg --outdir=/tmp/   /mntdirect/_bliss/users/sole/COTTE/ch09/ch09__mca_0003_0000_0007.edf /mntdirect/_bliss/users/sole/COTTE/ch09/ch09__mca_0003_0000_0008.edf /mntdirect/_bliss/users/sole/COTTE/ch09/ch09__mca_0003_0000_0009.edf /mntdirect/_bliss/users/sole/COTTE/ch09/ch09__mca_0003_0000_0010.edf /mntdirect/_bliss/users/sole/COTTE/ch09/ch09__mca_0003_0000_0011.edf /mntdirect/_bliss/users/sole/COTTE/ch09/ch09__mca_0003_0000_0012.edf /mntdirect/_bliss/users/sole/COTTE/ch09/ch09__mca_0003_0000_0013.edf &
-# PyMcaBatch.exe --cfg=E:/COTTE/WithLead.cfg --outdir=C:/tmp/   E:/COTTE/ch09/ch09__mca_0003_0000_0007.edf E:/COTTE/ch09/ch09__mca_0003_0000_0008.edf

@@ -27,10 +27,21 @@ __author__ = "E. Papillon - ESRF Software group"
 __contact__ = "sole@esrf.fr"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-from . import XiaEdf
-import sys
+
+from PyMca5.PyMcaGui import PyMcaAppInit
+
+if __name__== '__main__':
+    PyMcaAppInit.init_before_app_import()
+
 import os
+import sys
 import time
+
+from PyMca5.PyMcaGui import PyMcaQt as qt
+from PyMca5.PyMcaGui.pymca import XiaCorrectWizard
+from PyMca5.PyMcaMisc import CliUtils
+from . import XiaEdf
+
 
 __version__="$Revision: 1.11 $"
 
@@ -240,181 +251,149 @@ def correctFiles(xiafiles, deadtime=1, livetime=0, sums=None, avgflag=0, outdir=
     log_cb("\n")
 
 
-def parseArguments():
-    import getopt, os.path
 
-    prog= os.path.basename(sys.argv[0])
+def main(args):
+    # If no CLI arguments -> GUI mode
+    if (
+        not args.input
+        and not args.files
+        and not args.deadtime
+        and not args.livetime
+        and not args.sums
+    ):
+        app = qt.QApplication([])
+        PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
 
-    long = ["help", "input=", "output=", "force", "verbose", "deadtime", "livetime", "sum=", "avg", "name=", "parsing"]
-    short= ["h",    "i:",     "o:",      "f",     "v",       "d",        "l",        "s:",   "a",   "n:",    "p"]
+        wid = XiaCorrectWizard.XiaCorrectWizard()
 
-    try:
-        opts, args= getopt.getopt(sys.argv[1:], " ".join(short), long)
-    except getopt.error:
-        print("XiaCorrect ERROR: Cannot parse command line arguments")
-        print("\t%s" % sys.exc_info()[1])
-        sys.exit(0)
+        # Auto-close Qt for tests
+        if args.cli_test:
+            qt.QTimer.singleShot(0, wid.close)
 
-    parsing= 0
-    options= {"input": [], "files": [], "output": None, "force": 0, "name": "corr",
-		"verbose": 0, "deadtime": 0, "livetime": 0, "sums": None, "avgflag": 0, "parsing": 0}
+        ret = wid.exec()
 
-    for opt, arg in opts:
-        if opt in ("-h", "--help"):
-            printHelp()
-            sys.exit(0)
-        if opt in ("-i", "--input"):
-            options["input"].append(os.path.normpath(arg))
-        if opt in ("-o", "--output"):
-            options["output"]= os.path.normpath(arg)
-        if opt in ("-f", "--force"):
-            options["force"]= 1
-        if opt in ("-v", "--verbose"):
-            options["verbose"]= 1
-        if opt in ("-d", "--deadtime"):
-            options["deadtime"]= 1
-        if opt in ("-l", "--livetime"):
-            options["livetime"]= 1
-        if opt in ("-n", "--name"):
-            options["name"]= str(arg)
-        if opt in ("-s", "--sum"):
-            if options["sums"] is None:
-                options["sums"]= []
+        if ret == qt.QDialog.Accepted:
+            options = wid.get()
+            files = parseFiles(options["files"], options["verbose"])
+            if files is not None:
+                correctFiles(
+                    files,
+                    options["deadtime"],
+                    options["livetime"],
+                    options["sums"],
+                    options["avgflag"],
+                    options["output"],
+                    options["name"],
+                    options["force"],
+                    options["verbose"],
+                )
+
+        return 0
+
+    options = {
+        "input": args.input or [],
+        "files": [],
+        "output": args.output,
+        "force": int(args.force),
+        "name": args.name,
+        "verbose": int(args.verbose),
+        "deadtime": int(args.deadtime),
+        "livetime": int(args.livetime),
+        "sums": None,
+        "avgflag": int(args.avgflag),
+        "parsing": int(args.parsing),
+    }
+
+    # Handle sums
+    if args.sums:
+        options["sums"] = []
+        for s in args.sums:
             try:
-                ssum= [ int(det) for det in arg.split(",") ]
-                if ssum[0]==-1:
-                    ssum= []
+                ssum = [int(det) for det in s.split(",")]
+                if ssum and ssum[0] == -1:
+                    ssum = []
                 options["sums"].append(ssum)
             except Exception:
                 print("XiaCorrect ERROR: Cannot parse sum detectors")
-                print("\t%s"%arg)
-                sys.exit(0)
-        if opt in ("-a", "--avg"):
-            options["avgflag"]= 1
-        if opt in ("-p", "--parsing"):
-            options["parsing"]= 1
+                print("\t%s" % s)
+                return 1
 
-
+    # Expand input directories
     for iinput in options["input"]:
         if not os.path.isdir(iinput):
-            print("XiaCorrect WARNING: Input directory <%s> is not valid"%\
-                  iinput)
+            print(f"XiaCorrect WARNING: Input directory <{iinput}> is not valid")
+            continue
 
-        files= [ os.path.join(iinput, file) for file in os.listdir(iinput) ]
-        if not len(files):
-            print("XiaCorrect WARNING: Input directory <%s> is empty"%\
-                  (iinput, prog))
+        files = [os.path.join(iinput, f) for f in os.listdir(iinput)]
+        if not files:
+            print(f"XiaCorrect WARNING: Input directory <{iinput}> is empty")
         else:
-            options["files"]+= files
+            options["files"] += files
 
-    if len(args):
-        options["files"]+= args
+    # Add explicit files
+    options["files"] += args.files
 
-    if not len(options["files"]):
+    if not options["files"]:
         print("XiaCorrect ERROR: No input datafiles")
-        sys.exit(0)
+        return 1
 
+    # Validation
     if not options["parsing"]:
         if not options["deadtime"] and not options["livetime"] and options["sums"] is None:
             print("XiaCorrect ERROR: Must have at least deadtime, livetime or sum options")
-            sys.exit(0)
+            return 1
 
-        if options["output"] is not None:
-            if not os.path.isdir(options["output"]):
-                print("XiaCorrect ERROR: output directory is not valid")
-                sys.exit(0)
+        if options["output"] is not None and not os.path.isdir(options["output"]):
+            print("XiaCorrect ERROR: output directory is not valid")
+            return 1
 
-    return options
+    # Execute
+    files = parseFiles(options["files"], options["verbose"])
 
-def printHelp():
-    prog= os.path.basename(sys.argv[0])
-    msg= """
+    if files is None:
+        return 1
 
-%s [-h] [-v] [-f] [-d] [-l] [-a] [-s <detlist>] [-i <directory>] [-o <directory>] [<files ...>]
-
-Options:
-    [-h]/[--help]
-            Print help message
-    [-v]/[--verbose]
-            Switch ON verbose mode
-    [-f]/[--force]
-            Force writing output files if they already exists
-    [-d]/[--deadtime]
-            Perform deadtime correction
-    [-l]/[--livetime]
-            Perform livetime normalization
-    [-s]/[--sum] <detector_list_comma_separated>
-            Sum given detectors. if detector list is set to (-1),
-            all detectors are used:
-                %s -s 2,4,8  --> will sum detectors 2,4 and 8
-                %s -s -1     --> will sum ALL detectors
-	    Several sums can be added:
-		-s 2,4,6,7 -s 8,9,10,11
-    [-a]/[--avg]
-	    Sum(s) are averaged.
-	    Need <-s> to specify list of detectors:
-		-s 2,3,4 -a  --> will average detectors 2,3 and 4
-    [-i]/[--input] <directory>
-            Specify input directory: all files in this directory
-            which appears to be xia edf files are processed.
-            Several [-i] options can be added:
-                %s -d -i /tmp -i /data/opidXX
-    [-o]/[--output]
-            Specify output directories. If not specified, output
-            files are saved in the same place as input file.
-    [-n]/[--name]
-	    String to be appended to prefix for output filename.
-	    Default is \"corr\".
-    [<files ...>]
-            Specify one or several input files. Wildcards can be used:
-                %s -l file1.edf file2.edf /tmp/test*.edf
-
-Minimum options to work:
-    [-l] , [-d] or [-s]
-    [-i input] or <files ...>
-
-"""%(prog, prog, prog, prog, prog)
-    print(msg)
-
-
-def mainCommandLine():
-    options= parseArguments()
-    files= parseFiles(options["files"], options["verbose"])
-    if files is not None:
-        if options["parsing"]:
-            for group in files:
-                print("FileGroup:")
-                for file in group:
-                    print(" - ", file.get())
-        else:
-            correctFiles(files, options["deadtime"], options["livetime"], options["sums"], options["avgflag"], \
-                 options["output"], options["name"], options["force"], options["verbose"])
-
-def mainGUI(app=None):
-    from PyMca5.PyMcaGui import PyMcaQt as qt
-    from PyMca5.PyMcaGui.pymca import XiaCorrectWizard
-
-    if app is None:
-        app= qt.QApplication(sys.argv)
-
-    wid= XiaCorrectWizard.XiaCorrectWizard()
-    ret= wid.exec()
-
-    if ret==qt.QDialog.Accepted:
-        options= wid.get()
-        files= parseFiles(options["files"], options["verbose"])
-        if files is not None:
-            correctFiles(files, options["deadtime"], options["livetime"], options["sums"], options["avgflag"], \
-                     options["output"], options["name"], options["force"], options["verbose"])
-
-
-
-
-if __name__=="__main__":
-    import sys
-
-    if len(sys.argv)==1:
-        mainGUI()
+    if options["parsing"]:
+        for group in files:
+            print("FileGroup:")
+            for file in group:
+                print(" - ", file.get())
     else:
-        mainCommandLine()
+        correctFiles(
+            files,
+            options["deadtime"],
+            options["livetime"],
+            options["sums"],
+            options["avgflag"],
+            options["output"],
+            options["name"],
+            options["force"],
+            options["verbose"],
+        )
 
+    return 0
+
+
+def build_parser():
+    parser = CliUtils.create_parser(description="Xia Correct Tool", add_qt_options=True)
+
+    parser.add_argument("-i", "--input", action="append", help="Input directory (can be used multiple times)")
+    parser.add_argument("-o", "--output", help="Output directory")
+    parser.add_argument("-f", "--force", action="store_true", help="Force writing output files if they already exists")
+    parser.add_argument("-v", "--verbose", action="store_true")
+    parser.add_argument("-d", "--deadtime", action="store_true", help="Perform deadtime correction")
+    parser.add_argument("-l", "--livetime", action="store_true", help="Perform livetime normalization")
+    parser.add_argument("-s", "--sum", action="append", dest="sums", help="Comma separated detector list")
+    parser.add_argument("-a", "--avg", dest="avgflag", action="store_true")
+    parser.add_argument("-n", "--name", default="corr", help="String to be appended to prefix for output filename")
+    parser.add_argument("-p", "--parsing", action="store_true")
+
+    parser.add_argument("files", nargs="*", help="Input files")
+
+    return parser
+
+
+if __name__ == "__main__":
+    PyMcaAppInit.init_before_app_create()
+    exit_code = CliUtils.cli_main(main, build_parser())
+    sys.exit(exit_code)

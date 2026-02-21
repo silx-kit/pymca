@@ -27,6 +27,12 @@ __author__ = "V.A. Sole - ESRF"
 __contact__ = "sole@esrf.fr"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
+
+from PyMca5.PyMcaGui import PyMcaAppInit
+
+if __name__== '__main__':
+    PyMcaAppInit.init_before_app_import()
+
 import sys
 import os
 import numpy
@@ -55,6 +61,7 @@ from PyMca5.PyMcaCore import PyMcaDirs
 from PyMca5.PyMcaIO import ArraySave
 from . import ProfileScanWidget
 from PyMca5.PyMcaMath.fitting import SpecfitFuns
+from PyMca5.PyMcaMisc import CliUtils
 
 COLORMAPLIST = [spslut.GREYSCALE, spslut.REVERSEGREY, spslut.TEMP,
                 spslut.RED, spslut.GREEN, spslut.BLUE, spslut.MANY]
@@ -2178,23 +2185,25 @@ def getImageMask(image, mask=None):
     del(w)
     return mask
 
-def test(filename=None, backend=None):
+
+def main(args):
     app = qt.QApplication([])
-    app.lastWindowClosed.connect(app.quit)
-    if filename:
-        container = MaskImageWidget(backend=backend,
+    PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
+
+    if args.filename:
+        container = MaskImageWidget(backend=args.backend,
                                     selection=True,
                                     aspect=True,
                                     imageicons=True,
                                     profileselection=True,
                                     maxNRois=2)
 
-        if filename.endswith('edf') or\
-           filename.endswith('cbf') or\
-           filename.endswith('ccd') or\
-           filename.endswith('spe') or\
-           filename.endswith('tif') or\
-           filename.endswith('tiff'):
+        if args.filename.endswith('edf') or\
+           args.filename.endswith('cbf') or\
+           args.filename.endswith('ccd') or\
+           args.filename.endswith('spe') or\
+           args.filename.endswith('tif') or\
+           args.filename.endswith('tiff'):
             from PyMca5.PyMcaIO import EdfFile
             edf = EdfFile.EdfFile(sys.argv[1])
             data = edf.GetData(0)
@@ -2202,12 +2211,12 @@ def test(filename=None, backend=None):
 
         else:
 
-            image = qt.QImage(filename)
+            image = qt.QImage(args.filename)
             #container.setQImage(image, image.width(),image.height())
             container.setQImage(image, 200, 200)
 
     else:
-        container = MaskImageWidget(backend=backend,
+        container = MaskImageWidget(backend=args.backend,
                                     aspect=True,
                                     profileselection=True,
                                     maxNRois=2)
@@ -2237,25 +2246,35 @@ def test(filename=None, backend=None):
         #data.shape = 100, 400
         #container.setImageData(None)
         #container.setImageData(data)
+
     container.show()
     def theSlot(ddict):
         print(ddict['event'])
 
     container.sigMaskImageWidgetSignal.connect(theSlot)
-    app.exec()
+
+    # Auto-close Qt for tests
+    if args.cli_test:
+        qt.QTimer.singleShot(0, app.quit)
+
+    exit_code = app.exec()
+
     print(container.getSelectionMask())
+    return exit_code
 
-if __name__ == "__main__":
-    import argparse
 
-    parser = argparse.ArgumentParser(
-        description='PyMca image mask authoring tool.')
-    parser.add_argument(
-        '-b', '--backend',
-        choices=('mpl', 'opengl'),
-        help="""The plot backend to use: Matplotlib (mpl, the default),
-        OpenGL 2.1 (opengl, requires appropriate OpenGL drivers).""")
+def build_parser():
+    parser = CliUtils.create_parser(
+        description="PyMca image mask authoring tool.", add_qt_options=True, add_backend_options=True
+    )
+
     parser.add_argument('filename', default='', nargs='?',
                         help='Image filename to open')
-    args = parser.parse_args()
-    test(args.filename, args.backend)
+
+    return parser
+
+
+if __name__ == "__main__":
+    PyMcaAppInit.init_before_app_create()
+    exit_code = CliUtils.cli_main(main, build_parser())
+    sys.exit(exit_code)

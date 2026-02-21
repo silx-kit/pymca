@@ -57,9 +57,15 @@ To get help:
 ``python -m PyMca5.PyMcaGui.plotting.ImageView -h``
 """
 
+from PyMca5.PyMcaGui import PyMcaAppInit
+
+if __name__== '__main__':
+    PyMcaAppInit.init_before_app_import()
 
 # import ######################################################################
 
+import os
+import sys
 import numpy as np
 
 try:
@@ -71,7 +77,8 @@ from .PlotWindow import PlotWindow
 from .Toolbars import ProfileToolBar, LimitsToolBar
 
 from PyMca5.PyMcaGraph import Plot
-
+from PyMca5.PyMcaMisc import CliUtils
+from PyMca5.PyMcaIO.EdfFile import EdfFile
 
 # utils #######################################################################
 
@@ -934,36 +941,7 @@ class ImageViewMainWindow(qt.QMainWindow):
 
 # main ########################################################################
 
-if __name__ == "__main__":
-    import argparse
-    import os.path
-    import sys
-
-    from PyMca5.PyMcaIO.EdfFile import EdfFile
-
-    # Command-line arguments
-    parser = argparse.ArgumentParser(
-        description='Browse the images of an EDF file.')
-    parser.add_argument(
-        '-b', '--backend',
-        choices=('mpl', 'opengl', 'osmesa'),
-        help="""The plot backend to use: Matplotlib (mpl, the default),
-        OpenGL 2.1 (opengl, requires appropriate OpenGL drivers) or
-        Off-screen Mesa OpenGL software pipeline (osmesa,
-        requires appropriate OSMesa library).""")
-    parser.add_argument(
-        '-o', '--origin', nargs=2,
-        type=float, default=(0., 0.),
-        help="""Coordinates of the origin of the image: (x, y).
-        Default: 0., 0.""")
-    parser.add_argument(
-        '-s', '--scale', nargs=2,
-        type=float, default=(1., 1.),
-        help="""Scale factors applied to the image: (sx, sy).
-        Default: 1., 1.""")
-    parser.add_argument('filename', help='EDF filename of the image to open')
-    args = parser.parse_args()
-
+def main(args):
     # Open the input file
     if not os.path.isfile(args.filename):
         raise RuntimeError('No input file: %s' % args.filename)
@@ -976,6 +954,7 @@ if __name__ == "__main__":
 
     # Set-up Qt application and main window
     app = qt.QApplication([])
+    PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
 
     mainWindow = ImageViewMainWindow(backend=args.backend)
     mainWindow.setImage(edfFile.GetData(0),
@@ -1003,4 +982,34 @@ if __name__ == "__main__":
 
     mainWindow.show()
 
-    sys.exit(app.exec())
+    # Auto-close Qt for tests
+    if args.cli_test:
+        qt.QTimer.singleShot(0, app.quit)
+
+    return app.exec()
+
+
+def build_parser():
+    parser = CliUtils.create_parser(
+        description="Browse the images of an EDF file.", add_qt_options=True, add_backend_options=True
+    )
+
+    parser.add_argument(
+        '-o', '--origin', nargs=2,
+        type=float, default=(0., 0.),
+        help="""Coordinates of the origin of the image: (x, y).
+        Default: 0., 0.""")
+    parser.add_argument(
+        '-s', '--scale', nargs=2,
+        type=float, default=(1., 1.),
+        help="""Scale factors applied to the image: (sx, sy).
+        Default: 1., 1.""")
+    parser.add_argument('filename', help='EDF filename of the image to open')
+
+    return parser
+
+
+if __name__ == "__main__":
+    PyMcaAppInit.init_before_app_create()
+    exit_code = CliUtils.cli_main(main, build_parser())
+    sys.exit(exit_code)

@@ -30,10 +30,15 @@ __author__ = "V. Armando Sole - ESRF"
 __contact__ = "sole@esrf.fr"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
+
+from PyMca5.PyMcaGui import PyMcaAppInit
+
+if __name__== '__main__':
+    PyMcaAppInit.init_before_app_import()
+
 import sys
+import copy
 import logging
-_logger = logging.getLogger(__name__)
-_logger.debug("ConcentrationsWidget is in debug mode")
 
 from PyMca5.PyMcaGui import PyMcaQt as qt
 
@@ -45,6 +50,8 @@ else:
 QTVERSION = qt.qVersion()
 
 XRFMC_FLAG = True
+
+_logger = logging.getLogger(__name__)
 
 try:
     from PyMca5.PyMcaGui.misc.TableWidget import TableWidget
@@ -58,7 +65,9 @@ except Exception:
 from PyMca5.PyMcaGui.misc import CalculationThread
 from PyMca5.PyMcaPhysics.xrf import ConcentrationsTool
 from PyMca5.PyMcaPhysics.xrf import Elements
-import time
+from PyMca5.PyMcaIO import ConfigDict
+from PyMca5.PyMcaMisc import CliUtils
+
 
 class Concentrations(qt.QWidget):
     sigConcentrationsSignal = qt.pyqtSignal(object)
@@ -878,50 +887,69 @@ class MyQComboBox(qt.QComboBox):
                 self.setCurrentText(current)
 
 
-if __name__ == "__main__":
-    import getopt
-    import copy
-    # import sys
-    # from PyMca5 import ConcentrationsTool
-    from PyMca5.PyMcaIO import ConfigDict
-    if len(sys.argv) > 1:
-        options = ''
-        longoptions = ['flux=', 'time=', 'area=', 'distance=', 'attenuators=',
-                       'usematrix=']
+def main(args):
+    app = qt.QApplication([])
+    PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
 
-        opts, args = getopt.getopt(
-                        sys.argv[1:],
-                        options,
-                        longoptions)
-        app = qt.QApplication([])
-        app.lastWindowClosed.connect(app.quit)
-        demo = Concentrations()
-        config = demo.getParameters()
-        for opt, arg in opts:
-            if opt in ('--flux'):
-                config['flux'] = float(arg)
-            elif opt in ('--area'):
-                config['area'] = float(arg)
-            elif opt in ('--time'):
-                config['time'] = float(arg)
-            elif opt in ('--distance'):
-                config['distance'] = float(arg)
-            elif opt in ('--attenuators'):
-                config['useattenuators'] = int(float(arg))
-            elif opt in ('--usematrix'):
-                config['usematrix'] = int(float(arg))
-        demo.setParameters(config)
-        filelist = args
-        for file in filelist:
-            d = ConfigDict.ConfigDict()
-            d.read(file)
-            for material in d['result']['config']['materials'].keys():
-                Elements.Material[material] = copy.deepcopy(d['result']['config']['materials'][material])
-            demo.processFitResult(fitresult=d, elementsfrommatrix=False)
-        demo.show()
-        ret = app.exec()
-        app = None
-        sys.exit(ret)
-    else:
-        print("Usage:")
-        print("ConcentrationsWidget.py [--flux=xxxx --area=xxxx] fitresultfile")
+    demo = Concentrations()
+    config = demo.getParameters()
+
+    # Update configuration from CLI arguments
+    if args.flux is not None:
+        config["flux"] = args.flux
+    if args.area is not None:
+        config["area"] = args.area
+    if args.time is not None:
+        config["time"] = args.time
+    if args.distance is not None:
+        config["distance"] = args.distance
+    if args.attenuators is not None:
+        config["useattenuators"] = int(args.attenuators)
+    if args.usematrix is not None:
+        config["usematrix"] = int(args.usematrix)
+
+    demo.setParameters(config)
+
+    # Process fit result files
+    for filename in args.files:
+        d = ConfigDict.ConfigDict()
+        d.read(filename)
+
+        for material in d["result"]["config"]["materials"].keys():
+            Elements.Material[material] = copy.deepcopy(
+                d["result"]["config"]["materials"][material]
+            )
+
+        demo.processFitResult(
+            fitresult=d,
+            elementsfrommatrix=False
+        )
+
+    demo.show()
+
+    # Auto-close Qt for tests
+    if args.cli_test:
+        qt.QTimer.singleShot(0, app.quit)
+
+    return app.exec()
+
+
+def build_parser():
+    parser = CliUtils.create_parser(description="Concentrations tool", add_qt_options=True)
+
+    parser.add_argument("--flux", type=float)
+    parser.add_argument("--time", type=float)
+    parser.add_argument("--area", type=float)
+    parser.add_argument("--distance", type=float)
+    parser.add_argument("--attenuators", type=float)
+    parser.add_argument("--usematrix", type=float)
+
+    parser.add_argument("files", nargs="*", help="Fit result files")
+
+    return parser
+
+
+if __name__ == "__main__":
+    PyMcaAppInit.init_before_app_create()
+    exit_code = CliUtils.cli_main(main, build_parser(), loggers=(_logger,))
+    sys.exit(exit_code)

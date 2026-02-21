@@ -30,19 +30,20 @@ __author__ = "V. Armando Sole - ESRF"
 __contact__ = "sole@esrf.fr"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
+
+from PyMca5.PyMcaGui import PyMcaAppInit
+
+if __name__== '__main__':
+    PyMcaAppInit.init_before_app_import()
+
 import sys
 import logging
-if __name__== '__main__':
-    # avoid issues if some module or dependency tries to use multiprocessing in frozen binaries
-    if getattr(sys, "frozen", False):
-        try:
-            import multiprocessing
-            multiprocessing.freeze_support()
-        except Exception:
-            pass
+
 from PyMca5.PyMcaGui import PyMcaQt as qt
 from PyMca5.PyMcaPhysics import Elements
 from PyMca5.PyMcaGui.plotting import PyMca_Icons
+from PyMca5.PyMcaMisc import CliUtils
+
 IconDict = PyMca_Icons.IconDict
 QTVERSION = qt.qVersion()
 
@@ -293,21 +294,36 @@ class MyQLineEdit(qt.QLineEdit):
             qt.QApplication.instance().palette().color(qt.QPalette.Base))
         qt.QLineEdit.focusOutEvent(self, event)
 
-def main():
-    logging.basicConfig(level=logging.INFO)
-    app  = qt.QApplication(sys.argv)
-    if len(sys.argv) > 1:
-        ene = float(sys.argv[1])
-    else:
-        ene = 5.9
+
+def main(args):
+    app  = qt.QApplication([])
+    PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
+
     mw = qt.QWidget()
     l  = qt.QVBoxLayout(mw)
     l.setSpacing(0)
-    w= PeakIdentifier(mw,energy=ene,useviewer=1)
+
+    w= PeakIdentifier(mw ,energy=args.energy or 5.9, useviewer=1)
     l.addWidget(w)
     mw.setWindowTitle("Peak Identifier")
     mw.show()
-    app.exec()
+
+    # Auto-close Qt for tests
+    if args.cli_test:
+        qt.QTimer.singleShot(0, app.quit)
+
+    return app.exec()
+
+
+def build_parser():
+    parser = CliUtils.create_parser(description="Peak Identifier Tool", add_qt_options=True)
+
+    parser.add_argument("energy", nargs="?", type=float, default=None)
+
+    return parser
+
 
 if __name__ == "__main__":
-    main()
+    PyMcaAppInit.init_before_app_create()
+    exit_code = CliUtils.cli_main(main, build_parser(), loggers=(_logger,))
+    sys.exit(exit_code)

@@ -45,6 +45,8 @@ from PyMca5.PyMcaIO import EDFStack
 from PyMca5.PyMcaIO import LispixMap
 from PyMca5.PyMcaIO import NumpyStack
 from PyMca5.PyMcaIO import BrukerBCF
+from PyMca5.PyMcaMisc import ProfilingUtils
+from PyMca5.PyMcaMisc import CliUtils
 
 try:
     import h5py
@@ -1112,115 +1114,72 @@ class McaAdvancedFitBatch(object):
             output[i, self.__row, self.__col] = result[group][roi+' ROI']
 
 
-def main():
-    import getopt
-    options = 'f'
-    longoptions = ['cfg=', 'pkm=', 'outdir=', 'roifit=', 'roi=',
-                   'roiwidth=', 'concentrations=', 'overwrite=',
-                   'outroot=', 'outentry=', 'outprocess=',
-                   'edf=', 'h5=', 'csv=', 'tif=', 'dat=',
-                   'diagnostics=', 'debug=', 'multipage=']
-    filelist = None
-    cfg = None
-    roifit = 0
-    roiwidth = 250.
-    tif = 0
-    edf = 1
-    csv = 0
-    h5 = 1
-    dat = 0
-    multipage = 0
-    debug = 0
-    outputDir = None
-    concentrations = 0
-    diagnostics = 0
-    overwrite = 1
-    outputRoot = ""
-    fileEntry = ""
-    fileProcess = ""
-    opts, args = getopt.getopt(
-                    sys.argv[1:],
-                    options,
-                    longoptions)
-    for opt,arg in opts:
-        if opt in ('--pkm','--cfg'):
-            cfg = arg
-        elif opt in ('--outdir'):
-            outputDir = arg
-        elif opt in ('--roi','--roifit'):
-            roifit = int(arg)
-        elif opt in ('--roiwidth'):
-            roiwidth = float(arg)
-        elif opt in ('--tif', '--tiff'):
-            tif = int(arg)
-        elif opt == '--edf':
-            edf = int(arg)
-        elif opt == '--csv':
-            csv = int(arg)
-        elif opt == '--dat':
-            dat = int(arg)
-        elif opt == '--h5':
-            h5 = int(arg)
-        elif opt == '--overwrite':
-            overwrite = int(arg)
-        elif opt == '--concentrations':
-            concentrations = int(arg)
-        elif opt == '--outroot':
-            outputRoot = arg
-        elif opt == '--outentry':
-            fileEntry = arg
-        elif opt == '--outprocess':
-            fileProcess = arg
-        elif opt == '--debug':
-            debug = int(arg)
-        elif opt == '--diagnostics':
-            diagnostics = int(arg)
-        elif opt == '--edf':
-            edf = int(arg)
-        elif opt == '--csv':
-            csv = int(arg)
-        elif opt == '--h5':
-            h5 = int(arg)
-        elif opt == '--dat':
-            dat = int(arg)
-        elif opt == '--multipage':
-            multipage = int(arg)
+def main(args):
+    filelist = args.filelist
+    if not filelist:
+        _logger.warning("No input files provided.")
+        return 0
 
-    logging.basicConfig()
-    if debug:
-        _logger.setLevel(logging.DEBUG)
-    else:
-        _logger.setLevel(logging.INFO)
-
-    filelist=args
-    if len(filelist) == 0:
-        _logger.error("No input files, run GUI")
-        sys.exit(0)
     t0 = time.time()
 
-    outbuffer = OutputBuffer(outputDir=outputDir,
-                             outputRoot=outputRoot,
-                             fileEntry=fileEntry,
-                             fileProcess=fileProcess,
-                             diagnostics=diagnostics,
-                             tif=tif, edf=edf, csv=csv,
-                             h5=h5, dat=dat,
-                             multipage=multipage,
-                             overwrite=overwrite)
+    # Setup output buffer
+    outbuffer = OutputBuffer(
+        outputDir=args.outdir,
+        outputRoot=args.outroot,
+        fileEntry=args.outentry,
+        fileProcess=args.outprocess,
+        diagnostics=args.diagnostics,
+        tif=args.tif,
+        edf=args.edf,
+        csv=args.csv,
+        h5=args.h5,
+        dat=args.dat,
+        multipage=args.multipage,
+        overwrite=1  # original code always sets overwrite=1
+    )
 
-    from PyMca5.PyMcaMisc import ProfilingUtils
-    with ProfilingUtils.profile(memory=debug, time=debug):
-        b = McaAdvancedFitBatch(cfg,filelist=filelist,
-                                fitfiles=False,
-                                outputdir=outputDir,
-                                roifit=roifit,
-                                roiwidth=roiwidth,
-                                concentrations=concentrations,
-                                outbuffer=outbuffer,
-                                overwrite=overwrite)
+    # Profiling context
+    with ProfilingUtils.profile(memory=args.debug, time=args.debug):
+        b = McaAdvancedFitBatch(
+            args.cfg,
+            filelist=filelist,
+            fitfiles=False,
+            outputdir=args.outdir,
+            roifit=args.roi,
+            roiwidth=args.roiwidth,
+            concentrations=args.concentrations,
+            outbuffer=outbuffer,
+            overwrite=1
+        )
         b.processList()
-        print("Total Elapsed = % s " % (time.time() - t0))
+        print("Total Elapsed = %s " % (time.time() - t0))
+
+
+def build_parser():
+    parser = CliUtils.create_parser(description="Batch MCA advanced fit")
+
+    parser.add_argument("--cfg", "--pkm", dest="cfg", required=True, type=str, help="Configuration file")
+    parser.add_argument("--outdir", default=None, type=str, help="Output directory")
+    parser.add_argument("--roi", "--roifit", default=0, type=int, help="ROI fit")
+    parser.add_argument("--roiwidth", default=250.0, type=float, help="ROI width")
+    parser.add_argument("--tif", "--tiff", default=0, type=int, help="Write TIFF files")
+    parser.add_argument("--edf", default=1, type=int, help="Write EDF files")
+    parser.add_argument("--csv", default=0, type=int, help="Write CSV files")
+    parser.add_argument("--h5", default=1, type=int, help="Write HDF5 files")
+    parser.add_argument("--dat", default=0, type=int, help="Write DAT files")
+    parser.add_argument("--multipage", default=0, type=int, help="Multipage output")
+    parser.add_argument("--diagnostics", default=0, type=int, help="Enable diagnostics")
+    parser.add_argument("--concentrations", default=0, type=int, help="Compute concentrations")
+    parser.add_argument("--outroot", default="", type=str, help="Output root name")
+    parser.add_argument("--outentry", default="", type=str, help="File entry")
+    parser.add_argument("--outprocess", default="", type=str, help="File process")
+
+    # Positional arguments: list of input files
+    parser.add_argument("filelist", nargs="*", help="Input files")
+
+    return parser
+
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-    main()
+    exit_code = CliUtils.cli_main(main, build_parser(), loggers=(_logger,))
+    sys.exit(exit_code)
