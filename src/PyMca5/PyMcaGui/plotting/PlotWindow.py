@@ -259,9 +259,6 @@ class PlotWindow(PlotWidget.PlotWidget):
         if kw is None:
             kw = {}
         self.toolBar = qt.QToolBar(self)
-        if  qt.QApplication.instance().palette().color(qt.QPalette.Text) == qt.QColor('white'):
-            newColor = qt.QApplication.instance().palette().color(qt.QPalette.Light)
-            self.toolBar.setStyleSheet("QToolBar { background-color: %s; }" % newColor.name())
         self.toolBarActionsDict = {}
         #Autoscale
         self._addToolButton(self.zoomResetIcon,
