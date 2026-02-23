@@ -603,10 +603,10 @@ class EnergyTable(QTable):
         return ddict
 
 class ColorQTableItem(qt.QCheckBox):
-         def __init__(self, table, text, color=None, bold=0):
+        def __init__(self, table, text, color=None, bold=0):
             qt.QCheckBox.__init__(self, table)
             _palette = qt.QApplication.instance().palette()
-            self._textColor = _palette.color(qt.QPalette.WindowText)
+            self._textColor = _palette.color(qt.QPalette.Text)
             self._backgroundColor = _palette.color(qt.QPalette.Base)
             self._selectedTextColor = qt.QColor(qt.Qt.black)
             self._selectedBackgroundColor = qt.QColor(255, 20, 147)
@@ -619,14 +619,14 @@ class ColorQTableItem(qt.QCheckBox):
             #this is one critical line
             self.setAutoFillBackground(1)
 
-         def setColor(self, color):
-             self.color = color
-             if color == self._backgroundColor:
-                 self.setStyleSheet("color: %s; background-color: %s" % \
-                     (self._textColor.name(), self._backgroundColor.name()))
-             else:
-                 self.setStyleSheet("color: %s; background-color: %s" % \
-                     (self._selectedTextColor.name(),  self._selectedBackgroundColor.name()))
+        def setColor(self, color):
+            self.color = color
+            if color == self._backgroundColor:
+                self.setStyleSheet("color: %s; background-color: %s" % \
+                    (self._textColor.name(), self._backgroundColor.name()))
+            else:
+                self.setStyleSheet("color: %s; background-color: %s" % \
+                    (self._selectedTextColor.name(),  self._selectedBackgroundColor.name()))
 
 def main(args):
     app=qt.QApplication(args)

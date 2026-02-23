@@ -259,6 +259,9 @@ class PlotWindow(PlotWidget.PlotWidget):
         if kw is None:
             kw = {}
         self.toolBar = qt.QToolBar(self)
+        if  qt.QApplication.instance().palette().color(qt.QPalette.Text) == qt.QColor('white'):
+            newColor = qt.QApplication.instance().palette().color(qt.QPalette.Light)
+            self.toolBar.setStyleSheet("QToolBar { background-color: %s; }" % newColor.name())
         self.toolBarActionsDict = {}
         #Autoscale
         self._addToolButton(self.zoomResetIcon,
@@ -1507,7 +1510,7 @@ class PlotWindow(PlotWidget.PlotWidget):
         legendList = [] * len(self._curveList)
         for i in range(len(self._curveList)):
             legend = self._curveList[i]
-            _defaultColor = qt.QApplication.instance().palette().color(qt.QPalette.WindowText).name()
+            _defaultColor = qt.QApplication.instance().palette().color(qt.QPalette.Text).name()
             color = self._curveDict[legend][3].get('plot_color',
                                                          _defaultColor)
             color = qt.QColor(color)

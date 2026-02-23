@@ -237,7 +237,7 @@ class RGBCorrelatorWidget(qt.QWidget):
             self.tomographyButton.setToolTip("Run tomography reconstruction")
             self.tomographyButton.clicked.connect(self._showTomoReconsDialog)
 
-        label1 = MyQLabel(self.labelWidget, color=qt.QApplication.instance().palette().color(qt.QPalette.WindowText))
+        label1 = MyQLabel(self.labelWidget, color=qt.QApplication.instance().palette().color(qt.QPalette.Text))
         label1.setAlignment(alignment)
         label1.setText("Image Size")
         # Should be red even in Dark mode
@@ -380,7 +380,7 @@ class RGBCorrelatorWidget(qt.QWidget):
         palette.setColor(qt.QPalette.Button, bg)
         palette.setColor(qt.QPalette.ButtonText, text)
         palette.setColor(qt.QPalette.Window, bg)
-        palette.setColor(qt.QPalette.WindowText, text)
+        palette.setColor(qt.QPalette.Text, text)
         self.nanColorButton.setPalette(palette)
         if not initial:
             if self.__imageLength is not None:
@@ -1666,7 +1666,7 @@ class ImageShapeDialog(qt.QDialog):
     def __init__(self, parent=None, shape=None):
         qt.QDialog.__init__(self, parent)
         self.mainLayout = qt.QGridLayout(self)
-        label1 = MyQLabel(self, bold=False, color=qt.QApplication.instance().palette().color(qt.QPalette.WindowText))
+        label1 = MyQLabel(self, bold=False, color=qt.QApplication.instance().palette().color(qt.QPalette.Text))
         label1.setText("Number of rows    = ")
         self.rows = qt.QLineEdit(self)
         self._size = None
@@ -1677,7 +1677,7 @@ class ImageShapeDialog(qt.QDialog):
             self._size = shape[0] * shape[1]
             self._shape = shape
             self.setWindowTitle("Reshape %d x %d image" % (shape[0], shape[1]))
-        label2 = MyQLabel(self, bold=False, color=qt.QApplication.instance().palette().color(qt.QPalette.WindowText))
+        label2 = MyQLabel(self, bold=False, color=qt.QApplication.instance().palette().color(qt.QPalette.Text))
         label2.setText("Number of columns = ")
         self.cancelButton = qt.QPushButton(self)
         self.cancelButton.setText("Dismiss")
@@ -1754,7 +1754,7 @@ class MyQLabel(qt.QLabel):
     def __init__(self, parent=None, name=None, fl=0, bold=True, color=None):
         qt.QLabel.__init__(self, parent)
         if color is None:
-            color = qt.QApplication.instance().palette().color(qt.QPalette.WindowText)
+            color = qt.QApplication.instance().palette().color(qt.QPalette.Text)
         if qt.qVersion() < "4.0.0":
             self.color = color
             self.bold = bold
