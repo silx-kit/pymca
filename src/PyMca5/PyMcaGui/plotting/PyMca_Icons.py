@@ -3739,7 +3739,7 @@ DARK_MODE_TABLE = [
     "average16", "derive", "fit", "logx", "logy", "normal",
     "normalize16", "peak", "peakreset", "peaksearch", "roi",
     "roireset", "rotate_left", "rotate_right", "smooth",
-    "xauto", "yauto", "ymintozero", "filesave"
+    "xauto", "yauto", "ymintozero", "filesave", "swapsign"
 ]
 
 
@@ -3847,7 +3847,7 @@ class _PatchedIconDict(MutableMapping):
             raise KeyError("Unknown icon '%s'" % key)
                     
         # even if it is dark mode but text is not white then black can probably be used
-        if self._qt.QApplication.instance().palette().color(self._qt.QPalette.Text) == self._qt.QColor('white'):
+        if self._qt.QApplication.instance().palette().color(self._qt.QPalette.Window).lightness() < 130:
             from PyMca5.PyMcaGui.plotting.Silx_Icons import IconDict as _silx_xpm
             if key in DARK_MODE_TABLE:
                 silx_key = TRANSLATION_TABLE.get(key)
