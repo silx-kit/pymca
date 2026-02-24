@@ -529,24 +529,23 @@ class ScanWindow(BaseScanWindow):
                                              numpy.array([dataObject.m[imon]])
                     if dataObject.m is None:
                         mdata = numpy.ones(len(ydata)).astype(numpy.float64)
-                    elif len(dataObject.m[0]) == len(ydata):
-                        index = numpy.nonzero(dataObject.m[0])[0]
+                    elif len(dataObject.m[0]) > 0:
+                        # Combine all monitors: divide by each one
+                        combinedMdata = numpy.ones(len(ydata)).astype(numpy.float64)
+                        for imon in range(len(dataObject.m)):
+                            monArray = dataObject.m[imon]
+                            if len(monArray) == len(ydata):
+                                combinedMdata = combinedMdata * monArray
+                            elif len(monArray) == 1:
+                                combinedMdata = combinedMdata * monArray[0]
+                            else:
+                                raise ValueError("Monitor data length different than counter data")
+                        index = numpy.nonzero(combinedMdata)[0]
                         if not len(index):
                             continue
                         xdata = numpy.take(xdata, index)
                         ydata = numpy.take(ydata, index)
-                        mdata = numpy.take(dataObject.m[0], index)
-                        # A priori the graph only knows about plots
-                        ydata = ydata / mdata
-                    elif len(dataObject.m[0]) == 1:
-                        mdata = numpy.ones(len(ydata)).astype(numpy.float64)
-                        mdata *= dataObject.m[0][0]
-                        index = numpy.nonzero(dataObject.m[0])[0]
-                        if not len(index):
-                            continue
-                        xdata = numpy.take(xdata, index)
-                        ydata = numpy.take(ydata, index)
-                        mdata = numpy.take(dataObject.m[0], index)
+                        mdata = numpy.take(combinedMdata, index)
                         # A priori the graph only knows about plots
                         ydata = ydata / mdata
                     else:

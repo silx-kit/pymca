@@ -1015,7 +1015,7 @@ class QNexusWidget(qt.QWidget):
             return
         text = qt.safe_str(self.tableTab.tabText(self.tableTab.currentIndex()))
         mcaSelection = {'mcalist':[], 'selectionindex':[]}
-        cntSelection = {'cntlist':[], 'y':[]}
+        cntSelection = {'cntlist':[], 'y':[], 'yright':[], 'yrightselectiontype':[]}
         if text.upper() == "AUTO":
             cntSelection = self.autoTable.getCounterSelection()
             # self._aliasList = cntSelection['aliaslist']
@@ -1030,6 +1030,7 @@ class QNexusWidget(qt.QWidget):
                not len(mcaSelection['mcalist']):
                 continue
             if not len(cntSelection['y']) and \
+               not len(cntSelection['yright']) and \
                not len(mcaSelection['selectionindex']):
                 #nothing to plot
                 continue
@@ -1219,16 +1220,90 @@ class QNexusWidget(qt.QWidget):
                      if sel['selection']['xselectiontype'][0] not in ["", "full", None]:
                          aliases[cntSelection['x'][0]] += " " + sel['selection']['xselectiontype'][0]
 
+                # Build monitor part of legend, supporting multiple monitors
+                monLegendParts = []
+                for mIdx in cntSelection['m']:
+                    monLegendParts.append(aliases[mIdx])
+                monLegend = "/".join(monLegendParts) if monLegendParts else ""
+
                 if len(cntSelection['x']) and len(cntSelection['m']):
                     addLegend = " (%s/%s) vs %s" % (aliases[yCnt],
-                                                   aliases[cntSelection['m'][0]],
+                                                   monLegend,
                                                    aliases[cntSelection['x'][0]])
                 elif len(cntSelection['x']):
                     addLegend = " %s vs %s" % (aliases[yCnt],
                                                aliases[cntSelection['x'][0]])
                 elif len(cntSelection['m']):
                     addLegend = " (%s/%s)" % (aliases[yCnt],
-                                            aliases[cntSelection['m'][0]])
+                                            monLegend)
+                else:
+                    addLegend = " %s" % aliases[yCnt]
+                sel['legend'] += addLegend
+                selectionList.append(sel)
+
+            # Signals R (right Y-axis) loop
+            for yCnt in cntSelection['yright']:
+                sel = {}
+                sel['SourceName'] = self.data.sourceName * 1
+                sel['SourceType'] = "HDF5"
+                fileIndex = self.data.sourceName.index(filename)
+                phynxFile  = self.data._sourceObjectList[fileIndex]
+                if entry == "/":
+                    entryIndex = 1
+                else:
+                    entryIndex = list(phynxFile["/"].keys()).index(entry[1:])
+                sel['Key']        = "%d.%d" % (fileIndex+1, entryIndex+1)
+                sel['legend']     = os.path.basename(filename)+\
+                                    " " + posixpath.basename(entry)
+                sel['selection'] = {}
+                sel['selection']['sourcename'] = filename
+                if isinstance(phynxFile[entry], h5py.Dataset):
+                    _logger.info("HDF5 dataset at root level")
+                    entry = "/"
+                elif hasattr(phynxFile[entry], "shape"):
+                    _logger.info("HDF5-like dataset at root level")
+                    entry = "/"
+                sel['selection']['entry'] = entry
+                sel['selection']['key'] = "%d.%d" % (fileIndex+1, entryIndex+1)
+                sel['selection']['x'] = cntSelection['x']
+                sel['selection']['xselectiontype'] = cntSelection['xselectiontype']
+                sel['selection']['y'] = [yCnt]
+                yrightSelType = cntSelection['yrightselectiontype']
+                yrightList = cntSelection['yright']
+                if yCnt in yrightList:
+                    sel['selection']['yselectiontype'] = [yrightSelType[yrightList.index(yCnt)]]
+                else:
+                    sel['selection']['yselectiontype'] = ['full']
+                sel['selection']['m'] = cntSelection['m']
+                sel['selection']['mselectiontype'] = cntSelection['monselectiontype']
+                sel['selection']['cntlist'] = cntSelection['cntlist']
+                sel['selection']['LabelNames'] = cntSelection['aliaslist']
+                sel['selection']['selectiontype'] = selectionType
+                sel['selection']['plot_yaxis'] = 'right'
+                if selectionType.upper() == "SCAN":
+                    sel['scanselection'] = True
+                    sel['mcaselection']  = False
+                else:
+                    sel['scanselection'] = False
+                    sel['mcaselection']  = False
+                aliases = cntSelection['aliaslist']
+
+                # Build monitor part of legend
+                monLegendParts = []
+                for mIdx in cntSelection['m']:
+                    monLegendParts.append(aliases[mIdx])
+                monLegend = "/".join(monLegendParts) if monLegendParts else ""
+
+                if len(cntSelection['x']) and len(cntSelection['m']):
+                    addLegend = " (%s/%s) vs %s" % (aliases[yCnt],
+                                                   monLegend,
+                                                   aliases[cntSelection['x'][0]])
+                elif len(cntSelection['x']):
+                    addLegend = " %s vs %s" % (aliases[yCnt],
+                                               aliases[cntSelection['x'][0]])
+                elif len(cntSelection['m']):
+                    addLegend = " (%s/%s)" % (aliases[yCnt],
+                                            monLegend)
                 else:
                     addLegend = " %s" % aliases[yCnt]
                 sel['legend'] += addLegend
