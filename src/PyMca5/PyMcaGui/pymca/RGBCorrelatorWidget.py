@@ -225,6 +225,7 @@ class RGBCorrelatorWidget(qt.QWidget):
         self.profileButton.setToolTip("Show selected images profile")
         self.currentNanColor = 'black'
         self.nanColorButton = qt.QToolButton(hbox)
+        self.nanColorButton.setAutoFillBackground(True)
         self.nanColorButton.setText('nan')
         self.nanColorButton.setToolTip("Toggle black/white color for 'nan' pixels")
         self.toggleNanColor(initial=True)
