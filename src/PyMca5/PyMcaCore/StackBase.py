@@ -586,13 +586,15 @@ class StackBase(object):
         #deal with NaN and inf values
         if selectionMask is None:
             if (self._ROIImageDict["ROI"] is not None) and\
-               (self.mcaIndex != 0):
+               (self.mcaIndex != 0) and \
+               (self._ROIImageDict["ROI"].shape == self._stackImageData.shape):
                 actualSelectionMask = numpy.isfinite(self._ROIImageDict["ROI"])
             else:
                 actualSelectionMask = numpy.isfinite(self._stackImageData)
         else:
             if (self._ROIImageDict["ROI"] is not None) and\
-               (self.mcaIndex != 0):
+               (self.mcaIndex != 0) and \
+               (self._ROIImageDict["ROI"].shape == self._stackImageData.shape):
                 actualSelectionMask = selectionMask * numpy.isfinite(self._ROIImageDict["ROI"])
             else:
                 actualSelectionMask = selectionMask * numpy.isfinite(self._stackImageData)
@@ -635,9 +637,6 @@ class StackBase(object):
             arrayMask = (actualSelectionMask > 0)
 
         logger.debug("Reached MCA calculation")
-
-        if len(arrayMask.shape) != len(self._stack.data.shape):
-            arrayMask = arrayMask.reshape(self._stack.data.shape[self.fileIndex:self.fileIndex+2])
 
         cleanMask = numpy.nonzero(arrayMask)
 
@@ -1299,5 +1298,28 @@ def test():
           (stackData[:, :, 0:10].sum(),
            stack.calculateROIImages(0, 10)['ROI'].sum()))
 
+def test_nan():
+    #create a dummy stack
+    nrows = 100
+    ncols = 200
+    nchannels = 1024
+    a = numpy.ones((nrows, ncols), numpy.float64)
+    stackData = numpy.zeros((nrows, ncols, nchannels), numpy.float64)
+    for i in range(nchannels):
+        stackData[:, :, i] = a * i
+    row_index = 5
+    col_index = 10
+    stackData[row_index, col_index, :] = numpy.nan
+    stack = StackBase()
+
+    stack.setStack(stackData, mcaindex=2)
+    print("This should be 0 = %f" % stack.calculateROIImages(0, 0)['ROI'].sum())
+    print("This should be 0 = %f" % stack.calculateROIImages(0, 1)['ROI'].sum())
+    print("%f should be = %f" %\
+          (stackData[:, :, 0:10].sum(),
+           stack.calculateROIImages(0, 10)['ROI'].sum()))
+
+
 if __name__ == "__main__":
     test()
+    test_nan()
