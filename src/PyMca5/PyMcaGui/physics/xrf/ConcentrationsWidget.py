@@ -742,15 +742,10 @@ class ConcentrationsTable(QTable):
                 self.resizeColumnToContents(i)
 
     def getHtmlText(self):
-        try:
-            _palette = qt.QApplication.instance().palette()
-            lemon = _palette.color(qt.QPalette.AlternateBase).name().upper()
-            white = _palette.color(qt.QPalette.Base).name().upper()
-            hcolor = _palette.color(qt.QPalette.Midlight).name().upper()
-        except Exception:
-            lemon = ("#%x%x%x" % (255, 250, 205)).upper()
-            white = "#FFFFFF"
-            hcolor = ("#%x%x%x" % (230, 240, 249)).upper()
+        _palette = qt.QApplication.instance().palette()
+        lemon = _palette.color(qt.QPalette.AlternateBase).name().upper()
+        white = _palette.color(qt.QPalette.Base).name().upper()
+        hcolor = _palette.color(qt.QPalette.Midlight).name().upper()
         text = ""
         text += ("<nobr>")
         text += ("<table>")
