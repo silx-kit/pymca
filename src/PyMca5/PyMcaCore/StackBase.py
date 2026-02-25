@@ -280,9 +280,15 @@ class StackBase(object):
 
             # max MCA
             if self.mcaIndex == -1 or (self.mcaIndex == (len(self._stack.data.shape) - 1)):
-                mcaMax = numpy.nanmax(numpy.nanmax(self._stack.data, axis=0), axis=0)
+                if not numpy.all(numpy.isnan(self._stack.data)):
+                    mcaMax = numpy.nanmax(numpy.nanmax(self._stack.data, axis=0), axis=0)
+                else:
+                    mcaMax = None  # or some default value
             elif self.mcaIndex == 0:
-                mcaMax = numpy.nanmax(numpy.nanmax(self._stack.data, axis=-1), axis=-1)
+                if not numpy.all(numpy.isnan(self._stack.data)):
+                    mcaMax = numpy.nanmax(numpy.nanmax(self._stack.data, axis=-1), axis=-1)
+                else:
+                    mcaMax = None
             else:
                 logger.info("Unsupported index for max spectrum calculation")
         else:
@@ -629,6 +635,10 @@ class StackBase(object):
             arrayMask = (actualSelectionMask > 0)
 
         logger.debug("Reached MCA calculation")
+
+        if len(arrayMask.shape) != len(self._stack.data.shape):
+            arrayMask = arrayMask.reshape(self._stack.data.shape[self.fileIndex:self.fileIndex+2])
+
         cleanMask = numpy.nonzero(arrayMask)
 
         logger.debug("self.fileIndex, self.mcaIndex = %d , %d",
