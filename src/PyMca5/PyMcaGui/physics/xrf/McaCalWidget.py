@@ -64,18 +64,14 @@ class McaCalWidget(qt.QDialog):
                 specfit=None,legend="", xrd=False, lambda_="-", modal=0,fl=0):
                 #fl=qt.Qt.WDestructiveClose):
         self.name= name
-        if QTVERSION < '4.0.0':
-            qt.QDialog.__init__(self, parent, name, modal,fl)
-            self.setCaption(self.name)
-        else:
-            qt.QDialog.__init__(self, parent)
-            self.setModal(modal)
-            self.setWindowIcon(qt.QIcon(qt.QPixmap(IconDict['gioconda16'])))
-            self.setWindowTitle(self.name)
-            maxheight = qt.QDesktopWidget().height()
-            if maxheight < 770:
-                self.setMinimumHeight(int(0.9*(maxheight)))
-                self.setMaximumHeight(int(1.0*(maxheight)))
+        qt.QDialog.__init__(self, parent)
+        self.setModal(modal)
+        self.setWindowIcon(qt.QIcon(qt.QPixmap(IconDict['gioconda16'])))
+        self.setWindowTitle(self.name)
+        maxheight = qt.QDesktopWidget().height()
+        if maxheight < 770:
+            self.setMinimumHeight(int(0.9*(maxheight)))
+            self.setMaximumHeight(int(1.0*(maxheight)))
         self.__xrdMode = xrd
         self.__xrdLambda = lambda_
         self.__xrdEnergy = ""
@@ -157,8 +153,6 @@ class McaCalWidget(qt.QDialog):
         self.calpar         = CalibrationParameters(self.bottomPanel)
         self.calpar. setSizePolicy(qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed)
         """
-        if QTVERSION < '4.0.0':
-            self.bottomPanel.layout.addWidget(qt.HorizontalSpacer(self.bottomPanel))
         #self.cal.setSizePolicy(qt.QSizePolicy.MinimumExpanding, qt.QSizePolicy.MinimumExpanding)
         self.peakParameters.setSizePolicy(qt.QSizePolicy(qt.QSizePolicy.Fixed,
                                                   qt.QSizePolicy.Fixed))
@@ -168,8 +162,6 @@ class McaCalWidget(qt.QDialog):
             self.peakTable      = PeakTableWidget.PeakTableWidget(self.bottomPanel)
         self.bottomPanel.layout.addWidget(self.peakTable)
         self.peakTable.verticalHeader().hide()
-        if QTVERSION < '4.0.0':
-            self.peakTable.setLeftMargin(0)
         self.container.layout.addWidget(self.graph)
         self.container.layout.addWidget(self.bottomPanel)
 
@@ -264,11 +256,8 @@ class McaCalWidget(qt.QDialog):
         self.okButton.setText('OK')
         self.cancelButton       = qt.QPushButton(toolbar2)
         self.cancelButton.setText('Cancel')
-        if QTVERSION < '4.0.0':
-            pass
-        else:
-            self.okButton.setAutoDefault(False)
-            self.cancelButton.setAutoDefault(False)
+        self.okButton.setAutoDefault(False)
+        self.cancelButton.setAutoDefault(False)
         self.okButton. setSizePolicy(qt.QSizePolicy(qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed))
         self.cancelButton. setSizePolicy(qt.QSizePolicy(qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed))
         toolbar2.layout.addWidget(self.calpar)
@@ -324,10 +313,7 @@ class McaCalWidget(qt.QDialog):
         _logger.debug("Peak search called")
         if self.__manualsearch:
             self.__manualsearch = 0
-            if QTVERSION < '4.0.0':
-                self.__msb.setState(qt.QButton.Off)
-            else:
-                self.__msb.setChecked(0)
+            self.__msb.setChecked(0)
         #get current plot limits
         xmin,xmax=self.graph.getGraphXLimits()
         #set the data into specfit
@@ -529,10 +515,7 @@ class McaCalWidget(qt.QDialog):
                                     'channel':channel,
                                     'use':1,
                                     'calenergy':calenergy})
-            if QTVERSION < '4.0.0':
-                ret = linewidget.exec_loop()
-            else:
-                ret = linewidget.exec()
+            ret = linewidget.exec()
             if ret == qt.QDialog.Accepted:
                 ddict=linewidget.getDict()
                 _logger.debug("dict got from dialog = %s", ddict)
@@ -853,12 +836,8 @@ class McaCalWidget(qt.QDialog):
 class PeakSearchParameters(qt.QWidget):
     def __init__(self, parent=None, name="", specfit=None, config=None,
                 searchbutton=1, fl=0):
-        if QTVERSION < '4.0.0':
-            qt.QWidget.__init__(self, parent, name, fl)
-            self.setCaption(name)
-        else:
-            qt.QWidget.__init__(self, parent)
-            self.setWindowTitle(name)
+        qt.QWidget.__init__(self, parent)
+        self.setWindowTitle(name)
 
         if specfit is None:
             self.specfit = Specfit.Specfit()
@@ -881,46 +860,26 @@ class PeakSearchParameters(qt.QWidget):
         self.setParameters(parameters)
 
     def build(self):
-        if 1:
-            if QTVERSION < '4.0.0':
-                layout= qt.QVBoxLayout(self)
-                layout.setContentsMargins(0, 0, 0, 0)
-                layout.setSpacing(0)
-
-            # --- parameters
-                parf= qt.QHGroupBox(self)
-                parf.setTitle('Search Parameters')
-                parf.setAlignment(qt.Qt.AlignHCenter)
-                parw= qt.QWidget(parf)
-            else:
-                layout= qt.QVBoxLayout(self)
-                if qt.QDesktopWidget().height() < LOW_HEIGHT_THRESHOLD:
-                    lowHeight = True
-                else:
-                    lowHeight = False
-                if lowHeight:
-                    layout.setContentsMargins(0, 0, 0, 0)
-                    layout.setSpacing(0)
-
-            # --- parameters
-                parf= qt.QGroupBox(self)
-                parf.layout = qt.QVBoxLayout(parf)
-                parf.setTitle('Search Parameters')
-                parf.setAlignment(qt.Qt.AlignHCenter)
-                parw= qt.QWidget(parf)
-                parf.layout.addWidget(parw)
+        layout= qt.QVBoxLayout(self)
+        if qt.QDesktopWidget().height() < LOW_HEIGHT_THRESHOLD:
+            lowHeight = True
         else:
-            parw = self
-        if QTVERSION < '4.0.0':
-            if self.searchButtonFlag:
-                grid= qt.QGridLayout(parw, 4, 3)
-            else:
-                grid= qt.QGridLayout(parw, 3, 3)
-        else:
-            grid= qt.QGridLayout(parw)
-            if lowHeight:
-                grid.setContentsMargins(0, 0, 0, 0)
-                grid.setSpacing(2)
+            lowHeight = False
+        if lowHeight:
+            layout.setContentsMargins(0, 0, 0, 0)
+            layout.setSpacing(0)
+
+    # --- parameters
+        parf= qt.QGroupBox(self)
+        parf.layout = qt.QVBoxLayout(parf)
+        parf.setTitle('Search Parameters')
+        parf.setAlignment(qt.Qt.AlignHCenter)
+        parw= qt.QWidget(parf)
+        parf.layout.addWidget(parw)
+        grid= qt.QGridLayout(parw)
+        if lowHeight:
+            grid.setContentsMargins(0, 0, 0, 0)
+            grid.setSpacing(2)
         lab= qt.QLabel("Sensitivity", parw)
         grid.addWidget(lab, 0, 0, qt.Qt.AlignLeft)
         lab= qt.QLabel("Fwhm (pts)", parw)
@@ -991,11 +950,7 @@ class CalibrationParameters(qt.QWidget):
     sigCalibrationParametersSignal = qt.pyqtSignal(object)
     def __init__(self, parent=None, name="", calname="",
                  caldict = {},fl=0, xrd=False):
-        if QTVERSION < '4.0.0':
-            qt.QWidget.__init__(self, parent, name, fl)
-            self.setCaption(name)
-        else:
-            qt.QWidget.__init__(self, parent)
+        qt.QWidget.__init__(self, parent)
         self.__xrdMode = xrd
         self.caldict=caldict
         if calname not in self.caldict.keys():
@@ -1017,15 +972,11 @@ class CalibrationParameters(qt.QWidget):
 
         lab= qt.QLabel("Order:", parw)
 
-        if QTVERSION <  '4.0.0':
+        if self.__xrdMode:
             self.orderbox = SimpleComboBox(parw,
                                        options=['1st','2nd'])
         else:
-            if self.__xrdMode:
-                self.orderbox = SimpleComboBox(parw,
-                                       options=['1st','2nd'])
-            else:
-                self.orderbox = SimpleComboBox(parw,
+            self.orderbox = SimpleComboBox(parw,
                                        options=['1st','2nd','TOF', 'ID14'])
         layout.addWidget(lab)
         layout.addWidget(self.orderbox)
@@ -1041,12 +992,11 @@ class CalibrationParameters(qt.QWidget):
         self.CLabel= qt.QLabel("C:", parw)
         layout.addWidget(self.CLabel)
         self.CText= MyQLineEdit(parw)
-        if QTVERSION > '4.0.0':
-            self.CFixed = qt.QCheckBox(self)
-            self.CFixed.setText('Fixed')
-            self.CFixed.setChecked(True)
-            layout.addWidget(self.CFixed)
-            self.CFixed.hide()
+        self.CFixed = qt.QCheckBox(self)
+        self.CFixed.setText('Fixed')
+        self.CFixed.setChecked(True)
+        layout.addWidget(self.CFixed)
+        self.CFixed.hide()
         layout.addWidget(self.CText)
 
         if 0:
@@ -1120,8 +1070,7 @@ class CalibrationParameters(qt.QWidget):
             self.CText.setReadOnly(1)
             self.CLabel.setText("C:")
             self.caldict[self.currentcal]['C'] = 0.0
-            if QTVERSION > '4.0.0':
-                self.CFixed.hide()
+            self.CFixed.hide()
         elif qstring == "TOF":
             self.caldict[self.currentcal]['order'] = 'TOF'
             self.caldict[self.currentcal]['vfix'] = self.CFixed.isChecked()
@@ -1132,14 +1081,12 @@ class CalibrationParameters(qt.QWidget):
             self.caldict[self.currentcal]['order'] = 'ID14'
             self.CLabel.setText("C:")
             self.CText.setReadOnly(1)
-            if QTVERSION > '4.0.0':
-                self.CFixed.hide()
+            self.CFixed.hide()
         else:
             self.caldict[self.currentcal]['order'] = 2
             self.CLabel.setText("C:")
             self.CText.setReadOnly(0)
-            if QTVERSION > '4.0.0':
-                self.CFixed.hide()
+            self.CFixed.hide()
         self.myslot(event='order')
 
     def __savebox(self, qstring=None):
@@ -1148,12 +1095,9 @@ class CalibrationParameters(qt.QWidget):
         key = qt.safe_str(qstring)
         if key not in self.caldict.keys():
             self.caldict[key] = {}
-        if QTVERSION < '4.0.0':
-            self.caldict[key]['order'] = self.orderbox.currentItem()+1
-        else:
-            self.caldict[key]['order'] = self.orderbox.currentIndex()+1
-            if self.caldict[key]['order'] == 3:
-                self.caldict[key]['order'] = "TOF"
+        self.caldict[key]['order'] = self.orderbox.currentIndex()+1
+        if self.caldict[key]['order'] == 3:
+            self.caldict[key]['order'] = "TOF"
         self.caldict[key]['A']     = float(str(self.AText.text()))
         self.caldict[key]['B']     = float(str(self.BText.text()))
         self.caldict[key]['C']     = float(str(self.CText.text()))
@@ -1170,10 +1114,7 @@ class CalibrationParameters(qt.QWidget):
             msg=qt.QMessageBox(self.AText)
             msg.setIcon(qt.QMessageBox.Critical)
             msg.setText("Invalid Float")
-            if QTVERSION < '4.0.0':
-                msg.exec_loop()
-            else:
-                msg.exec()
+            msg.exec()
             self.AText.setFocus()
 
     def _Bslot(self):
@@ -1228,26 +1169,22 @@ class CalibrationParameters(qt.QWidget):
 class MyQLineEdit(qt.QLineEdit):
     def __init__(self,parent=None,name=None):
         qt.QLineEdit.__init__(self,parent)
-        if QTVERSION > '4.0.0':
-            self.setAutoFillBackground(True)
+        self.setAutoFillBackground(True)
 
     def setPaletteBackgroundColor(self, color):
-        if QTVERSION < '4.0.0':
-            qt.QLineEdit.setPaletteBackgroundColor(self,color)
-        else:
-            palette = qt.QPalette()
-            role = self.backgroundRole()
-            palette.setColor(role,color)
-            self.setPalette(palette)
+        palette = qt.QPalette(self.palette())
+        role = self.backgroundRole()
+        palette.setColor(role,color)
+        self.setPalette(palette)
 
     def focusInEvent(self,event):
-        if QTVERSION < '4.0.0':
-            self.backgroundcolor = self.paletteBackgroundColor()
-        self.setPaletteBackgroundColor(qt.QColor('yellow'))
+        self.setPaletteBackgroundColor(
+            qt.QApplication.instance().palette().color(qt.QPalette.Highlight))
         qt.QLineEdit.focusInEvent(self, event)
 
     def focusOutEvent(self,event):
-        self.setPaletteBackgroundColor(qt.QColor('white'))
+        self.setPaletteBackgroundColor(
+            qt.QApplication.instance().palette().color(qt.QPalette.Base))
         qt.QLineEdit.focusOutEvent(self, event)
 
 class DoubleDialog(qt.QDialog):
@@ -1368,13 +1305,9 @@ class McaCalCopy(qt.QDialog):
         if legend is None:
             legend= 'Active Curve'
         name = "Enter Calibration for %s" % legend
-        if QTVERSION < '4.0.0':
-            qt.QDialog.__init__(self, parent, name, modal, fl)
-            self.setCaption(name)
-        else:
-            qt.QDialog.__init__(self, parent)
-            self.setWindowTitle(name)
-            self.setModal(modal)
+        qt.QDialog.__init__(self, parent)
+        self.setWindowTitle(name)
+        self.setModal(modal)
         layout0 = qt.QVBoxLayout(self)
         layout0.setContentsMargins(0, 0, 0, 0)
         layout0.setSpacing(0)
@@ -1394,13 +1327,10 @@ class McaCalCopy(qt.QDialog):
             currentval = [0.0,1.0,0.0]
 
         # --- source ---
-        if QTVERSION < '4.0.0':
-            sgroup = qt.QHGroupBox(self)
-        else:
-            sgroup = qt.QGroupBox(self)
-            sgrouplayout = qt.QHBoxLayout(sgroup)
-            sgrouplayout.setContentsMargins(0, 0, 0, 0)
-            sgrouplayout.setSpacing(0)
+        sgroup = qt.QGroupBox(self)
+        sgrouplayout = qt.QHBoxLayout(sgroup)
+        sgrouplayout.setContentsMargins(0, 0, 0, 0)
+        sgrouplayout.setSpacing(0)
         sgroup.setTitle('Calibration from Source (Read Only)')
         sgroup.setAlignment(qt.Qt.AlignHCenter)
         layout0.addWidget(sgroup)
@@ -1408,10 +1338,7 @@ class McaCalCopy(qt.QDialog):
         wlayout= qt.QVBoxLayout(w)
         wlayout.setContentsMargins(0, 0, 0, 0)
         wlayout.setSpacing(0)
-        if QTVERSION < '4.0.0':
-            pass
-        else:
-            sgroup.layout().addWidget(w)
+        sgroup.layout().addWidget(w)
 
         """
         l           = qt.QHBox(w)
@@ -1460,13 +1387,10 @@ class McaCalCopy(qt.QDialog):
         wlayout.addWidget(lines)
 
         # --- PyMca/Current ---
-        if QTVERSION < '4.0.0':
-            cgroup = qt.QHGroupBox(self)
-        else:
-            cgroup = qt.QGroupBox(self)
-            cgrouplayout = qt.QHBoxLayout(cgroup)
-            cgrouplayout.setContentsMargins(0, 0, 0, 0)
-            cgrouplayout.setSpacing(0)
+        cgroup = qt.QGroupBox(self)
+        cgrouplayout = qt.QHBoxLayout(cgroup)
+        cgrouplayout.setContentsMargins(0, 0, 0, 0)
+        cgrouplayout.setSpacing(0)
         layout0.addWidget(cgroup)
         fontc = cgroup.font()
         fontc.setBold(1)
@@ -1477,10 +1401,7 @@ class McaCalCopy(qt.QDialog):
         wclayout = qt.QVBoxLayout(wc)
         wclayout.setContentsMargins(0, 0, 0, 0)
         wclayout.setSpacing(3)
-        if QTVERSION < '4.0.0':
-            pass
-        else:
-            cgrouplayout.addWidget(wc)
+        cgrouplayout.addWidget(wc)
 
         linec  = qt.QWidget(wc)
         lineclayout = qt.QHBoxLayout(linec)

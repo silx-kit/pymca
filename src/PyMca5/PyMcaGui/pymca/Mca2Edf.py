@@ -42,8 +42,7 @@ if __name__== '__main__':
             pass
 from PyMca5.PyMcaGui import PyMcaQt as qt
 QTVERSION = qt.qVersion()
-if QTVERSION >= '4.0.0':
-    qt.Qt.WDestructiveClose = "TO BE DONE"
+qt.Qt.WDestructiveClose = "TO BE DONE"
 from PyMca5.PyMcaGui.io import PyMcaFileDialogs
 from PyMca5.PyMcaGui.plotting.PyMca_Icons import IconDict
 from PyMca5.PyMcaGui.pymca import McaCustomEvent
@@ -478,8 +477,6 @@ def main():
         for i in range(len(filelist)):
             filelist[i]=filelist[i].replace('\n','')
     app=qt.QApplication(sys.argv)
-    winpalette = qt.QPalette(qt.QColor(230,240,249),qt.QColor(238,234,238))
-    app.setPalette(winpalette)
     app.lastWindowClosed.connect(app.quit)
     if len(filelist) == 0:
         w = Mca2EdfGUI(actions=1)

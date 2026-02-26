@@ -112,6 +112,7 @@ class PlotWindow(PlotWidget.PlotWidget):
 
         # activeCurve handling
         self.enableActiveCurveHandling(True)
+        # should be 'black' even in Dark mode
         self.setActiveCurveColor('black')
 
         # default ROI handling
@@ -1506,8 +1507,9 @@ class PlotWindow(PlotWidget.PlotWidget):
         legendList = [] * len(self._curveList)
         for i in range(len(self._curveList)):
             legend = self._curveList[i]
+            _defaultColor = qt.QApplication.instance().palette().color(qt.QPalette.Text).name()
             color = self._curveDict[legend][3].get('plot_color',
-                                                         '#000000')
+                                                         _defaultColor)
             color = qt.QColor(color)
             linewidth = self._curveDict[legend][3].get('plot_line_width',
                                                              2)

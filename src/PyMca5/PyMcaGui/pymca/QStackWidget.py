@@ -141,13 +141,9 @@ class QStackWidget(StackBase.StackBase,
         self.setWindowTitle("PyMCA - ROI Imaging Tool")
         screenHeight = qt.QDesktopWidget().height()
         if screenHeight > 0:
-            if QTVERSION < '4.5.0':
-                self.setMaximumHeight(int(0.99*screenHeight))
             self.setMinimumHeight(int(0.5*screenHeight))
         screenWidth = qt.QDesktopWidget().width()
         if screenWidth > 0:
-            if QTVERSION < '4.5.0':
-                self.setMaximumWidth(int(screenWidth)-5)
             self.setMinimumWidth(min(int(0.5*screenWidth),800))
         self.mainLayout = qt.QVBoxLayout(self)
         self.mainLayout.setContentsMargins(0, 0, 0, 0)
@@ -1539,7 +1535,13 @@ if __name__ == "__main__":
     app = qt.QApplication([])
     if sys.platform not in ["win32", "darwin"]:
         # some themes of Ubuntu 16.04 give black tool tips on black background
-        app.setStyleSheet("QToolTip { color: #000000; background-color: #fff0cd; border: 1px solid black; }")
+        try:
+            _ttp = qt.QApplication.instance().palette()
+            _ttText = _ttp.color(qt.QPalette.ToolTipText).name()
+            _ttBase = _ttp.color(qt.QPalette.ToolTipBase).name()
+            app.setStyleSheet("QToolTip { color: %s; background-color: %s; border: 1px solid %s; }" % (_ttText, _ttBase, _ttText))
+        except Exception:
+            app.setStyleSheet("QToolTip { color: #000000; background-color: #fff0cd; border: 1px solid black; }")
     if backend is not None:
         # set the default backend
         try:

@@ -101,7 +101,7 @@ class McaTable(QTable):
             sigmaarea  = QString("%.2e" % (result[group]['sigmaarea']))
             fields = [ele,group0,fitarea,sigmaarea]
             col = 0
-            color = qt.QColor('white')
+            color = qt.QApplication.instance().palette().color(qt.QPalette.Base)
             nlines = self.rowCount()
             if (line+1) > nlines:
                 self.setRowCount(line+1)
@@ -128,8 +128,7 @@ class McaTable(QTable):
                     #self.setItem(line, col, item)
                 col=col+1
             line += 1
-            #Lemon Chiffon = (255,250,205)
-            color = qt.QColor(255,250,205)
+            color = qt.QApplication.instance().palette().color(qt.QPalette.AlternateBase)
             for peak in result[group]['peaks']:
                 name  = peak
                 energy = QString("%.3f" % (result[group][peak]['energy']))
@@ -247,12 +246,8 @@ class McaTable(QTable):
 
     def gettext(self):
         lemon= ("#%x%x%x" % (255,250,205)).upper()
-        if QTVERSION < '4.0.0':
-            hb = self.horizontalHeader().paletteBackgroundColor()
-            hcolor = ("#%x%x%x" % (hb.red(),hb.green(),hb.blue())).upper()
-        else:
-            _logger.debug("color background to implement")
-            hcolor = ("#%x%x%x" % (230,240,249)).upper()
+        _logger.debug("color background to implement")
+        hcolor = ("#%x%x%x" % (230,240,249)).upper()
         text = ""
         text += ("<nobr>")
         text += ("<table>")

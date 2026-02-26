@@ -90,13 +90,13 @@ class ConcentrationsConversion(object):
             text += "<tr>"
             for l in range(len(labels)):
                 if l < 2:
-                    text += '<td align="left" bgcolor=%s><b>%s</b></td>' %\
+                    text += '<td align="left" bgcolor=%s style="color:#000000"><b>%s</b></td>' %\
                         (hcolor, labels[l])
                 elif l == 2:
-                    text += '<td align="center" bgcolor=%s><b>%s</b></td>' %\
+                    text += '<td align="center" bgcolor=%s style="color:#000000"><b>%s</b></td>' %\
                         (hcolor, labels[l])
                 else:
-                    text += '<td align="right" bgcolor=%s><b>%s</b></td>' %\
+                    text += '<td align="right" bgcolor=%s style="color:#000000"><b>%s</b></td>' %\
                         (hcolor, labels[l])
             text += "</tr>"
             line = 0
@@ -131,9 +131,9 @@ class ConcentrationsConversion(object):
                 i = 0
                 for field in fields:
                     if (i<2):
-                        text += '<td align="left"  bgcolor=%s>%s</td>' % (color, field)
+                        text += '<td align="left"  bgcolor=%s style="color:#000000">%s</td>' % (color, field)
                     else:
-                        text += '<td align="right" bgcolor=%s>%s</td>' % (color, field)
+                        text += '<td align="right" bgcolor=%s style="color:#000000">%s</td>' % (color, field)
                     i += 1
                 text += '</tr>'
                 line += 1

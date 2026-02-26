@@ -29,30 +29,17 @@ __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 from PyMca5.PyMcaGui import PyMcaQt as qt
 QTVERSION = qt.qVersion()
-if QTVERSION < '4.0':
-    QT4 = False
-else:
-    QT4 = True
 
-if QT4:
-    MCAEVENT = qt.QEvent.User
-    #MCAEVENT = 12345
+MCAEVENT = qt.QEvent.User
+#MCAEVENT = 12345
 
-    class McaCustomEvent(qt.QEvent):
-        def __init__(self, ddict={}):
-            self.dict = ddict
-            qt.QEvent.__init__(self, MCAEVENT)
+class McaCustomEvent(qt.QEvent):
+    def __init__(self, ddict={}):
+        self.dict = ddict
+        qt.QEvent.__init__(self, MCAEVENT)
 
-        def type(self):
-            return MCAEVENT
-else:
-    #MCAEVENT = qt.QUserEvent + 1
-    MCAEVENT = 12345
-
-    class McaCustomEvent(qt.QCustomEvent):
-        def __init__(self, dict={}):
-            qt.QCustomEvent.__init__(self, MCAEVENT)
-            self.dict = dict
+    def type(self):
+        return MCAEVENT
 
 
 

@@ -376,6 +376,10 @@ elif BINDING.lower() == 'pyqt6':
             QPalette.Button = QPalette.ColorRole.Button
             QPalette.ButtonText = QPalette.ColorRole.ButtonText
             QPalette.BrightText = QPalette.ColorRole.BrightText
+            QPalette.Highlight = QPalette.ColorRole.Highlight
+            QPalette.Shadow = QPalette.ColorRole.Shadow
+            QPalette.Midlight = QPalette.ColorRole.Midlight
+            QPalette.Link = QPalette.ColorRole.Link
 
         try:
             from silx.gui import qt as SilxQt
@@ -399,6 +403,10 @@ elif BINDING.lower() == 'pyqt6':
                     SilxQt.QPalette.Button = SilxQt.QPalette.ColorRole.Button
                     SilxQt.QPalette.ButtonText = SilxQt.QPalette.ColorRole.ButtonText
                     SilxQt.QPalette.BrightText = SilxQt.QPalette.ColorRole.BrightText
+                    SilxQt.QPalette.Highlight = SilxQt.QPalette.ColorRole.Highlight
+                    SilxQt.QPalette.Shadow = SilxQt.QPalette.ColorRole.Shadow
+                    SilxQt.QPalette.Midlight = SilxQt.QPalette.ColorRole.Midlight
+                    SilxQt.QPalette.Link = SilxQt.QPalette.ColorRole.Link
         except Exception:
             _logger.info("Exception patching silx")
             pass

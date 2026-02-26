@@ -153,7 +153,8 @@ class PeakIdentifier(qt.QWidget):
             value = float(qt.safe_str(qstring))
             self.energyvalue = value
             self.mySlot()
-            self.energy.setPaletteBackgroundColor(qt.Qt.white)
+            self.energy.setPaletteBackgroundColor(
+                qt.QApplication.instance().palette().color(qt.QPalette.Base))
             cursor = self.__browsertext.textCursor()
             cursor.movePosition(qt.QTextCursor.Start)
             self.__browsertext.setTextCursor(cursor)
@@ -217,19 +218,15 @@ class PeakIdentifier(qt.QWidget):
 
     def getHtmlText(self, ddict):
         text  = ""
-        if QTVERSION < '4.0.0':
-            text += "<br>"
         labels=['Element','Line','Energy','Rate']
-        lemmon=("#%x%x%x" % (255,250,205))
-        lemmon = lemmon.upper()
-        hcolor = ("#%x%x%x" % (230,240,249))
-        hcolor = hcolor.upper()
+        lemmon = ("#%x%x%x" % (255,250,205)).upper()
+        hcolor = ("#%x%x%x" % (230,240,249)).upper()
         text+="<CENTER>"
         text+=("<nobr>")
         text+=( "<table WIDTH=80%%>")
         text+=( "<tr>")
         for l in labels:
-            text+=('<td align="left" bgcolor="%s"><b>' % hcolor)
+            text+=('<td align="left" bgcolor="%s" style="color:#000000"><b>' % hcolor)
             text+=l
             text+=("</b></td>")
         text+=("</tr>")
@@ -262,9 +259,9 @@ class PeakIdentifier(qt.QWidget):
                 fields = [name,energy,ratio]
                 for field in fields:
                     if field == name:
-                        text+=('<td align="left"  bgcolor="%s">%s</td>' % (lemmon,field))
+                        text+=('<td align="left"  bgcolor="%s" style="color:#000000">%s</td>' % (lemmon,field))
                     else:
-                        text+=('<td align="right" bgcolor="%s">%s</td>' % (lemmon,field))
+                        text+=('<td align="right" bgcolor="%s" style="color:#000000">%s</td>' % (lemmon,field))
                 text+="</tr>"
         text+=("</table>")
         text+=("</nobr>")
@@ -277,29 +274,28 @@ class MyQLineEdit(qt.QLineEdit):
         self.setAutoFillBackground(True)
 
     def setPaletteBackgroundColor(self, color):
-        palette = qt.QPalette()
+        palette = qt.QPalette(self.palette())
         role = self.backgroundRole()
         palette.setColor(role,color)
         self.setPalette(palette)
 
 
     def focusInEvent(self,event):
-        self.setPaletteBackgroundColor(qt.QColor('yellow'))
+        self.setPaletteBackgroundColor(
+            qt.QApplication.instance().palette().color(qt.QPalette.Midlight))
         # TODO not like focusOutEvent ?
         '''
-        if QTVERSION > '4.0.0':
-            qt.QLineEdit.focusInEvent(self, event)
+        qt.QLineEdit.focusInEvent(self, event)
         '''
 
     def focusOutEvent(self,event):
-        self.setPaletteBackgroundColor(qt.QColor('white'))
+        self.setPaletteBackgroundColor(
+            qt.QApplication.instance().palette().color(qt.QPalette.Base))
         qt.QLineEdit.focusOutEvent(self, event)
 
 def main():
     logging.basicConfig(level=logging.INFO)
     app  = qt.QApplication(sys.argv)
-    winpalette = qt.QPalette(qt.QColor(230,240,249),qt.QColor(238,234,238))
-    app.setPalette(winpalette)
     if len(sys.argv) > 1:
         ene = float(sys.argv[1])
     else:

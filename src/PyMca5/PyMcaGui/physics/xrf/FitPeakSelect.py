@@ -58,31 +58,38 @@ class PeakButton(qt.QPushButton):
         font.setBold(1)
         self.setText(peak)
         self.setFlat(1)
-        if QTVERSION < '4.0.0':
-            self.setToggleButton(0)
         self.setSizePolicy(qt.QSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding))
 
         self.selected= 0
-        self.brush= qt.QBrush(qt.QColor(qt.Qt.yellow))
+        self._selectedColor = qt.QColor(qt.Qt.yellow)
+        self._selectedTextColor = qt.QColor(qt.Qt.black)
+        _palette = qt.QApplication.instance().palette()
+        self._defaultColor = _palette.color(qt.QPalette.Button)
+        self._defaultTextColor = _palette.color(qt.QPalette.ButtonText)
 
         self.clicked.connect(self.clickedSlot)
+        self.__setBrush()
 
     def toggle(self):
         self.selected= not self.selected
-        self.update()
+        self.__setBrush()
 
     def setSelected(self, b):
         self.selected= b
-        if b:
-            role = self.backgroundRole()
-            palette = self.palette()
-            palette.setBrush( role,self.brush)
-            self.setPalette(palette)
+        self.__setBrush()
+
+    def __setBrush(self):
+        _borderColor = qt.QApplication.instance().palette().color(qt.QPalette.Shadow).name()
+        if self.selected:
+            self.setStyleSheet("color: %s; background-color: %s; border-color: %s; border-style: outset; border-width: 1px; " % \
+                               (self._selectedTextColor.name(), self._selectedColor.name(), _borderColor))
         else:
-            role = self.backgroundRole()
-            palette = self.palette()
-            palette.setBrush( role, qt.QBrush())
-            self.setPalette(palette)
+            self.setStyleSheet("color: %s; background-color: %s; border-color: %s; border-style: outset; border-width: 1px; " % \
+                               (self._defaultTextColor.name(), self._defaultColor.name(), _borderColor))
+        
+        if not self.isEnabled():
+            self.setStyleSheet("color: %s; background-color: %s; border-color: %s; border-style: outset; border-width: 1px; " % \
+                               ('gray', 'lightgray', _borderColor))
         self.update()
 
     def isSelected(self):
@@ -91,29 +98,6 @@ class PeakButton(qt.QPushButton):
     def clickedSlot(self):
         self.toggle()
         self.sigPeakClicked.emit(self.peak)
-
-    def paintEvent(self, pEvent):
-        p = qt.QPainter(self)
-        wr= self.rect()
-        pr= qt.QRect(wr.left()+1, wr.top()+1, wr.width()-2, wr.height()-2)
-        if self.selected:
-            p.fillRect(pr, self.brush)
-        p.setPen(qt.Qt.black)
-        if hasattr(p, "drawRoundRect"):
-            p.drawRoundRect(pr)
-        else:
-            p.drawRoundedRect(pr, 1., 1., qt.Qt.RelativeSize)
-        p.end()
-        qt.QPushButton.paintEvent(self, pEvent)
-
-    def drawButton(self, p):
-        wr= self.rect()
-        pr= qt.QRect(wr.left()+1, wr.top()+1, wr.width()-2, wr.height()-2)
-        if self.selected:
-                p.fillRect(pr, self.brush)
-        qt.QPushButton.drawButtonLabel(self, p)
-        p.setPen(qt.Qt.black)
-        p.drawRoundRect(pr)
 
 class PeakButtonList(qt.QWidget):
     # emitted object is a list
@@ -124,20 +108,17 @@ class PeakButtonList(qt.QWidget):
         qt.QWidget.__init__(self,parent)
         self.peaklist = peaklist
 
-        if QTVERSION < '4.0.0':
-            layout= qt.QHBoxLayout(self, 0, 5)
-        else:
-            layout= qt.QHBoxLayout(self)
-            layout.setContentsMargins(0, 0, 0, 0)
-            layout.setSpacing(5)
-            #, 0, 5)
+        layout= qt.QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(5)
+        #, 0, 5)
 
         layout.addStretch(2)
 
         self.buttondict={}
         for key in peaklist:
             self.buttondict[key] = PeakButton(self, key)
-            layout.addWidget(self.buttondict[key])
+            layout.addWidget(self.buttondict[key], 1)
             self.buttondict[key].sigPeakClicked.connect(self.__selection)
 
         layout.addStretch(1)
@@ -191,7 +172,7 @@ class FitPeakSelect(qt.QWidget):
         hboxLayout.setContentsMargins(0, 0, 0, 0)
         hboxLayout.setSpacing(20)
         hboxLayout.addWidget(qt.HorizontalSpacer(hbox))
-        l1=MyQLabel(hbox, bold=True, color=qt.QColor(0,0,0))
+        l1=MyQLabel(hbox, bold=True, color=qt.QApplication.instance().palette().color(qt.QPalette.Text))
         hboxLayout.addWidget(l1)
 
         self.energyValue = None
@@ -298,7 +279,7 @@ class FitPeakSelect(qt.QWidget):
         self.sigFitPeakSelect.emit((sel))
 
     def elementClicked(self,symbol):
-        if QTVERSION > '4.0.0':symbol = str(symbol)
+        symbol = str(symbol)
         if not (symbol in self.peakdict):
             self.peakdict[symbol] = []
         self.current = symbol
@@ -444,29 +425,19 @@ class MyQLineEdit(qt.QLineEdit):
         qt.QLineEdit.__init__(self,parent,name)
 
     def focusInEvent(self,event):
-        self.setPaletteBackgroundColor(qt.QColor('yellow'))
+        self.setPaletteBackgroundColor(qt.QApplication.instance().palette().color(qt.QPalette.Highlight))
 
     def focusOutEvent(self,event):
-        self.setPaletteBackgroundColor(qt.QColor('white'))
+        self.setPaletteBackgroundColor(qt.QApplication.instance().palette().color(qt.QPalette.Base))
 
 class MyQLabel(qt.QLabel):
-    def __init__(self, parent=None, bold=True, color= qt.Qt.red):
+    def __init__(self, parent=None, bold=True, color=qt.Qt.red):
         qt.QLabel.__init__(self,parent)
-        palette = self.palette()
+        palette = qt.QPalette(self.palette())
         role = self.foregroundRole()
         palette.setColor(role,color)
         self.setPalette(palette)
         self.font().setBold(bold)
-
-
-    if QTVERSION < '4.0.0':
-        def drawContents(self, painter):
-            painter.font().setBold(self.bold)
-            pal =self.palette()
-            pal.setColor(qt.QColorGroup.Foreground,self.color)
-            self.setPalette(pal)
-            qt.QLabel.drawContents(self,painter)
-            painter.font().setBold(0)
 
 if __name__ == "__main__":
     import sys

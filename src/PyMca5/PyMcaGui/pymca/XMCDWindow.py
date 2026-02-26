@@ -1217,9 +1217,9 @@ class XMCDTreeWidget(qt.QTreeWidget):
         self.contextMenu = qt.QMenu("Perform", self)
         self.color = color
         self.colorDict = {
-            groups[0]: qt.QBrush(qt.QColor(220, 220, 255)),
-            groups[1]: qt.QBrush(qt.QColor(255, 210, 210)),
-            "": qt.QBrush(qt.QColor(255, 255, 255)),
+            groups[0]: qt.QBrush(qt.QApplication.instance().palette().color(qt.QPalette.AlternateBase)),
+            groups[1]: qt.QBrush(qt.QApplication.instance().palette().color(qt.QPalette.Midlight)),
+            "": qt.QBrush(qt.QApplication.instance().palette().color(qt.QPalette.Base)),
         }
 
     def sizeHint(self):

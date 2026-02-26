@@ -225,9 +225,11 @@ class RGBCorrelatorWidget(qt.QWidget):
         self.profileButton.setToolTip("Show selected images profile")
         self.currentNanColor = 'black'
         self.nanColorButton = qt.QToolButton(hbox)
+        self.nanColorButton.setAutoFillBackground(True)
         self.nanColorButton.setText('nan')
         self.nanColorButton.setToolTip("Toggle black/white color for 'nan' pixels")
         self.toggleNanColor(initial=True)
+        self.nanColorButton.setFixedHeight(self.loadButton.sizeHint().height())
 
         if TOMOGUI_FLAG:
             self.tomographyButton = qt.QToolButton(hbox)
@@ -236,9 +238,10 @@ class RGBCorrelatorWidget(qt.QWidget):
             self.tomographyButton.setToolTip("Run tomography reconstruction")
             self.tomographyButton.clicked.connect(self._showTomoReconsDialog)
 
-        label1 = MyQLabel(self.labelWidget, color=qt.Qt.black)
+        label1 = MyQLabel(self.labelWidget, color=qt.QApplication.instance().palette().color(qt.QPalette.Text))
         label1.setAlignment(alignment)
         label1.setText("Image Size")
+        # Should be red even in Dark mode
         self.__sizeLabel = MyQLabel(self.labelWidget, bold=True, color=qt.Qt.red)
         self.__sizeLabel.setAlignment(alignment)
         self.__sizeLabel.setText("No image set")
@@ -371,22 +374,15 @@ class RGBCorrelatorWidget(qt.QWidget):
     def toggleNanColor(self, initial=False):
         self.currentNanColor = 'white' if self.currentNanColor == 'black' else 'black'
 
-        bg = self.currentNanColor
-        text = 'red' if bg == 'black' else 'black'
-        hover = '#333' if bg == 'black' else '#ddd'
+        bg = qt.QColor(self.currentNanColor)
+        text = qt.QColor(qt.Qt.red) if self.currentNanColor == 'black' else qt.QColor(qt.Qt.black)
 
-        self.nanColorButton.setStyleSheet(f"""
-            QToolButton {{
-                background-color: {bg};
-                color: {text};
-                border-radius: 4px;
-                padding: 3px;
-                border: 1px solid #ccc;
-            }}
-            QToolButton:hover {{
-                background-color: {hover};
-            }}
-        """)
+        palette = qt.QPalette(self.nanColorButton.palette())
+        palette.setColor(qt.QPalette.Button, bg)
+        palette.setColor(qt.QPalette.ButtonText, text)
+        palette.setColor(qt.QPalette.Window, bg)
+        palette.setColor(qt.QPalette.Text, text)
+        self.nanColorButton.setPalette(palette)
         if not initial:
             if self.__imageLength is not None:
                 self.update()
@@ -1671,7 +1667,7 @@ class ImageShapeDialog(qt.QDialog):
     def __init__(self, parent=None, shape=None):
         qt.QDialog.__init__(self, parent)
         self.mainLayout = qt.QGridLayout(self)
-        label1 = MyQLabel(self, bold=False, color=qt.Qt.black)
+        label1 = MyQLabel(self, bold=False, color=qt.QApplication.instance().palette().color(qt.QPalette.Text))
         label1.setText("Number of rows    = ")
         self.rows = qt.QLineEdit(self)
         self._size = None
@@ -1681,11 +1677,8 @@ class ImageShapeDialog(qt.QDialog):
             self.columns.setText("%g" % shape[1])
             self._size = shape[0] * shape[1]
             self._shape = shape
-            if QTVERSION < "4.0.0":
-                self.setCaption("Resize %d x %d image" % (shape[0], shape[1]))
-            else:
-                self.setWindowTitle("Reshape %d x %d image" % (shape[0], shape[1]))
-        label2 = MyQLabel(self, bold=False, color=qt.Qt.black)
+            self.setWindowTitle("Reshape %d x %d image" % (shape[0], shape[1]))
+        label2 = MyQLabel(self, bold=False, color=qt.QApplication.instance().palette().color(qt.QPalette.Text))
         label2.setText("Number of columns = ")
         self.cancelButton = qt.QPushButton(self)
         self.cancelButton.setText("Dismiss")
@@ -1759,13 +1752,15 @@ class ImageShapeDialog(qt.QDialog):
 
 
 class MyQLabel(qt.QLabel):
-    def __init__(self, parent=None, name=None, fl=0, bold=True, color=qt.Qt.red):
+    def __init__(self, parent=None, name=None, fl=0, bold=True, color=None):
         qt.QLabel.__init__(self, parent)
+        if color is None:
+            color = qt.QApplication.instance().palette().color(qt.QPalette.Text)
         if qt.qVersion() < "4.0.0":
             self.color = color
             self.bold = bold
         else:
-            palette = self.palette()
+            palette = qt.QPalette(self.palette())
             role = self.foregroundRole()
             palette.setColor(role, color)
             self.setPalette(palette)

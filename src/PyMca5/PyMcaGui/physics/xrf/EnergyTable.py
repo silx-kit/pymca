@@ -2,7 +2,7 @@
 #
 # The PyMca X-Ray Fluorescence Toolkit
 #
-# Copyright (c) 2004-2025 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2026 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF.
@@ -290,7 +290,8 @@ class EnergyTable(QTable):
         if weightlist is  None:weightlist  =[]
         if flaglist   is  None:flaglist  =[]
         if scatterlist   is  None:scatterlist  = []
-        if scattercolor is None: scattercolor = qt.QColor(255, 20, 147)
+        if scattercolor is None: 
+            scattercolor = qt.QColor(255, 20, 147)
         if offset is None:offset = 0
         self.energyList  = energylist
         self.weightList  = weightlist
@@ -298,43 +299,33 @@ class EnergyTable(QTable):
         self.offset      = offset
         self.scatterList = scatterlist
         self._scatterColor = scattercolor
+        self._textBackgroundColor = \
+            qt.QApplication.instance().palette().color(qt.QPalette.Base)
+
         self.verticalHeader().hide()
         self.dataColumns = 30
-        if QTVERSION < '4.0.0':
-            self.setLeftMargin(0)
-            self.setFrameShape(qttable.QTable.NoFrame)
-            #self.setFrameShadow(qttable.QTable.Sunken)
-            self.setSelectionMode(qttable.QTable.Single)
-            self.setNumCols(3 * self.dataColumns)
-            self.setFocusStyle(qttable.QTable.FollowStyle)
-        else:
-            _logger.debug("margin\n"
-                          "frame shape\n"
-                          "selection mode\n"
-                          "focus style\n"
-                          "all of them missing")
-            self.setColumnCount(3 * self.dataColumns)
+        _logger.debug("margin\n"
+                      "frame shape\n"
+                      "selection mode\n"
+                      "focus style\n"
+                      "all of them missing")
+        self.setColumnCount(3 * self.dataColumns)
 
         labels = []
         for i in range(self.dataColumns):
             labels.append("Use")
             labels.append("Energy")
             labels.append("Weight")
-        if QTVERSION < '4.0.0':
-            for i in range(len(labels)):
-                label = labels[i]
-                self.horizontalHeader().setLabel(i, label)
-        else:
-            _logger.debug("margin to adjust")
-            _logger.debug("focus style")
-            self.setFrameShape(qt.QTableWidget.NoFrame)
-            self.setSelectionMode(qt.QTableWidget.NoSelection)
-            self.setColumnCount(len(labels))
-            for i in range(len(labels)):
-                item = self.horizontalHeaderItem(i)
-                if item is None:
-                    item = qt.QTableWidgetItem(labels[i],qt.QTableWidgetItem.Type)
-                self.setHorizontalHeaderItem(i,item)
+        _logger.debug("margin to adjust")
+        _logger.debug("focus style")
+        self.setFrameShape(qt.QTableWidget.NoFrame)
+        self.setSelectionMode(qt.QTableWidget.NoSelection)
+        self.setColumnCount(len(labels))
+        for i in range(len(labels)):
+            item = self.horizontalHeaderItem(i)
+            if item is None:
+                item = qt.QTableWidgetItem(labels[i],qt.QTableWidgetItem.Type)
+            self.setHorizontalHeaderItem(i,item)
 
         self.__rows = 20
         self.__build(self.dataColumns * 20)
@@ -360,21 +351,17 @@ class EnergyTable(QTable):
         if oldcolor != self._scatterColor:
             item.setColor(self._scatterColor)
         else:
-            item.setColor(qt.QColor(255, 255, 255))
+            item.setColor(self._textBackgroundColor)
         item.repaint(item.rect())
         self.cellChanged.emit(row, col)
 
     def __build(self,nrows=None):
         #self.setNumRows(int(nrows/2))
         if nrows is None: nrows = self.__rows *self.dataColumns
-        if QTVERSION < '4.0.0':
-            self.setNumRows(int(nrows/self.dataColumns))
-        else:
-            self.setRowCount(int(nrows/self.dataColumns))
-        if QTVERSION > '4.0.0':
-            rheight = self.horizontalHeader().sizeHint().height()
-            for idx in range(self.rowCount()):
-                self.setRowHeight(idx, rheight)
+        self.setRowCount(int(nrows/self.dataColumns))
+        rheight = self.horizontalHeader().sizeHint().height()
+        for idx in range(self.rowCount()):
+            self.setRowHeight(idx, rheight)
 
         coloffset = 0
         rowoffset = 0
@@ -384,7 +371,7 @@ class EnergyTable(QTable):
                 rowoffset= (-int(idx/self.__rows))*(nrows //self.dataColumns)
                 coloffset=  3*int(idx/self.__rows)
             r = idx + rowoffset
-            color = qt.QColor(255, 255, 255)
+            color = self._textBackgroundColor
             if len(self.scatterList):
                 if idx < len(self.scatterList):
                     if (self.scatterList[idx] is not None)and \
@@ -393,25 +380,19 @@ class EnergyTable(QTable):
                             color = self._scatterColor
             elif idx == 0:
                 color = self._scatterColor
-            if QTVERSION < '4.0.0':
-                #item= qttable.QCheckTableItem(self, text)
-                self.viewport().setPaletteBackgroundColor(color)
+            item = self.cellWidget(r, 0+coloffset)
+            if item is None:
                 item= ColorQTableItem(self, text, color)
-                self.setItem(r, 0+coloffset, item)
+                self.setCellWidget(r, 0+coloffset, item)
+                item.stateChanged[int].connect(self._itemSlot)
+                if hasattr(item, "setToolTip"):
+                    item.setToolTip("Double click on empty space at the end to toggle inclusion as scatter peak (different color)")
             else:
-                item = self.cellWidget(r, 0+coloffset)
-                if item is None:
-                    item= ColorQTableItem(self, text, color)
-                    self.setCellWidget(r, 0+coloffset, item)
-                    item.stateChanged[int].connect(self._itemSlot)
-                    if hasattr(item, "setToolTip"):
-                        item.setToolTip("Double click on empty space at the end to toggle inclusion as scatter peak (different color)")
-                else:
-                    item.setText(text)
-                oldcolor = item.color
-                if color != oldcolor:
-                    item.setColor(color)
-                    item.repaint(item.rect())
+                item.setText(text)
+            oldcolor = item.color
+            if color != oldcolor:
+                item.setColor(color)
+                item.repaint(item.rect())
             if idx < len(self.energyList):
                 item.setChecked(self.flagList[idx])
                 if (self.energyList[idx] is not None) and \
@@ -464,10 +445,7 @@ class EnergyTable(QTable):
         self.__fillTable()
 
     def getParameters(self):
-        if QTVERSION < '4.0.0':
-            nrows = self.numRows()*self.dataColumns
-        else:
-            nrows = self.rowCount() * self.dataColumns
+        nrows = self.rowCount() * self.dataColumns
         coloffset   = 0
         rowoffset   = 0
         energyList  = []
@@ -479,16 +457,12 @@ class EnergyTable(QTable):
                 rowoffset= (-int(idx/self.__rows)) * (nrows//self.dataColumns)
                 coloffset=  3 * int(idx/self.__rows)
             r = idx + rowoffset
-            if QTVERSION < '4.0.0':
-                item = self.item(r,0+coloffset)
-                energyflag = int(item.isChecked())
+            item = self.cellWidget(r,0+coloffset)
+            if item is None:
+                #this should never happen
+                continue
             else:
-                item = self.cellWidget(r,0+coloffset)
-                if item is None:
-                    #this should never happen
-                    continue
-                else:
-                    energyflag = int(item.isChecked())
+                energyflag = int(item.isChecked())
             if item.color != self._scatterColor:
                 scatterflag = 0
             else:
@@ -526,10 +500,7 @@ class EnergyTable(QTable):
         try:
             self.__build(max(self.__rows*self.dataColumns,len(self.energyList)))
             for i in range(self.dataColumns):
-                if QTVERSION < '4.0.0':
-                    self.adjustColumn(0 + 3*i)
-                else:
-                    _logger.debug("column adjustment missing")
+                _logger.debug("column adjustment missing")
         except Exception:
             self.__disconnected = False
             raise
@@ -632,26 +603,30 @@ class EnergyTable(QTable):
         return ddict
 
 class ColorQTableItem(qt.QCheckBox):
-         def __init__(self, table, text, color=qt.QColor(255, 255, 255), bold=0):
+        def __init__(self, table, text, color=None, bold=0):
             qt.QCheckBox.__init__(self, table)
+            _palette = qt.QApplication.instance().palette()
+            self._textColor = _palette.color(qt.QPalette.Text)
+            self._backgroundColor = _palette.color(qt.QPalette.Base)
+            self._selectedTextColor = qt.QColor(qt.Qt.black)
+            self._selectedBackgroundColor = qt.QColor(255, 20, 147)
+
+            if color is None:
+                color = self._backgroundColor
             self.setColor(color)
             self.bold  = bold
             self.setText(text)
             #this is one critical line
             self.setAutoFillBackground(1)
 
-         def setColor(self, color):
-             self.color = color
-             if hasattr(color, "name"):
-                 self.setStyleSheet("background-color: %s" % color.name())
-
-         def paintEvent(self, painter):
-            #this is the other (self.palette() is not appropriate)
-            palette = qt.QPalette()
-            role = self.backgroundRole()
-            palette.setColor(role, self.color)
-            self.setPalette(palette)
-            return qt.QCheckBox.paintEvent(self, painter)
+        def setColor(self, color):
+            self.color = color
+            if color == self._backgroundColor:
+                self.setStyleSheet("color: %s; background-color: %s" % \
+                    (self._textColor.name(), self._backgroundColor.name()))
+            else:
+                self.setStyleSheet("color: %s; background-color: %s" % \
+                    (self._selectedTextColor.name(),  self._selectedBackgroundColor.name()))
 
 def main(args):
     app=qt.QApplication(args)

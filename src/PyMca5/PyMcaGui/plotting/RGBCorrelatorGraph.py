@@ -699,7 +699,7 @@ class RGBCorrelatorGraph(qt.QWidget):
 class MyQLabel(qt.QLabel):
     def __init__(self,parent=None,name=None,fl=0,bold=True, color= qt.Qt.red):
         qt.QLabel.__init__(self,parent)
-        palette = self.palette()
+        palette = qt.QPalette(self.palette())
         role = self.foregroundRole()
         palette.setColor(role,color)
         self.setPalette(palette)

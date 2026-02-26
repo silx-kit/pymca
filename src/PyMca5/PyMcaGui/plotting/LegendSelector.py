@@ -305,13 +305,13 @@ class LegendModel(qt.QAbstractListModel):
         elif role == qt.Qt.BackgroundRole:
             # Background color, must be QBrush
             if idx%2:
-                brush = qt.QBrush(qt.QColor(240,240,240))
+                brush = qt.QBrush(qt.QApplication.instance().palette().color(qt.QPalette.AlternateBase))
             else:
-                brush = qt.QBrush(qt.Qt.white)
+                brush = qt.QBrush(qt.QApplication.instance().palette().color(qt.QPalette.Base))
             return brush
         elif role == qt.Qt.ForegroundRole:
             # ForegroundRole color, must be QBrush
-            brush = qt.QBrush(qt.Qt.blue)
+            brush = qt.QBrush(qt.QApplication.instance().palette().color(qt.QPalette.Link))
             return brush
         elif role == qt.Qt.CheckStateRole:
             return item[2] == True

@@ -229,7 +229,8 @@ class ElementsInfo(qt.QWidget):
                 self.energyValue = value
                 Elements.updateDict(energy=value)
             self._updateCallback()
-            self.energy.setPaletteBackgroundColor(qt.QColor('white'))
+            self.energy.setPaletteBackgroundColor(
+                qt.QApplication.instance().palette().color(qt.QPalette.Base))
             self.infoWidget.setFocus()
         else:
             self.energyValue = None
@@ -270,24 +271,24 @@ class MyQLineEdit(qt.QLineEdit):
         qt.QLineEdit.__init__(self,parent)
 
     def setPaletteBackgroundColor(self, color):
-        palette = self.palette()
+        palette = qt.QPalette(self.palette())
         role = self.backgroundRole()
         palette.setColor(role,color)
         self.setPalette(palette)
 
     def focusInEvent(self,event):
-        self.setPaletteBackgroundColor(qt.QColor('yellow'))
+        self.setPaletteBackgroundColor(
+            qt.QApplication.instance().palette().color(qt.QPalette.Highlight))
 
 
     def focusOutEvent(self,event):
-        self.setPaletteBackgroundColor(qt.QColor('white'))
+        self.setPaletteBackgroundColor(
+            qt.QApplication.instance().palette().color(qt.QPalette.Base))
         self.sigFocusOut.emit()
 
 def main():
     logging.basicConfig(level=logging.INFO)
     app  = qt.QApplication([])
-    winpalette = qt.QPalette(qt.QColor(230,240,249),qt.QColor(238,234,238))
-    app.setPalette(winpalette)
     w= ElementsInfo()
     w.show()
     app.exec()

@@ -318,7 +318,10 @@ class H5NodeProxy(object):
 
             self._hasChildren = is_group(node)
             #self._attrs = []
-            self._color = qt.QColor(qt.Qt.black)
+            # get the default text foreground color
+            foregroundTextColor = qt.QApplication.instance().palette().color(qt.QPalette.Text)
+            NXdataColor = qt.QApplication.instance().palette().color(qt.QPalette.BrightText)
+            self._color = qt.QColor(foregroundTextColor)
             if hasattr(node, 'attrs'):
                 attrs = list(node.attrs)
                 for cname in ['class', 'NX_class']:
@@ -332,9 +335,9 @@ class H5NodeProxy(object):
                             _type = "%s" % nodeattr
                         self._type = _type
                         if _type in ["NXdata"]:
-                            self._color = qt.QColor(qt.Qt.blue)
+                            self._color = NXdataColor
                         elif ("default" in attrs):
-                            self._color = qt.QColor(qt.Qt.blue)
+                            self._color = NXdataColor
                         #self._attrs = attrs
                         break
                         #self._type = _type[2].upper() + _type[3:]
@@ -512,7 +515,7 @@ class FileModel(qt.QAbstractItemModel):
             elif role == qt.Qt.ToolTipRole:
                 item = self.getProxyFromIndex(index)
                 if hasattr(item, "color"):
-                    if item.color == qt.Qt.blue:
+                    if item.color == qt.QApplication.instance().palette().color(qt.QPalette.BrightText) or item.color == qt.Qt.blue:
                         return MyQVariant("Item has a double click NXdata associated action")
             return MyQVariant()
         except Exception:

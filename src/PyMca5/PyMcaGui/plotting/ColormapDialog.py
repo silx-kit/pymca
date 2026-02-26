@@ -352,10 +352,7 @@ class ColormapDialog(qt.QDialog):
     """
     def setColormap(self, colormap):
         self.colormapIndex = colormap
-        if QTVERSION < '4.0.0':
-            self.combo.setCurrentItem(colormap)
-        else:
-            self.combo.setCurrentIndex(colormap)
+        self.combo.setCurrentIndex(colormap)
 
     def colormapChange(self, colormap):
         self.colormapIndex = colormap

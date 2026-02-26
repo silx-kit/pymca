@@ -386,8 +386,6 @@ if __name__ == "__main__":
             filelist[i]=filelist[i].replace('\n','')
 
     app=qt.QApplication(sys.argv)
-    winpalette = qt.QPalette(qt.QColor(230,240,249),qt.QColor(238,234,238))
-    app.setPalette(winpalette)
     app.lastWindowClosed.conenct(app.quit)
     if len(filelist) == 0:
         w = Fit2SpecGUI(actions=1)

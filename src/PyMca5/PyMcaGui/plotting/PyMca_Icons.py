@@ -29,6 +29,7 @@ __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 
 import logging
+import re
 import sys
 
 if sys.version_info < (3, ):
@@ -3734,6 +3735,71 @@ TRANSLATION_TABLE = {
     }
 
 
+DARK_MODE_TABLE = [
+    "average16", "derive", "fit", "logx", "logy", "normal",
+    "normalize16", "peak", "peakreset", "peaksearch", "roi",
+    "roireset", "rotate_left", "rotate_right", "smooth",
+    "xauto", "yauto", "ymintozero", "filesave", "swapsign"
+]
+
+
+def _parse_xpm_color(color_spec):
+    """Parse an XPM color specification into an (r, g, b) tuple.
+
+    Returns None if color is unknown.
+    """
+    spec = color_spec.strip()
+    lower = spec.lower()
+    if lower == 'none':
+        return None
+    if spec.startswith('#'):
+        h = spec[1:]
+        # hex colors
+        if len(h) == 6:
+            return (int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16))
+        # short hex colors
+        if len(h) == 3:
+            return (int(h[0], 16) * 17, int(h[1], 16) * 17,
+                    int(h[2], 16) * 17)
+    # named colors, no reason to check red, yellow, etc as they are saturated
+    if lower == "black":
+        return (0, 0, 0)
+    elif lower == "white":
+        return (255, 255, 255)
+    else:
+        return None
+
+
+def _to_reverse_color(r, g, b):
+    """Return True if the color need to be reversed for dark mode.
+    """
+    # not to reverse saturated colours
+    if (max(r, g, b) - min(r, g, b)) > 40:
+        return False
+    # one can check (r + g + b) < 3*128 but then outlines could look bad
+    return True
+
+
+def _adapt_xpm_for_dark_mode(xpm_data):
+    """Return a copy of *xpm_data* with some colours inverted.
+
+    """
+    result = list(xpm_data)
+    xpm_info = result[0].split()
+    number_of_colors = int(xpm_info[2])
+    for i in range(1, 1 + number_of_colors):
+        symbol = result[i].split(" c ")[0]
+        rgb_raw = result[i].split(" c ")[1]
+        rgb = _parse_xpm_color(rgb_raw)
+        if rgb is None:
+            continue
+        r, g, b = _parse_xpm_color(rgb_raw)
+        if _to_reverse_color(r, g, b):
+            result[i] = "%s c #%02x%02x%02x" \
+            % (symbol, 255 - r, 255 - g, 255 - b)
+    return result
+
+
 class _PatchedIconDict(MutableMapping):
     """IconDict that patches some legacy icons with new
     silx icons, when available.
@@ -3749,6 +3815,7 @@ class _PatchedIconDict(MutableMapping):
     def __init__(self, *args, **kw):
         self._unpatched_icons = dict(*args, **kw)
         self.__initialized = False
+        self._dark = {}
 
     def __iter__(self):
         for key in self._unpatched_icons:
@@ -3778,6 +3845,19 @@ class _PatchedIconDict(MutableMapping):
 
         if key not in self._unpatched_icons:
             raise KeyError("Unknown icon '%s'" % key)
+                    
+        # even if it is dark mode but text is not white then black can probably be used
+        if self._qt.QApplication.instance().palette().color(self._qt.QPalette.Window).lightness() < 130:
+            from PyMca5.PyMcaGui.plotting.Silx_Icons import IconDict as _silx_xpm
+            if key in DARK_MODE_TABLE:
+                silx_key = TRANSLATION_TABLE.get(key)
+                if silx_key:
+                    xpm = _silx_xpm.get(silx_key)
+                else:
+                    xpm = self._unpatched_icons.get(key)
+                self._dark[key] = _adapt_xpm_for_dark_mode(xpm)
+                return self._dark[key]
+
 
         if key not in TRANSLATION_TABLE:
             _logger.debug("Using legacy icon '%s' because there is no "
@@ -3825,7 +3905,7 @@ class _PatchedIconDict(MutableMapping):
 
 
 IconDict = _PatchedIconDict(IconDict0)
-
+# IconDict = IconDict0
 
 def change_icons(plot):
     """Replace some of the silx icons with PyMca icons.

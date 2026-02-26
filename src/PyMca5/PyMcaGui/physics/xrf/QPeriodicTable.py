@@ -2,7 +2,7 @@
 #
 # The PyMca X-Ray Fluorescence Toolkit
 #
-# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2026 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF.
@@ -173,13 +173,17 @@ class ElementButton(qt.QPushButton):
 
         self.selected= 0
         self.current= 0
-        self.colors= [ qt.QColor(qt.Qt.yellow),
-                       qt.QColor(qt.Qt.darkYellow),
-                       qt.QColor(qt.Qt.gray) ]
+        self.colors= [ qt.QColor(qt.Qt.yellow),      # selected, not current
+                       qt.QColor(qt.Qt.darkYellow),   # current + selected
+                       qt.QColor(qt.Qt.gray),          # current, not selected
+                       qt.QApplication.instance().palette().color(qt.QPalette.Button),  # default
+                       ]
+        self._textColor = qt.QApplication.instance().palette().color(qt.QPalette.ButtonText)
+        self._selectedTextColor = qt.QColor(qt.Qt.black)
 
-        self.brush= qt.QBrush()
-
+        self.brush = qt.QBrush()
         self.clicked.connect(self.clickedSlot)
+        self.__setBrush()
 
     def sizeHint(self):
         return qt.QSize(40, 40)
@@ -199,40 +203,21 @@ class ElementButton(qt.QPushButton):
         self.__setBrush()
 
     def __setBrush(self):
-        role = self.backgroundRole()
-        palette = self.palette()
+        
+        _borderColor = qt.QApplication.instance().palette().color(qt.QPalette.Shadow).name()
         if self.current and self.selected:
-            self.brush= qt.QBrush(self.colors[1])
+            self.setStyleSheet("color: %s; background-color: %s; border-color: %s; border-style: outset; border-width: 1px" % \
+                               (self._selectedTextColor.name(), self.colors[1].name(), _borderColor))
         elif self.selected:
-            self.brush= qt.QBrush(self.colors[0])
+            self.setStyleSheet("color: %s; background-color: %s; border-color: %s; border-style: outset; border-width: 1px" % \
+                               (self._selectedTextColor.name(), self.colors[0].name(), _borderColor))
         elif self.current:
-            self.brush= qt.QBrush(self.colors[2])
+            self.setStyleSheet("color: %s; background-color: %s; border-color: %s; border-style: outset; border-width: 1px" % \
+                               (self._selectedTextColor.name(), self.colors[2].name(), _borderColor))
         else:
-            self.brush= qt.QBrush()
-        palette.setBrush( role,self.brush)
+            self.setStyleSheet("color: %s; background-color: %s; border-color: %s; border-style: outset; border-width: 1px" % \
+                               (self._textColor.name(), self.colors[3].name(), _borderColor))
         self.update()
-
-
-    def paintEvent(self, pEvent):
-        p = qt.QPainter(self)
-        wr= self.rect()
-        pr= qt.QRect(wr.left()+1, wr.top()+1, wr.width()-2, wr.height()-2)
-        if self.brush is not None:
-            p.fillRect(pr, self.brush)
-        p.setPen(qt.Qt.black)
-        p.drawRect(pr)
-        p.end()
-        qt.QPushButton.paintEvent(self, pEvent)
-
-    def drawButton(self, p):
-        #Qt 2 and Qt3
-        wr= self.rect()
-        pr= qt.QRect(wr.left()+1, wr.top()+1, wr.width()-2, wr.height()-2)
-        if self.brush is not None:
-            p.fillRect(pr, self.brush)
-        qt.QPushButton.drawButtonLabel(self, p)
-        p.setPen(qt.Qt.black)
-        p.drawRect(pr)
 
     def enterEvent(self, e):
         self.sigElementEnter.emit((self.symbol, self.Z, self.name))
@@ -503,10 +488,6 @@ class QPeriodicList(qt.QTreeWidget):
             #return self.selectedItems()
 
     #TODO: Implement this in Qt4
-    if QTVERSION < "4.0.0":
-        def setSelection(self, symbolList):
-            for idx in range(len(self.items)):
-                    self.items[idx].setSelected(Elements[idx][0] in symbolList)
 
 
 def testwidget():

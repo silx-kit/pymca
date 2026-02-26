@@ -40,10 +40,9 @@ _logger = logging.getLogger(__name__)
 SOURCE_TYPE = 'SPS'
 SCAN_MODE = True
 
-if QTVERSION > '4.0.0':
-    class QGridLayout(qt.QGridLayout):
-        def addMultiCellWidget(self, w, r0, r1, c0, c1, *var):
-            self.addWidget(w, r0, c0, 1 + r1 - r0, 1 + c1 - c0)
+class QGridLayout(qt.QGridLayout):
+    def addMultiCellWidget(self, w, r0, r1, c0, c1, *var):
+        self.addWidget(w, r0, c0, 1 + r1 - r0, 1 + c1 - c0)
 
 class SPSFramesMcaWidget(qt.QWidget):
     def __init__(self, parent=None):
@@ -170,13 +169,9 @@ class SPSScanArrayWidget(SpecFileCntTable.SpecFileCntTable):
 
 class SPSMcaArrayWidget(qt.QWidget):
     def __init__(self, parent=None, name="SPS_MCA_DATA", fl=0, title="MCA", size=(0,8192)):
-        if QTVERSION < '4.0.0':
-            qt.QWidget.__init__(self, parent, name, fl)
-            layout= qt.QGridLayout(self, 5, 2)
-        else:
-            qt.QWidget.__init__(self, parent)
-            self.setWindowTitle(name)
-            layout= QGridLayout(self)
+        qt.QWidget.__init__(self, parent)
+        self.setWindowTitle(name)
+        layout= QGridLayout(self)
         layout.setContentsMargins(5, 5, 5, 5)
         layout.setSpacing(0)
 
@@ -184,13 +179,9 @@ class SPSMcaArrayWidget(qt.QWidget):
         font= self.title.font()
         font.setBold(1)
         self.title.setFont(font)
-        if QTVERSION < '4.0.0':
-            layout.addMultiCellWidget(self.title, 0, 0, 0, 1, qt.Qt.AlignCenter)
-            layout.addRowSpacing(0, 40)
-        else:
-            #layout.addMultiCellWidget(self.title, 0, 0, 0, 1, qt.Qt.AlignCenter)
-            layout.addWidget(self.title, 0, 0)
-            layout.setAlignment(self.title, qt.Qt.AlignCenter)
+        #layout.addMultiCellWidget(self.title, 0, 0, 0, 1, qt.Qt.AlignCenter)
+        layout.addWidget(self.title, 0, 0)
+        layout.setAlignment(self.title, qt.Qt.AlignCenter)
         self.setTitle(title)
 
     def setInfo(self, info):
@@ -214,12 +205,8 @@ class SPSMcaArrayWidget(qt.QWidget):
 
 class SPSXiaArrayWidget(qt.QWidget):
     def __init__(self, parent=None, name="SPS_XIA_DATA", fl=0, title="XIA", size=(0,8192)):
-        if QTVERSION < '4.0.0':
-            qt.QWidget.__init__(self, parent, name, fl)
-            layout= qt.QGridLayout(self, 2, 1)
-        else:
-            qt.QWidget.__init__(self, parent)
-            layout= qt.QGridLayout(self)
+        qt.QWidget.__init__(self, parent)
+        layout= qt.QGridLayout(self)
         layout.setContentsMargins(5, 5, 5, 5)
         layout.setSpacing(0)
 
@@ -229,22 +216,14 @@ class SPSXiaArrayWidget(qt.QWidget):
         self.title.setFont(font)
         self.title.setText(title)
 
-        if QTVERSION < '4.0.0':
-            self.detList= qt.QListBox(self)
-            self.detList.setSelectionMode(qt.QListBox.Multi)
+        self.detList= qt.QListWidget(self)
+        self.detList.setSelectionMode(qt.QAbstractItemView.ExtendedSelection)
 
-            layout.addWidget(self.title, 0, 0, qt.Qt.AlignCenter)
-            layout.addRowSpacing(0, 40)
-            layout.addWidget(self.detList, 1, 0)
-        else:
-            self.detList= qt.QListWidget(self)
-            self.detList.setSelectionMode(qt.QAbstractItemView.ExtendedSelection)
-
-            layout.addWidget(self.title, 0, 0)
-            layout.setAlignment(self.title, qt.Qt.AlignCenter)
-            ##layout.addRowSpacing(0, 40)
-            _logger.debug("row spacing")
-            layout.addWidget(self.detList, 1, 0)
+        layout.addWidget(self.title, 0, 0)
+        layout.setAlignment(self.title, qt.Qt.AlignCenter)
+        ##layout.addRowSpacing(0, 40)
+        _logger.debug("row spacing")
+        layout.addWidget(self.detList, 1, 0)
 
     def setTitle(self, title):
         self.title.setText("%s"%title)
@@ -261,33 +240,22 @@ class SPSXiaArrayWidget(qt.QWidget):
             dets= range(self.rows)
 
         self.detList.clear()
-        if QTVERSION < '4.0.0':
-            for idx in range(1, self.rows):
-                self.detList.insertItem("Detector %d"%dets[idx-1])
-        else:
-            for idx in range(1, self.rows):
-                self.detList.addItem("Detector %d"%dets[idx-1])
+        for idx in range(1, self.rows):
+            self.detList.addItem("Detector %d"%dets[idx-1])
 
     def getSelection(self):
         selection= []
-        if QTVERSION < '4.0.0':
-            ylist= [ (idx+1) for idx in range(self.detList.count()) if self.detList.isSelected(idx) ]
-        else:
-            itemlist = self.detList.selectedItems()
-            ylist = [int(str(item.text()).split()[-1]) for item in itemlist]
+        itemlist = self.detList.selectedItems()
+        ylist = [int(str(item.text()).split()[-1]) for item in itemlist]
         for y in ylist:
             selection.append({"plot":"XIA", "x":0, "y":y})
         return selection
 
 class SPS_ImageArray(qt.QWidget):
     def __init__(self, parent=None, name="SPS_ImageArray", fl=0, title="MCA", size=(0,8192)):
-        if QTVERSION < '4.0.0':
-            qt.QWidget.__init__(self, parent, name, fl)
-            layout= qt.QGridLayout(self, 5, 2)
-        else:
-            qt.QWidget.__init__(self, parent)
-            self.setWindowTitle(name)
-            layout= QGridLayout(self)
+        qt.QWidget.__init__(self, parent)
+        self.setWindowTitle(name)
+        layout= QGridLayout(self)
         layout.setContentsMargins(5, 5, 5, 5)
         layout.setSpacing(0)
 
@@ -295,13 +263,9 @@ class SPS_ImageArray(qt.QWidget):
         font= self.title.font()
         font.setBold(1)
         self.title.setFont(font)
-        if QTVERSION < '4.0.0':
-            layout.addMultiCellWidget(self.title, 0, 0, 0, 1, qt.Qt.AlignCenter)
-            layout.addRowSpacing(0, 40)
-        else:
-            #layout.addMultiCellWidget(self.title, 0, 0, 0, 1, qt.Qt.AlignCenter)
-            layout.addWidget(self.title, 0, 0)
-            layout.setAlignment(self.title, qt.Qt.AlignCenter)
+        #layout.addMultiCellWidget(self.title, 0, 0, 0, 1, qt.Qt.AlignCenter)
+        layout.addWidget(self.title, 0, 0)
+        layout.setAlignment(self.title, qt.Qt.AlignCenter)
         self.setTitle(title)
 
     def setInfo(self, info):
@@ -328,12 +292,8 @@ class SPS_ImageArray(qt.QWidget):
 
 class SPS_StandardArray(qt.QWidget):
     def __init__(self, parent=None, name="SPS_StandardArray", fl=0, rows=0, cols=0):
-        if QTVERSION < '4.0.0':
-            qt.QWidget.__init__(self, parent, name, fl)
-            layout= qt.QGridLayout(self, 4, 2)
-        else:
-            qt.QWidget.__init__(self, parent)
-            layout= qt.QGridLayout(self)
+        qt.QWidget.__init__(self, parent)
+        layout= qt.QGridLayout(self)
         layout.setContentsMargins(5, 5, 5, 5)
         layout.setSpacing(0)
 
@@ -347,12 +307,8 @@ class SPS_StandardArray(qt.QWidget):
 
         self.plotCombo= qt.QComboBox(self)
         self.plotCombo.setEditable(0)
-        if QTVERSION < '4.0.0':
-            self.plotCombo.insertItem("Rows")
-            self.plotCombo.insertItem("Columns")
-        else:
-            self.plotCombo.addItem("Rows")
-            self.plotCombo.addItem("Columns")
+        self.plotCombo.addItem("Rows")
+        self.plotCombo.addItem("Columns")
 
         self.xCombo= qt.QComboBox(self)
         self.xCombo.setEditable(0)
@@ -384,49 +340,30 @@ class SPS_StandardArray(qt.QWidget):
             txt= "Row"
             val= self.rows
         self.xCombo.clear()
-        if QTVERSION < '4.0.0':
-            self.xCombo.insertItem("Array Index")
-            self.yList.clear()
-            for x in range(val):
-                self.xCombo.insertItem("%s %d"%(txt,x))
-                self.yList.insertItem("%s %d"%(txt,x))
-            if val==2:
-                self.xCombo.setCurrentItem(0)
-                self.__xChanged(0)
-        else:
-            self.xCombo.addItem("Array Index")
-            self.yList.clear()
-            for x in range(val):
-                self.xCombo.addItem("%s %d"%(txt,x))
-                self.yList.addItem("%s %d"%(txt,x))
-            if val==2:
-                self.xCombo.setCurrentIndex(0)
-                self.__xChanged(0)
+        self.xCombo.addItem("Array Index")
+        self.yList.clear()
+        for x in range(val):
+            self.xCombo.addItem("%s %d"%(txt,x))
+            self.yList.addItem("%s %d"%(txt,x))
+        if val==2:
+            self.xCombo.setCurrentIndex(0)
+            self.__xChanged(0)
 
     def __xChanged(self, index):
         pass
 
     def getSelection(self):
         selection= []
-        if QTVERSION < '4.0.0':
-            idx= self.plotCombo.currentItem()
-        else:
-            idx= self.plotCombo.currentIndex()
+        idx= self.plotCombo.currentIndex()
         if idx==1: plot= "cols"
         else: plot= "rows"
 
-        if QTVERSION < '4.0.0':
-            idx= self.xCombo.currentItem()
-        else:
-            idx= self.xCombo.currentIndex()
+        idx= self.xCombo.currentIndex()
         if idx==0: x= None
         else: x= idx-1
 
-        if QTVERSION < '4.0.0':
-            ylist= [ idx for idx in range(self.yList.count()) if self.yList.isSelected(idx) ]
-        else:
-            itemlist = self.yList.selectedItems()
-            ylist = [int(str(item.text()).split()[-1]) for item in itemlist]
+        itemlist = self.yList.selectedItems()
+        ylist = [int(str(item.text()).split()[-1]) for item in itemlist]
         for y in ylist:
             selection.append({"plot":plot, "x":x, "y":y})
         return selection
@@ -452,10 +389,7 @@ class QSpsWidget(qt.QWidget):
     sigOtherSignals = qt.pyqtSignal(object)
 
     def __init__(self, parent=None, name="SPSSelector", fl=0):
-        if QTVERSION < '4.0.0':
-            qt.QWidget.__init__(self, parent, name, fl)
-        else:
-            qt.QWidget.__init__(self, parent)
+        qt.QWidget.__init__(self, parent)
 
         self.dataSource= None
 
@@ -474,20 +408,12 @@ class QSpsWidget(qt.QWidget):
         specWidget= qt.QWidget(self)
         self.specCombo= qt.QComboBox(specWidget)
         self.specCombo.setEditable(0)
-        if QTVERSION < '4.0.0':
-            self.reload_= qt.QIconSet(qt.QPixmap(icons.reload_))
-            refreshButton= qt.QToolButton(specWidget)
-            refreshButton.setIconSet(self.reload_)
-            self.closeIcon= qt.QIconSet(qt.QPixmap(icons.fileclose))
-            closeButton= qt.QToolButton(specWidget)
-            closeButton.setIconSet(self.closeIcon)
-        else:
-            self.reload_= qt.QIcon(qt.QPixmap(icons.reload_))
-            refreshButton= qt.QToolButton(specWidget)
-            refreshButton.setIcon(self.reload_)
-            self.closeIcon= qt.QIcon(qt.QPixmap(icons.fileclose))
-            closeButton= qt.QToolButton(specWidget)
-            closeButton.setIcon(self.closeIcon)
+        self.reload_= qt.QIcon(qt.QPixmap(icons.reload_))
+        refreshButton= qt.QToolButton(specWidget)
+        refreshButton.setIcon(self.reload_)
+        self.closeIcon= qt.QIcon(qt.QPixmap(icons.fileclose))
+        closeButton= qt.QToolButton(specWidget)
+        closeButton.setIcon(self.closeIcon)
         refreshButton.setSizePolicy(qt.QSizePolicy(qt.QSizePolicy.Fixed, qt.QSizePolicy.Minimum))
         closeButton.setSizePolicy(qt.QSizePolicy(qt.QSizePolicy.Fixed, qt.QSizePolicy.Minimum))
         specLayout= qt.QHBoxLayout(specWidget)
@@ -636,14 +562,9 @@ class QSpsWidget(qt.QWidget):
                 arrayorder= list(arraylist.keys())
                 arrayorder.sort()
                 arrayorder.reverse()
-                if QTVERSION < '4.0.0':
-                    for name in arrayorder:
-                        self.arrayList.insertItem(qt.QListViewItem(self.arrayList,
-                            "", name, str(arraylist[name][0]), str(arraylist[name][1])))
-                else:
-                    for name in arrayorder:
-                        item = (qt.QTreeWidgetItem(self.arrayList,
-                            ["", name, str(arraylist[name][0]), str(arraylist[name][1])]))
+                for name in arrayorder:
+                    item = (qt.QTreeWidgetItem(self.arrayList,
+                        ["", name, str(arraylist[name][0]), str(arraylist[name][1])]))
                 self.refreshDataSelection()
 
         self.__getParamWidget("empty")

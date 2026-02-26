@@ -129,10 +129,8 @@ if __name__ == '__main__':
     _logger.info("%s set to %s" % ("HDF5_USE_FILE_LOCKING",
                                     os.environ["HDF5_USE_FILE_LOCKING"]))
     if binding is None:
-        if qtversion == '3':
-            raise NotImplementedError("Qt3 is no longer supported")
-        elif qtversion == '4':
-            raise NotImplementedError("Qt4 is no longer supported")
+        if qtversion in ('3', '4'):
+            raise NotImplementedError("Qt%d is no longer supported" % int(qtversion))
         elif qtversion == '5':
             try:
                 import PyQt5.QtCore
@@ -186,22 +184,18 @@ __version__ = PyMca5.version()
 
 if __name__ == "__main__":
     sys.excepthook = qt.exceptionHandler
-
-    # To avoid "Dark mode"; this force main windows to be light (but not all submenus)
-    if sys.platform == 'win32':
-        _ = os.environ.setdefault("QT_QPA_PLATFORM", "windows:darkmode=0")
     
     app = qt.QApplication(sys.argv)
     
-    # To avoid "Dark mode"; without this part some menus will be still dark
-    if sys.platform == 'win32':
-        platform = os.environ.get("QT_QPA_PLATFORM", "")
-        if "darkmode=0" in platform:
-            app.setStyle('fusion')
-    
     if sys.platform not in ["win32", "darwin"]:
         # some themes of Ubuntu 16.04 give black tool tips on black background
-        app.setStyleSheet("QToolTip { color: #000000; background-color: #fff0cd; border: 1px solid black; }")
+        try:
+            _ttp = qt.QApplication.instance().palette()
+            _ttText = _ttp.color(qt.QPalette.ToolTipText).name()
+            _ttBase = _ttp.color(qt.QPalette.ToolTipBase).name()
+            app.setStyleSheet("QToolTip { color: %s; background-color: %s; border: 1px solid %s; }" % (_ttText, _ttBase, _ttText))
+        except Exception:
+            app.setStyleSheet("QToolTip { color: #000000; background-color: #fff0cd; border: 1px solid black; }")
 
     mpath = PyMcaDataDir.PYMCA_DATA_DIR
     if mpath[-3:] == "exe":
@@ -330,12 +324,11 @@ from PyMca5.PyMcaIO import ConfigDict
 from PyMca5 import PyMcaDirs
 
 XIA_CORRECT = False
-if QTVERSION > '4.3.0':
-    try:
-        from PyMca5.PyMcaCore import XiaCorrect
-        XIA_CORRECT = True
-    except Exception:
-        pass
+try:
+    from PyMca5.PyMcaCore import XiaCorrect
+    XIA_CORRECT = True
+except Exception:
+    pass
 
 SOURCESLIST = QDispatcher.QDataSource.source_types.keys()
 
@@ -402,10 +395,7 @@ class PyMcaMain(PyMcaMdi.PyMcaMdi):
                 self.mainTabWidget.addTab(self.scanWindow, "SCAN")
                 if OBJECT3D or isSilxGLAvailable:
                     self.mainTabWidget.addTab(self.glWindow, "OpenGL")
-                if QTVERSION < '5.0.0':
-                    self.mdi.addWindow(self.mainTabWidget)
-                else:
-                    self.mdi.addSubWindow(self.mainTabWidget)
+                self.mdi.addSubWindow(self.mainTabWidget)
                 #print "Markus patch"
                 #self.mainTabWidget.show()
                 #print "end Markus patch"

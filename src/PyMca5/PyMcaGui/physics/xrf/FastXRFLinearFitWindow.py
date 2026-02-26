@@ -268,7 +268,11 @@ class FastXRFLinearFitWindow(qt.QWidget):
             if h5Out:
                 w.setStyleSheet("")
             else:
-                w.setStyleSheet("color: gray; background-color: darkGray")
+                _disText = qt.QApplication.instance().palette().color(
+                    qt.QPalette.Disabled, qt.QPalette.Text).name()
+                _disBg = qt.QApplication.instance().palette().color(
+                    qt.QPalette.Disabled, qt.QPalette.Base).name()
+                w.setStyleSheet("color: %s; background-color: %s" % (_disText, _disBg))
 
     def stateMultiPage(self, state=None):
         self._multipageBox.setEnabled(self._edfBox.isChecked() or

@@ -34,12 +34,6 @@ QTVERSION = qt.qVersion()
 
 def uic_load_pixmap_FitActionsGui(name):
     pix = qt.QPixmap()
-    if QTVERSION < '4.0.0':
-        m = qt.QMimeSourceFactory.defaultFactory().data(name)
-
-        if m:
-            qt.QImageDrag.decode(m,pix)
-
     return pix
 
 

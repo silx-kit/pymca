@@ -388,6 +388,10 @@ class LocalQNexusWidget(QNexusWidget.QNexusWidget):
 class QHDF5StackWizard(qt.QWizard):
     def __init__(self, parent=None):
         qt.QWizard.__init__(self, parent)
+        try:
+            self.setWizardStyle(qt.QWizard.ClassicStyle)
+        except AttributeError:
+            self.setWizardStyle(qt.QWizard.WizardStyle.ClassicStyle)
         self.setWindowTitle("HDF5 Stack Wizard")
         #self._introduction = self.createIntroductionPage()
         self._fileList     = self.createFileListPage()

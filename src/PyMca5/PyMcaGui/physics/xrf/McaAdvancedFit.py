@@ -767,25 +767,23 @@ class McaAdvancedFit(qt.QWidget):
         gain = fitresult['result']['fittedpar'][i]
         meanfwhm = int(meanfwhm/gain) + 1
         missed =  self.mcafit.detectMissingPeaks(y, yfit, meanfwhm)
-        hcolor = 'white'
-        finalcolor = 'white'
         text=""
         if len(missed):
-            text+="<br><b><font color=blue size=4>Possibly Missing or Underestimated Peaks</font></b>"
+            text+="<br><b><font color=#009999 size=4>Possibly Missing or Underestimated Peaks</font></b>"
             text+="<nobr><table><tr>"
-            text+='<td align="right" bgcolor="%s"><b>' % hcolor
+            text+='<td align="right"><b>'
             text+='Channel'
             text+="</b></td>"
-            text+='<td align="right" bgcolor="%s"><b>' % hcolor
+            text+='<td align="right"><b>'
             text+='Energy'
             text+="</b></td>"
             text+="</tr>"
             for peak in missed:
                 text+="<tr>"
-                text+='<td align="right" bgcolor="%s">' % finalcolor
+                text+='<td align="right">'
                 text+="<b><font size=3>%d </font></b>"  % x[int(peak)]
                 text+="</td>"
-                text+='<td align="right" bgcolor="%s">' % finalcolor
+                text+='<td align="right">'
                 text+="<b><font size=3>%.3f </font></b>"  % energy[int(peak)]
                 text+="</td>"
             text+="</tr>"
@@ -793,21 +791,21 @@ class McaAdvancedFit(qt.QWidget):
             text+="</table>"
         missed =  self.mcafit.detectMissingPeaks(yfit, y, meanfwhm)
         if len(missed):
-            text+="<br><b><font color=blue size=4>Possibly Overestimated Peaks</font></b>"
+            text+="<br><b><font color=#009999 size=4>Possibly Overestimated Peaks</font></b>"
             text+="<nobr><table><tr>"
-            text+='<td align="right" bgcolor="%s"><b>' % hcolor
+            text+='<td align="right"><b>'
             text+='Channel'
             text+="</b></td>"
-            text+='<td align="right" bgcolor="%s"><b>' % hcolor
+            text+='<td align="right"><b>'
             text+='Energy'
             text+="</b></td>"
             text+="</tr>"
             for peak in missed:
                 text+="<tr>"
-                text+='<td align="right" bgcolor="%s">' % finalcolor
+                text+='<td align="right">'
                 text+="<b><font size=3>%d </font></b>"  % x[int(peak)]
                 text+="</td>"
-                text+='<td align="right" bgcolor="%s">' % finalcolor
+                text+='<td align="right">'
                 text+="<b><font size=3>%.3f </font></b>"  % energy[int(peak)]
                 text+="</td>"
             text+="</tr>"
@@ -847,18 +845,18 @@ class McaAdvancedFit(qt.QWidget):
                     if correction[-1] > 1.02:
                         doIt = True
                         bodyText += "<tr>"
-                        bodyText += '<td align="right" bgcolor="%s">' % finalcolor
+                        bodyText += '<td align="right">'
                         bodyText += "<b><font size=3>%s&nbsp;&nbsp;</font></b>"  % \
                                               (element + " " + family)
                         bodyText += "</td>"
-                        bodyText += '<td align="right" bgcolor="%s">' % finalcolor
+                        bodyText += '<td align="right">'
                         bodyText += "<b><font size=3>"
                         bodyText += "%.3f</font></b>"  % correction[1]
                         bodyText += "&nbsp;&nbsp;&nbsp;"
                         if len(corrections[element][family]['correction_factor']) > 2:
                             tertiary = True
                             bodyText+= "</td>"
-                            bodyText += '<td align="right" bgcolor="%s">' % finalcolor
+                            bodyText += '<td align="right">'
                             bodyText += "<b><font size=3>"
                             bodyText+= "%.3f </font></b>"  % correction[2]
                             bodyText += "&nbsp;&nbsp;&nbsp;"
@@ -867,19 +865,19 @@ class McaAdvancedFit(qt.QWidget):
             if doIt:
                 bodyText += "<tr>"
                 bodyText += "</table>"
-                warningText  = "<br><b><font color=blue size=4>"
+                warningText  = "<br><b><font color=#009999 size=4>"
                 warningText += "Neglected higher order excitation correction</font></b>"
                 warningText += "<nobr><table>"
                 warningText += "<tr>"
-                warningText += '<td align="right" bgcolor="%s"><b>' % hcolor
+                warningText += '<td align="right"><b>'
                 warningText += 'Peak Family'
                 warningText += "</b></td>"
-                warningText += '<td align="right" bgcolor="%s"><b>' % hcolor
+                warningText += '<td align="right"><b>'
                 warningText += ('&nbsp;' * 10)
                 warningText += '2nd Order'
                 warningText += "</b></td>"
                 if tertiary:
-                    warningText += '<td align="right" bgcolor="%s"><b>' % hcolor
+                    warningText += '<td align="right"><b>'
                     warningText += ('&nbsp;' * 10)
                     warningText += '3rd Order'
                     warningText += "</b></td>"
@@ -1472,10 +1470,7 @@ class McaAdvancedFit(qt.QWidget):
         self.browsertext.setSearchPaths([QString(dirname)])
         #self.browsertext.setSource(qt.QUrl(QString(basename)))
         self.browsertext.clear()
-        if QTVERSION < '4.2.0':
-            self.browsertext.insertHtml(text)
-        else:
-            self.browsertext.setText(text)
+        self.browsertext.setText(text)
         self.browsertext.show()
         self.showLastReport()
 
@@ -2491,37 +2486,23 @@ class Top(qt.QWidget):
         #function
         FunLabel = qt.QLabel(w)
         FunLabel.setText(str("Function"))
-        if QTVERSION < '4.0.0':
-            self.FunComBox = qt.QComboBox(0,w,"FunComBox")
-            self.FunComBox.insertStrList(["Mca Hypermet"])
-            self.FunComBox.insertStrList(["Mca Pseudo-Voigt"])
-        else:
-            self.FunComBox = qt.QComboBox(w)
-            self.FunComBox.insertItem(0, "Mca Hypermet")
-            self.FunComBox.insertItem(1, "Mca Pseudo-Voigt")
+        self.FunComBox = qt.QComboBox(w)
+        self.FunComBox.insertItem(0, "Mca Hypermet")
+        self.FunComBox.insertItem(1, "Mca Pseudo-Voigt")
         wlayout.addWidget(FunLabel,0,0)
         wlayout.addWidget(self.FunComBox,0,1)
         #background
         BkgLabel = qt.QLabel(w)
         BkgLabel.setText(str("Background"))
-        if QTVERSION < '4.0.0':
-            self.BkgComBox = qt.QComboBox(0,w,"BkgComBox")
-            self.BkgComBox.insertStrList(['No Background',
-                                          'Constant',
-                                          'Linear',
-                                          'Parabolic',
-                                          'Linear Polynomial',
-                                          'Exp. Polynomial'])
-        else:
-            self.BkgComBox = qt.QComboBox(w)
-            options = ['No Background',
-                       'Constant',
-                       'Linear',
-                       'Parabolic',
-                       'Linear Polynomial',
-                       'Exp. Polynomial']
-            for item in options:
-                self.BkgComBox.insertItem(options.index(item), item)
+        self.BkgComBox = qt.QComboBox(w)
+        options = ['No Background',
+                   'Constant',
+                   'Linear',
+                   'Parabolic',
+                   'Linear Polynomial',
+                   'Exp. Polynomial']
+        for item in options:
+            self.BkgComBox.insertItem(options.index(item), item)
 
         self.FunComBox.activated[int].connect(self.mysignal)
 
@@ -2651,10 +2632,7 @@ class Top(qt.QWidget):
 
         key = 'continuum'
         if key in ddict:
-            if QTVERSION < '4.0.0':
-                self.BkgComBox.setCurrentItem(ddict[key])
-            else:
-                self.BkgComBox.setCurrentIndex(ddict[key])
+            self.BkgComBox.setCurrentIndex(ddict[key])
 
     def getParameters(self):
         ddict={}
@@ -2693,10 +2671,7 @@ class Top(qt.QWidget):
             ddict['escapeflag'] = 1
         else:
             ddict['escapeflag'] = 0
-        if QTVERSION < '4.0.0':
-            ddict['continuum'] = self.BkgComBox.currentItem()
-        else:
-            ddict['continuum'] = self.BkgComBox.currentIndex()
+        ddict['continuum'] = self.BkgComBox.currentIndex()
         return ddict
 
     def mysignal(self, *var):

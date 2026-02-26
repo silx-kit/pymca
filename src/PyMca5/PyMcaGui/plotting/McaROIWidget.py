@@ -293,8 +293,7 @@ class McaROITable(qt.QTableWidget):
         self.labels=['ROI','Type','From','To','Raw Counts','Net Counts']
         self.setColumnCount(len(self.labels))
         i=0
-        if QTVERSION > '4.2.0':
-            self.setSortingEnabled(False)
+        self.setSortingEnabled(False)
         if 'labels' in kw:
             for label in kw['labels']:
                 item = self.horizontalHeaderItem(i)
@@ -553,14 +552,11 @@ class McaROITable(qt.QTableWidget):
         if row >= len(self.roilist):
             _logger.debug("deleting???")
             return
-        if QTVERSION < '4.0.0':
-            text = str(self.text(row, 0))
+        item = self.item(row, 0)
+        if item is None:
+            text=""
         else:
-            item = self.item(row, 0)
-            if item is None:
-                text=""
-            else:
-                text = str(item.text())
+            text = str(item.text())
         if not len(text):
             return
         if col == 2:
