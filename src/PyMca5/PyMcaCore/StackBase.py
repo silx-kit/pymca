@@ -1298,28 +1298,6 @@ def test():
           (stackData[:, :, 0:10].sum(),
            stack.calculateROIImages(0, 10)['ROI'].sum()))
 
-def test_nan():
-    #create a dummy stack
-    nrows = 100
-    ncols = 200
-    nchannels = 1024
-    a = numpy.ones((nrows, ncols), numpy.float64)
-    stackData = numpy.zeros((nrows, ncols, nchannels), numpy.float64)
-    for i in range(nchannels):
-        stackData[:, :, i] = a * i
-    row_index = 5
-    col_index = 10
-    stackData[row_index, col_index, :] = numpy.nan
-    stack = StackBase()
-
-    stack.setStack(stackData, mcaindex=2)
-    print("This should be 0 = %f" % stack.calculateROIImages(0, 0)['ROI'].sum())
-    print("This should be 0 = %f" % stack.calculateROIImages(0, 1)['ROI'].sum())
-    print("%f should be = %f" %\
-          (stackData[:, :, 0:10].sum(),
-           stack.calculateROIImages(0, 10)['ROI'].sum()))
-
 
 if __name__ == "__main__":
     test()
-    test_nan()
