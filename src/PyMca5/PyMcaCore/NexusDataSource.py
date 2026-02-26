@@ -331,7 +331,7 @@ class NexusDataSource(object):
             _logger.warning(txt)
             output.info["title"] = ""
         output.info['selection'] = selection
-        # Promote plot_yaxis from selection to top-level info
+        # promote plot_yaxis from selection to top-level info so the right Y-axis could appear
         if 'plot_yaxis' in selection:
             output.info['plot_yaxis'] = selection['plot_yaxis']
         if entry != "/":

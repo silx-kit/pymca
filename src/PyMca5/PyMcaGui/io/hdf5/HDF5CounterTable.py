@@ -260,6 +260,8 @@ class HDF5CounterTable(qt.QTableWidget):
         #but I wonder about the checkboxes being destroyed
         """
         self.cellChanged[int, int].connect(self._aliasSlot)
+        self.setSignalsREnabled(False)
+        self.setMonitorMultipleEnabled(False)
 
     def build(self, cntlist, aliaslist=None, selection=None, shapelist=None):
         _logger.debug("build cntlist = %s aliaslist = %s shapelist = %s" % (cntlist, aliaslist, shapelist))
@@ -357,10 +359,10 @@ class HDF5CounterTable(qt.QTableWidget):
         else:
             item.setText(alias)
 
-    def setSignalsREnabled(self, enabled):
+    def setSignalsREnabled(self, enabled=False):
         self.__signalsREnabled = enabled
 
-    def setMonitorMultipleEnabled(self, enabled):
+    def setMonitorMultipleEnabled(self, enabled=False):
         self.__monitorMultipleEnabled = enabled
 
     def _headerContextMenu(self, pos):
@@ -401,7 +403,7 @@ class HDF5CounterTable(qt.QTableWidget):
         action = menu.exec(self.horizontalHeader().mapToGlobal(pos))
         if action == singleAction:
             self.__monitorMultipleMode = False
-            # If multiple monitors were selected, keep only the last one
+            # If multiple monitors were unselected, keep the last selected one
             if len(self.monSelection) > 1:
                 self.monSelection = self.monSelection[-1:]
                 self.monSelectionType = self.monSelectionType[-1:]
@@ -468,7 +470,7 @@ class HDF5CounterTable(qt.QTableWidget):
                     self.xSelectionType = self.xSelectionType[-1:]
         if col == 2:
             if ddict["state"]:
-                # Mutual exclusivity: remove from Signals R if present
+                # Mutual exclusivity of "Signal" and "Signal R"
                 if row in self.yrightSelection:
                     del self.yrightSelectionType[self.yrightSelection.index(row)]
                     del self.yrightSelection[self.yrightSelection.index(row)]
@@ -492,8 +494,8 @@ class HDF5CounterTable(qt.QTableWidget):
                     # Not 1D data - show warning and reject
                     msg = qt.QMessageBox(self)
                     msg.setIcon(qt.QMessageBox.Warning)
-                    msg.setText("Second Y-axis is not available for "
-                                "not a 1D data")
+                    msg.setText("Second Y-axis is available only "
+                                "for a 1D data")
                     msg.setWindowTitle("Signals R")
                     msg.exec()
                     # Uncheck the widget
@@ -501,7 +503,7 @@ class HDF5CounterTable(qt.QTableWidget):
                     if widget is not None:
                         widget.setChecked(False)
                     return
-                # Mutual exclusivity: remove from Signals if present
+                # Mutual exclusivity of "Signal R" and "Signal"
                 if row in self.ySelection:
                     del self.ySelectionType[self.ySelection.index(row)]
                     del self.ySelection[self.ySelection.index(row)]

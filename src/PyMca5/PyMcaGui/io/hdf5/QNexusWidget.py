@@ -135,14 +135,6 @@ class QNexusWidget(qt.QWidget):
         self._mca = mca
         self._BUTTONS = buttons
         self.build()
-        self.setAdvancedSelectionEnabled(False)
-
-    def setAdvancedSelectionEnabled(self, enabled=False):
-        # only the main PyMca application should have for a moment
-        self.cntTable.setSignalsREnabled(enabled)
-        self.cntTable.setMonitorMultipleEnabled(enabled)
-        self.autoTable.setSignalsREnabled(enabled)
-        self.autoTable.setMonitorMultipleEnabled(enabled)
 
     def sizeHint(self):
         originalHint = qt.QWidget.sizeHint(self)
@@ -1023,7 +1015,7 @@ class QNexusWidget(qt.QWidget):
             return
         text = qt.safe_str(self.tableTab.tabText(self.tableTab.currentIndex()))
         mcaSelection = {'mcalist':[], 'selectionindex':[]}
-        cntSelection = {'cntlist':[], 'y':[], 'yright':[], 'yrightselectiontype':[]}
+        cntSelection = {'cntlist':[], 'y':[], 'yright':[]}
         if text.upper() == "AUTO":
             cntSelection = self.autoTable.getCounterSelection()
             # self._aliasList = cntSelection['aliaslist']
@@ -1275,12 +1267,7 @@ class QNexusWidget(qt.QWidget):
                 sel['selection']['x'] = cntSelection['x']
                 sel['selection']['xselectiontype'] = cntSelection['xselectiontype']
                 sel['selection']['y'] = [yCnt]
-                yrightSelType = cntSelection['yrightselectiontype']
-                yrightList = cntSelection['yright']
-                if yCnt in yrightList:
-                    sel['selection']['yselectiontype'] = [yrightSelType[yrightList.index(yCnt)]]
-                else:
-                    sel['selection']['yselectiontype'] = ['full']
+                sel['selection']['yselectiontype'] = [cntSelection['yrightselectiontype'][cntSelection['yright'].index(yCnt)]]
                 sel['selection']['m'] = cntSelection['m']
                 sel['selection']['mselectiontype'] = cntSelection['monselectiontype']
                 sel['selection']['cntlist'] = cntSelection['cntlist']
