@@ -136,6 +136,13 @@ class QNexusWidget(qt.QWidget):
         self._BUTTONS = buttons
         self.build()
 
+    def setAdvancedSelectionEnabled(self, enabled):
+        # only the main PyMca application should have for a moment
+        self.cntTable.setSignalsREnabled(enabled)
+        self.cntTable.setMonitorMultipleEnabled(enabled)
+        self.autoTable.setSignalsREnabled(enabled)
+        self.autoTable.setMonitorMultipleEnabled(enabled)
+
     def sizeHint(self):
         originalHint = qt.QWidget.sizeHint(self)
         if isinstance(self.parent(), qt.QDialog):
@@ -1220,7 +1227,6 @@ class QNexusWidget(qt.QWidget):
                      if sel['selection']['xselectiontype'][0] not in ["", "full", None]:
                          aliases[cntSelection['x'][0]] += " " + sel['selection']['xselectiontype'][0]
 
-                # Build monitor part of legend, supporting multiple monitors
                 monLegendParts = []
                 for mIdx in cntSelection['m']:
                     monLegendParts.append(aliases[mIdx])

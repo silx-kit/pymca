@@ -234,6 +234,8 @@ class HDF5CounterTable(qt.QTableWidget):
         self.yrightSelectionType = []
         self.monSelectionType = []
         self.__monitorMultipleMode = False
+        self.__signalsREnabled = False
+        self.__monitorMultipleEnabled = False
         self.__oldSelection = self.getCounterSelection()
         self.__is3DEnabled = False
         self.__is2DEnabled = False
@@ -247,7 +249,9 @@ class HDF5CounterTable(qt.QTableWidget):
             item.setText(labels[i])
             self.setHorizontalHeaderItem(i,item)
 
-        # Enable custom context menu on horizontal header for Monitor column
+        # hide Signals R column by default
+        self.setColumnHidden(3, True)
+
         self.horizontalHeader().setContextMenuPolicy(qt.Qt.CustomContextMenu)
         self.horizontalHeader().customContextMenuRequested.connect(self._headerContextMenu)
 
@@ -353,12 +357,40 @@ class HDF5CounterTable(qt.QTableWidget):
         else:
             item.setText(alias)
 
+    def setSignalsREnabled(self, enabled):
+        self.__signalsREnabled = enabled
+
+    def setMonitorMultipleEnabled(self, enabled):
+        self.__monitorMultipleEnabled = enabled
+
     def _headerContextMenu(self, pos):
-        """Show context menu on Monitor header for single/multiple choice."""
         logicalIndex = self.horizontalHeader().logicalIndexAt(pos)
-        # Monitor column is now at index 4
-        if logicalIndex != 4:
-            return
+        if logicalIndex == 2 and self.__signalsREnabled:
+            self._signalsHeaderContextMenu(pos)
+        elif logicalIndex == 4 and self.__monitorMultipleEnabled:
+            self._monitorHeaderContextMenu(pos)
+
+    def _signalsHeaderContextMenu(self, pos):
+        menu = qt.QMenu(self)
+        oneAction = menu.addAction("One Y-axis")
+        twoAction = menu.addAction("Two Y-axis")
+        oneAction.setCheckable(True)
+        twoAction.setCheckable(True)
+        oneAction.setChecked(self.isColumnHidden(3))
+        twoAction.setChecked(not self.isColumnHidden(3))
+        action = menu.exec(self.horizontalHeader().mapToGlobal(pos))
+        if action == oneAction:
+            self.setColumnHidden(3, True)
+            # Clear any existing Signals R selections
+            if len(self.yrightSelection):
+                self.yrightSelection = []
+                self.yrightSelectionType = []
+                self._update()
+        elif action == twoAction:
+            self.setColumnHidden(3, False)
+            self.resizeColumnToContents(3)
+
+    def _monitorHeaderContextMenu(self, pos):
         menu = qt.QMenu(self)
         singleAction = menu.addAction("Single choice")
         multipleAction = menu.addAction("Multiple choice")
