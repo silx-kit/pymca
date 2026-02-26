@@ -859,7 +859,7 @@ class QNexusWidget(qt.QWidget):
                             shape = None
                         self._shapeList.append(shape)
                         self.cntTable.build(self._cntList, self._aliasList, shapelist=self._shapeList)
-            elif (ddict.get('color') == qt.QApplication.instance().palette().color(qt.QPalette.BrightText) or ddict.get('color') == qt.Qt.blue) and ("silx" in sys.modules):
+            elif (ddict['color'] == qt.QApplication.instance().palette().color(qt.QPalette.BrightText) or ddict['color'] == qt.Qt.blue) and ("silx" in sys.modules):
                 # there is an action to be applied
                 self.showInfoWidget(ddict["file"], ddict["name"], dset=False)
             elif ddict['type'] in ['NXentry', 'Entry']:
@@ -1025,6 +1025,7 @@ class QNexusWidget(qt.QWidget):
             cntSelection = self.cntTable.getCounterSelection()
             self._aliasList = cntSelection['aliaslist']
         selectionList = []
+        _yrightWarningShown = False
         for entry, filename in entryList:
             if not len(cntSelection['cntlist']) and \
                not len(mcaSelection['mcalist']):
@@ -1241,7 +1242,17 @@ class QNexusWidget(qt.QWidget):
                 selectionList.append(sel)
 
             # Signals R (right Y-axis) loop
-            for yCnt in cntSelection['yright']:
+            yrightList = cntSelection['yright']
+            if yrightList and selectionType.upper() != "SCAN":
+                if not _yrightWarningShown:
+                    msg = qt.QMessageBox(self)
+                    msg.setIcon(qt.QMessageBox.Information)
+                    msg.setText("Signal R will not be used")
+                    msg.exec()
+                    _yrightWarningShown = True
+                yrightList = []
+
+            for yCnt in yrightList:
                 sel = {}
                 sel['SourceName'] = self.data.sourceName * 1
                 sel['SourceType'] = "HDF5"
