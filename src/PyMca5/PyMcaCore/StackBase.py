@@ -280,15 +280,9 @@ class StackBase(object):
 
             # max MCA
             if self.mcaIndex == -1 or (self.mcaIndex == (len(self._stack.data.shape) - 1)):
-                if not numpy.all(numpy.isnan(self._stack.data)):
-                    mcaMax = numpy.nanmax(numpy.nanmax(self._stack.data, axis=0), axis=0)
-                else:
-                    mcaMax = None  # or some default value
+                mcaMax = numpy.nanmax(numpy.nanmax(self._stack.data, axis=0), axis=0)
             elif self.mcaIndex == 0:
-                if not numpy.all(numpy.isnan(self._stack.data)):
-                    mcaMax = numpy.nanmax(numpy.nanmax(self._stack.data, axis=-1), axis=-1)
-                else:
-                    mcaMax = None
+                mcaMax = numpy.nanmax(numpy.nanmax(self._stack.data, axis=-1), axis=-1)
             else:
                 logger.info("Unsupported index for max spectrum calculation")
         else:
@@ -586,15 +580,13 @@ class StackBase(object):
         #deal with NaN and inf values
         if selectionMask is None:
             if (self._ROIImageDict["ROI"] is not None) and\
-               (self.mcaIndex != 0) and \
-               (self._ROIImageDict["ROI"].shape == self._stackImageData.shape):
+               (self.mcaIndex != 0):
                 actualSelectionMask = numpy.isfinite(self._ROIImageDict["ROI"])
             else:
                 actualSelectionMask = numpy.isfinite(self._stackImageData)
         else:
             if (self._ROIImageDict["ROI"] is not None) and\
-               (self.mcaIndex != 0) and \
-               (self._ROIImageDict["ROI"].shape == self._stackImageData.shape):
+               (self.mcaIndex != 0):
                 actualSelectionMask = selectionMask * numpy.isfinite(self._ROIImageDict["ROI"])
             else:
                 actualSelectionMask = selectionMask * numpy.isfinite(self._stackImageData)
@@ -637,7 +629,6 @@ class StackBase(object):
             arrayMask = (actualSelectionMask > 0)
 
         logger.debug("Reached MCA calculation")
-
         cleanMask = numpy.nonzero(arrayMask)
 
         logger.debug("self.fileIndex, self.mcaIndex = %d , %d",
@@ -1297,7 +1288,6 @@ def test():
     print("%f should be = %f" %\
           (stackData[:, :, 0:10].sum(),
            stack.calculateROIImages(0, 10)['ROI'].sum()))
-
 
 if __name__ == "__main__":
     test()
