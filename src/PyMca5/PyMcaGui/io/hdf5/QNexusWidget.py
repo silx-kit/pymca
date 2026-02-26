@@ -135,8 +135,9 @@ class QNexusWidget(qt.QWidget):
         self._mca = mca
         self._BUTTONS = buttons
         self.build()
+        self.setAdvancedSelectionEnabled(False)
 
-    def setAdvancedSelectionEnabled(self, enabled):
+    def setAdvancedSelectionEnabled(self, enabled=False):
         # only the main PyMca application should have for a moment
         self.cntTable.setSignalsREnabled(enabled)
         self.cntTable.setMonitorMultipleEnabled(enabled)
