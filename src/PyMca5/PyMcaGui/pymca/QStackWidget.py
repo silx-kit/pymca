@@ -298,6 +298,8 @@ class QStackWidget(StackBase.StackBase,
                 self._stack.data = self._stack.data.reshape(shape[0], shape[1], oldshape[2])
                 self.stackWidget.setImageData(None)
                 self.roiWidget.setImageData(None)
+                # make sure old ROI images are not used
+                self._ROIImageDict["ROI"] = None
                 StackBase.StackBase.setStack(self, self._stack, **kw)
         if self._mcaMax is not None:
             self.addMcaMaxButton.show()
