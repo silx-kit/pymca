@@ -27,7 +27,7 @@ __author__ = "V.A. Sole"
 __contact__ = "sole@esrf.fr"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__version__ = "5.9.6"
+__version__ = "5.9.7rc1"
 
 import os
 import sys
