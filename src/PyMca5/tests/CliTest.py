@@ -329,7 +329,7 @@ class TestCliModules(unittest.TestCase):
         name = module.__name__.split(".")[-1]
         files = list(Path(sys.executable).parent.glob(f"{name}*"))
         if len(files) == 1:
-            return [files[0], module.__name__, *args]
+            return [str(files[0]), module.__name__, *args]
 
         # No subprocess command available.
         return None
