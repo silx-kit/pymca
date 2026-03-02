@@ -351,12 +351,10 @@ class TestCliModules(unittest.TestCase):
         try:
             from PyMca5 import PyMcaDataDir
 
-            data_dir = PyMcaDataDir.PYMCA_DATA_DIR
+            data_dir = Path(PyMcaDataDir.PYMCA_DATA_DIR)
         except Exception:
             self.skipTest("Cannot access PyMcaDataDir")
-        if not os.path.isabs(data_dir):
-            data_dir = os.path.join(self._orig_cwd, data_dir)
-        return str(Path(data_dir).joinpath(*parts))
+        return str(data_dir.joinpath(*parts))
 
 
 # Add tests dynamically on import because `subTest` does not print each test

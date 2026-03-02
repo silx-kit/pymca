@@ -49,7 +49,7 @@ if PYMCA_DATA_DIR_ENV is not None:
 
 
 # this is used in build directory
-if not os.path.exists(PYMCA_DATA_DIR):
+if not os.path.isabs(PYMCA_DATA_DIR) or not os.path.exists(PYMCA_DATA_DIR):
     tmp_dir = os.path.dirname(os.path.abspath(__file__))
     old_tmp_dir = tmp_dir + "dummy"
     basename = "PyMcaData"
@@ -65,6 +65,7 @@ if not os.path.exists(PYMCA_DATA_DIR):
 if not os.path.exists(PYMCA_DATA_DIR):
     raise IOError('%s directory not found' % PYMCA_DATA_DIR)
 
+PYMCA_DATA_DIR = os.path.abspath(PYMCA_DATA_DIR)
 
 PYMCA_DOC_DIR_ENV = os.getenv("PYMCA_DOC_DIR")
 if PYMCA_DOC_DIR_ENV is not None:
@@ -78,7 +79,7 @@ if PYMCA_DOC_DIR_ENV is not None:
         print(txt)
 
 # do the same for the directory containing HTML files
-if not os.path.exists(PYMCA_DOC_DIR):
+if not os.path.isabs(PYMCA_DOC_DIR) or not os.path.exists(PYMCA_DOC_DIR):
     tmp_dir = os.path.dirname(os.path.abspath(__file__))
     old_tmp_dir = tmp_dir + "dummy"
     basename = "PyMcaData"
@@ -92,3 +93,5 @@ if not os.path.exists(PYMCA_DOC_DIR):
     if not os.path.exists(PYMCA_DOC_DIR):
         print("Setting PYMCA_DOC_DIR equal to PYMCA_DATA_DIR")
         PYMCA_DOC_DIR = PYMCA_DATA_DIR
+
+PYMCA_DOC_DIR = os.path.abspath(PYMCA_DOC_DIR)
