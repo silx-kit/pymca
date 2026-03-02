@@ -1591,8 +1591,7 @@ def main(args):
             cfg = [line.decode(sys.getfilesystemencoding()).strip() for line in fd.readlines()]
 
     # Qt application
-    app = qt.QApplication([])
-    PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
+    app = PyMcaAppInit.create_qt_app(cli_args=args)
 
     if len(filelist) == 0:
         # No files -> launch GUI

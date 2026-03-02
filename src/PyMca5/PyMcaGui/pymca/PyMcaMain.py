@@ -1771,8 +1771,7 @@ def main(args):
         return run_tests()
 
     # Initialize Qt application
-    app = qt.QApplication([])
-    PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
+    app = PyMcaAppInit.create_qt_app(cli_args=args)
 
     # Splash screen
     splash = _splash_screen()

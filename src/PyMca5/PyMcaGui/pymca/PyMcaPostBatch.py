@@ -90,8 +90,7 @@ class PyMcaPostBatch(RGBCorrelator.RGBCorrelator):
 
 
 def main(args):
-    app = qt.QApplication([])
-    PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
+    app = PyMcaAppInit.create_qt_app(cli_args=args)
 
     if args.shape:
         split_on = "x" if "x" in args.shape else ","

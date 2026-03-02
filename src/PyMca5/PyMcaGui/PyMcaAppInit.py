@@ -40,8 +40,7 @@
 
 
     def main(args):
-        app = qt.QApplication([])
-        PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
+        app = PyMcaAppInit.create_qt_app(cli_args=args)
 
         ...  # Main widget
 
@@ -101,12 +100,17 @@ def init_before_app_create(qt=True, hdf5=True):
         _init_qt_before()
 
 
-def init_before_app_start(qt_app=None, cli_args=None):
-    """
-    Call this after instantiating and before starting the application.
-    """
-    if qt_app:
-        _init_qt_after(qt_app, cli_args)
+def create_qt_app(cli_args=None):
+    from PyMca5.PyMcaGui import PyMcaQt as qt
+
+    if qt.QApplication.instance() is not None:
+        raise RuntimeError("A QApplication already exists")
+
+    app = qt.QApplication([])
+
+    _init_qt_after(app, cli_args)
+
+    return app
 
 
 def _silent_pre_cli_app():

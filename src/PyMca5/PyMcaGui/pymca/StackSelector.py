@@ -470,8 +470,7 @@ def main(args):
                 "A file pattern needs at least a set of begin and end indices"
             )
 
-    app = qt.QApplication([])
-    PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
+    app = PyMcaAppInit.create_qt_app(cli_args=args)
 
     widget = QStackWidget.QStackWidget()
     w = StackSelector(widget)

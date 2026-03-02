@@ -953,8 +953,7 @@ def main(args):
             'Cannot read image(s) from file: %s' % args.filename)
 
     # Set-up Qt application and main window
-    app = qt.QApplication([])
-    PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
+    app = PyMcaAppInit.create_qt_app(cli_args=args)
 
     mainWindow = ImageViewMainWindow(backend=args.backend)
     mainWindow.setImage(edfFile.GetData(0),

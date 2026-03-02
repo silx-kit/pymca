@@ -288,8 +288,7 @@ class MyQLineEdit(qt.QLineEdit):
 
 
 def main(args):
-    app  = qt.QApplication([])
-    PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
+    app = PyMcaAppInit.create_qt_app(cli_args=args)
 
     w = ElementsInfo()
     w.show()

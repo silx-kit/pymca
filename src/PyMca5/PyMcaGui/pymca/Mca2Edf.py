@@ -453,8 +453,7 @@ def main(args):
             filelist = [line.strip() for line in fd.readlines()]
 
     # Qt application
-    app = qt.QApplication([])
-    PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
+    app = PyMcaAppInit.create_qt_app(cli_args=args)
 
     if len(filelist) == 0:
         # GUI-only mode

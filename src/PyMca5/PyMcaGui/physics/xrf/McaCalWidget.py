@@ -1599,8 +1599,7 @@ def main(args):
     x = numpy.arange(len(y)).astype(numpy.float64)
 
     # Qt application
-    app = qt.QApplication([])
-    PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
+    app = PyMcaAppInit.create_qt_app(cli_args=args)
 
     demo = McaCalWidget(
         x=x,

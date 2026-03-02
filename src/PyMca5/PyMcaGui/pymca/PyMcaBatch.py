@@ -1955,8 +1955,7 @@ def main(args):
         with open(args.cfglistfile, 'rb') as fd:
             cfg = [line.decode(sys.getfilesystemencoding()).strip() for line in fd.readlines()]
 
-    app = qt.QApplication([])
-    PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
+    app = PyMcaAppInit.create_qt_app(cli_args=args)
 
     if args.html:
         fitfiles = 1

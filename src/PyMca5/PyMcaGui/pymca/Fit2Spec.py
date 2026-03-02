@@ -406,8 +406,7 @@ def main(args):
             filelist = [line.strip() for line in fd.readlines()]
 
     # Qt application
-    app = qt.QApplication([])
-    PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
+    app = PyMcaAppInit.create_qt_app(cli_args=args)
 
     # Launch GUI if no files provided
     if len(filelist) == 0:

@@ -261,8 +261,7 @@ def main(args):
         and not args.livetime
         and not args.sums
     ):
-        app = qt.QApplication([])
-        PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
+        app = PyMcaAppInit.create_qt_app(cli_args=args)
 
         wid = XiaCorrectWizard.XiaCorrectWizard()
 

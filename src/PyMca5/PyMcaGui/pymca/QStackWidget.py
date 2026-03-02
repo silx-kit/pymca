@@ -1437,8 +1437,7 @@ def main(args):
         except Exception:
             _logger.warning("Cannot set backend to %s", args.backend)
 
-    app = qt.QApplication([])
-    PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
+    app = PyMcaAppInit.create_qt_app(cli_args=args)
 
     widget = QStackWidget()
     w = StackSelector.StackSelector(widget)
