@@ -103,10 +103,12 @@ def init_before_app_create(qt=True, hdf5=True):
 def create_qt_app(cli_args=None):
     from PyMca5.PyMcaGui import PyMcaQt as qt
 
-    if qt.QApplication.instance() is not None:
-        raise RuntimeError("A QApplication already exists")
+    app = qt.QApplication.instance()
 
-    app = qt.QApplication([])
+    if app is None:
+        app = qt.QApplication([])
+    else:
+        _logger.warning("Use existing QApplication")
 
     _init_qt_after(app, cli_args)
 
