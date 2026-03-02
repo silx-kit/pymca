@@ -2,7 +2,7 @@
 #
 # The PyMca X-Ray Fluorescence Toolkit
 #
-# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2026 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF.
@@ -290,10 +290,13 @@ class TestCliModules(unittest.TestCase):
         """Call CLI in a sub-process.
         """
         _logger.info("Execute command: %s", " ".join(cmd))
+        os_cwd = None
+        if getattr(sys, "frozen", False):
+            os_cwd = self._orig_cwd
         if _logger.getEffectiveLevel() <= logging.DEBUG:
-            completed = subprocess.run(cmd)
+            completed = subprocess.run(cmd, cwd=os_cwd)
         else:
-            completed = subprocess.run(cmd, stdout=subprocess.DEVNULL)
+            completed = subprocess.run(cmd, stdout=subprocess.DEVNULL, cwd=os_cwd)
         return completed.returncode
 
     def _run_cli_main(self, module, args):
@@ -327,9 +330,13 @@ class TestCliModules(unittest.TestCase):
 
         # Frozen binary subprocess command if available.
         name = module.__name__.split(".")[-1]
-        files = list(Path(sys.executable).parent.glob(f"{name}*"))
+        exe_dir = Path(sys.executable).parent
+        if sys.platform == "win32":
+            files = list(exe_dir.glob(f"{name}.exe"))
+        else:
+            files = [f for f in exe_dir.glob(name) if f.is_file()]
         if len(files) == 1:
-            return [str(files[0]), module.__name__, *args]
+            return [str(files[0]), *args]
 
         # No subprocess command available.
         return None
@@ -344,10 +351,12 @@ class TestCliModules(unittest.TestCase):
         try:
             from PyMca5 import PyMcaDataDir
 
-            data_dir = Path(PyMcaDataDir.PYMCA_DATA_DIR)
+            data_dir = PyMcaDataDir.PYMCA_DATA_DIR
         except Exception:
             self.skipTest("Cannot access PyMcaDataDir")
-        return str(data_dir.joinpath(*parts))
+        if not os.path.isabs(data_dir):
+            data_dir = os.path.join(self._orig_cwd, data_dir)
+        return str(Path(data_dir).joinpath(*parts))
 
 
 # Add tests dynamically on import because `subTest` does not print each test
