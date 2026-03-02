@@ -2,7 +2,7 @@
 #
 # The PyMca X-Ray Fluorescence Toolkit
 #
-# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2026 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF.
@@ -219,18 +219,66 @@ CLI_SPECS = {
 class TestCliModules(unittest.TestCase):
 
     def setUp(self):
-        self._tmp = tempfile.TemporaryDirectory()
-        self._orig_cwd = os.getcwd()
-        os.chdir(self._tmp.name)
-        self._create_edf_file()
+        self._orig_cwd = None
+        self._temporary_cwd = None
+        self._original_data_dir = None
+        self._current_data_dir = None
+
         super().setUp()
+        self._setup_pymca_data_dir()
+        self._setup_cwd()
 
     def tearDown(self):
-        os.chdir(self._orig_cwd)
-        self._tmp.cleanup()
-        super().setUp()
+        self._restore_cwd()
+        self._restore_pymca_data_dir()
+        super().tearDown()
 
-    def _create_edf_file(self):
+    def _setup_cwd(self):
+        """Ensure all CLI tests run in a temporary directory
+        so the current working directory does not get cluttered
+        with files.
+        """
+        self._temporary_cwd = tempfile.TemporaryDirectory()
+        self._orig_cwd = os.getcwd()
+        os.chdir(self._temporary_cwd.name)
+        self._create_files()
+
+    def _restore_cwd(self):
+        if self._orig_cwd:
+            os.chdir(self._orig_cwd)
+        if self._temporary_cwd:
+            self._temporary_cwd.cleanup()
+            self._temporary_cwd = None
+
+    def _setup_pymca_data_dir(self):
+        """Ensure PYMCA_DATA_DIR is an absolute path before
+        we change the current working directory.
+        """
+        try:
+            from PyMca5 import PyMcaDataDir
+        except Exception as ex:
+            self._original_data_dir = None
+            self._current_data_dir = None
+            return
+
+        self._original_data_dir = PyMcaDataDir.PYMCA_DATA_DIR
+        self._current_data_dir = os.path.abspath(self._original_data_dir)
+        PyMcaDataDir.PYMCA_DATA_DIR = self._current_data_dir
+
+    def _restore_pymca_data_dir(self):
+        try:
+            from PyMca5 import PyMcaDataDir
+        except Exception as ex:
+            return
+        if self._original_data_dir is None:
+            return
+        PyMcaDataDir.PYMCA_DATA_DIR = self._original_data_dir
+        self._original_data_dir = None
+        self._current_data_dir = None
+
+    def _create_files(self):
+        """Create files in the current working directory.
+        """
         image = numpy.arange(10*20).reshape((10,20))
         edf = EdfFile("test.edf", 'wb+')
         edf.WriteImage({}, image)
@@ -306,7 +354,7 @@ class TestCliModules(unittest.TestCase):
         return CliUtils.cli_main(module.main, parser, args=args)
 
     def _run_cli_main_systemexit(self, module, args):
-        """Call CLI in a sub-process and expect a `SystemExit`.
+        """Call CLI in the current process and expect a `SystemExit`.
         """
         _logger.info("Execute CLI main from %s with arguments %s", module.__name__, args)
 
@@ -327,27 +375,24 @@ class TestCliModules(unittest.TestCase):
 
         # Frozen binary subprocess command if available.
         name = module.__name__.split(".")[-1]
-        files = list(Path(sys.executable).parent.glob(f"{name}*"))
-        if len(files) == 1:
-            return [files[0], module.__name__, *args]
+        exe_dir = Path(sys.executable).parent
+        executables = {exe.stem:exe for exe in exe_dir.iterdir() if exe.is_file()}
+        if name in executables:
+            return [str(executables[name]), *args]
 
         # No subprocess command available.
         return None
 
     def _glob(self, pattern):
-        return list(Path(self._tmp.name).glob(pattern))
+        return list(Path(self._temporary_cwd.name).glob(pattern))
 
     def _glob_count(self, pattern):
         return len(self._glob(pattern))
 
     def _get_data_file(self, *parts):
-        try:
-            from PyMca5 import PyMcaDataDir
-
-            data_dir = Path(PyMcaDataDir.PYMCA_DATA_DIR)
-        except Exception:
-            self.skipTest("Cannot access PyMcaDataDir")
-        return str(data_dir.joinpath(*parts))
+        if self._current_data_dir is None:
+            self.skipTest("PyMca Data Directory cannot be found")
+        return str(Path(self._current_data_dir).joinpath(*parts))
 
 
 # Add tests dynamically on import because `subTest` does not print each test
