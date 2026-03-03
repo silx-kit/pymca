@@ -2,7 +2,7 @@
 #
 # The PyMca X-Ray Fluorescence Toolkit
 #
-# Copyright (c) 2004-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2026 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF by the Software group.
@@ -30,65 +30,83 @@ __author__ = "V.A. Sole - ESRF Data Analysis"
 __contact__ = "sole@esrf.fr"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
+
 import os
-# this will be filled by the setup
-PYMCA_DATA_DIR = r'DATA_DIR_FROM_SETUP'
-# This is to be filled by the setup
-PYMCA_DOC_DIR = r'DOC_DIR_FROM_SETUP'
 
-PYMCA_DATA_DIR_ENV = os.getenv("PYMCA_DATA_DIR")
-if PYMCA_DATA_DIR_ENV is not None:
-    PYMCA_DATA_DIR = PYMCA_DATA_DIR_ENV
-    if not os.path.exists(PYMCA_DATA_DIR):
-        raise IOError('%s directory set from environment not found' % \
-                      PYMCA_DATA_DIR)
-    else:
-        txt = "WARNING: Taking PYMCA_DATA_DIR from environment.\n"
-        txt += "Use it at your own risk."
-        print(txt)
+# Filled by setup
+PYMCA_DATA_DIR = r"DATA_DIR_FROM_SETUP"
+PYMCA_DOC_DIR = r"DOC_DIR_FROM_SETUP"
 
 
-# this is used in build directory
-if not os.path.exists(PYMCA_DATA_DIR):
-    tmp_dir = os.path.dirname(os.path.abspath(__file__))
+def _apply_env_override(env_var_name, current_value):
+    """Apply environment override."""
+    env_value = os.getenv(env_var_name)
+    if env_value is not None:
+        current_value = env_value
+        if not os.path.exists(current_value):
+            raise IOError("%s directory set from environment not found" % current_value)
+        else:
+            txt = f"WARNING: Taking {env_var_name} from environment.\n"
+            txt += "Use it at your own risk."
+            print(txt)
+    return current_value
+
+
+def _search_data_dir(start_file):
+    """DATA directory search."""
+    tmp_dir = os.path.dirname(os.path.abspath(start_file))
     old_tmp_dir = tmp_dir + "dummy"
     basename = "PyMcaData"
-    PYMCA_DATA_DIR_BUILD = os.path.join(tmp_dir, "PyMca5", basename)
-    while (len(PYMCA_DATA_DIR_BUILD) > 20) and (tmp_dir != old_tmp_dir):
-        if os.path.exists(PYMCA_DATA_DIR_BUILD):
-            PYMCA_DATA_DIR = PYMCA_DATA_DIR_BUILD
-            break
+
+    candidate = os.path.join(tmp_dir, "PyMca5", basename)
+
+    while (len(candidate) > 20) and (tmp_dir != old_tmp_dir):
+        if os.path.exists(candidate):
+            return candidate
         old_tmp_dir = tmp_dir
         tmp_dir = os.path.dirname(tmp_dir)
-        PYMCA_DATA_DIR_BUILD = os.path.join(tmp_dir, "PyMca5", basename)
+        candidate = os.path.join(tmp_dir, "PyMca5", basename)
+
+    return None
+
+
+def _search_doc_dir(start_file):
+    """DOC directory search."""
+    tmp_dir = os.path.dirname(os.path.abspath(start_file))
+    old_tmp_dir = tmp_dir + "dummy"
+    basename = "PyMcaData"
+
+    # IMPORTANT: first candidate differs from DATA logic
+    candidate = os.path.join(tmp_dir, basename)
+
+    while (len(candidate) > 20) and (tmp_dir != old_tmp_dir):
+        if os.path.exists(candidate):
+            return candidate
+        old_tmp_dir = tmp_dir
+        tmp_dir = os.path.dirname(tmp_dir)
+        candidate = os.path.join(tmp_dir, "PyMca5", basename)
+
+    return None
+
+
+PYMCA_DATA_DIR = _apply_env_override("PYMCA_DATA_DIR", PYMCA_DATA_DIR)
 
 if not os.path.exists(PYMCA_DATA_DIR):
-    raise IOError('%s directory not found' % PYMCA_DATA_DIR)
+    found = _search_data_dir(__file__)
+    if found is not None:
+        PYMCA_DATA_DIR = found
+
+if not os.path.exists(PYMCA_DATA_DIR):
+    raise IOError("%s directory not found" % PYMCA_DATA_DIR)
 
 
-PYMCA_DOC_DIR_ENV = os.getenv("PYMCA_DOC_DIR")
-if PYMCA_DOC_DIR_ENV is not None:
-    PYMCA_DOC_DIR = PYMCA_DOC_DIR_ENV
-    if not os.path.exists(PYMCA_DOC_DIR):
-        raise IOError('%s directory set from environent not found' % \
-                          PYMCA_DATA_DIR)
-    else:
-        txt = "WARNING: Taking PYMCA_DOC_DIR from environment.\n"
-        txt += "Use it at your own risk."
-        print(txt)
+PYMCA_DOC_DIR = _apply_env_override("PYMCA_DOC_DIR", PYMCA_DOC_DIR)
 
-# do the same for the directory containing HTML files
 if not os.path.exists(PYMCA_DOC_DIR):
-    tmp_dir = os.path.dirname(os.path.abspath(__file__))
-    old_tmp_dir = tmp_dir + "dummy"
-    basename = "PyMcaData"
-    PYMCA_DOC_DIR = os.path.join(tmp_dir,basename)
-    while (len(PYMCA_DOC_DIR) > 20) and (tmp_dir != old_tmp_dir):
-        if os.path.exists(PYMCA_DOC_DIR):
-            break
-        old_tmp_dir = tmp_dir
-        tmp_dir = os.path.dirname(tmp_dir)
-        PYMCA_DOC_DIR = os.path.join(tmp_dir, "PyMca5", basename)
+    found = _search_doc_dir(__file__)
+    if found is not None:
+        PYMCA_DOC_DIR = found
+
     if not os.path.exists(PYMCA_DOC_DIR):
         print("Setting PYMCA_DOC_DIR equal to PYMCA_DATA_DIR")
         PYMCA_DOC_DIR = PYMCA_DATA_DIR
