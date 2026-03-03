@@ -30,22 +30,23 @@ __author__ = "Wout De Nolf"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 
-import unittest
-import os
-import sys
-import subprocess
-import tempfile
-import logging
+import contextlib
 import importlib
-from pathlib import Path
+import io
+import logging
+import os
+import subprocess
+import sys
+import tempfile
+import unittest
 from dataclasses import dataclass, field
-from typing import List, Optional, Callable, Type
+from pathlib import Path
+from typing import Callable, List, Optional, Type
 
 import numpy
+
 from PyMca5.PyMcaIO.EdfFile import EdfFile
-
 from PyMca5.PyMcaMisc import CliUtils
-
 
 _logger = logging.getLogger(__name__)
 
@@ -55,7 +56,6 @@ class CliScenario:
     name: str
     args: List[str]
     return_code: int = 0
-    system_exit: bool = False
     expect_files: List[str] = field(default_factory=list)
     forbid_files: List[str] = field(default_factory=list)
     use_data_dir: bool = False
@@ -65,115 +65,115 @@ class CliScenario:
 
 CLI_SPECS = {
     "PyMca5.PyMcaPhysics.XRayTubeEbel": [
-        CliScenario("help", ["--help"], system_exit=True),
+        CliScenario("help", ["--help"]),
         CliScenario("default_generates_txt", [], expect_files=["Tube_*.txt"]),
     ],
     "PyMca5.PyMcaPhysics.xrf.ConcentrationsTool": [
-        CliScenario("help", ["--help"], system_exit=True),
+        CliScenario("help", ["--help"]),
         CliScenario("noargs", []),
     ],
     "PyMca5.PyMcaGui.physics.xrf.ConcentrationsWidget": [
-        CliScenario("help", ["--help"], system_exit=True),
+        CliScenario("help", ["--help"]),
         CliScenario("noargs", ["--cli-test"], qt_app=True),
     ],
     "PyMca5.PyMcaGui.physics.xrf.ElementsInfo": [
-        CliScenario("help", ["--help"], system_exit=True),
+        CliScenario("help", ["--help"]),
         CliScenario("noargs", ["--cli-test"], qt_app=True),
     ],
     "PyMca5.PyMcaGui.physics.xrf.PeakIdentifier": [
-        CliScenario("help", ["--help"], system_exit=True),
+        CliScenario("help", ["--help"]),
         CliScenario("noargs", ["--cli-test"], qt_app=True),
     ],
     "PyMca5.PyMcaGui.pymca.StackSelector": [
-        CliScenario("help", ["--help"], system_exit=True),
+        CliScenario("help", ["--help"]),
         CliScenario("qt_noargs", ["--cli-test"], qt_app=True),
     ],
     "PyMca5.PyMcaGui.pymca.QStackWidget": [
-        CliScenario("help", ["--help"], system_exit=True),
+        CliScenario("help", ["--help"]),
         CliScenario("qt_noargs", ["--cli-test"], qt_app=True),
     ],
     "PyMca5.PyMcaGui.pymca.RGBCorrelatorWidget": [
-        CliScenario("help", ["--help"], system_exit=True),
+        CliScenario("help", ["--help"]),
         CliScenario("qt_noargs", ["--cli-test"], qt_app=True),
     ],
     "PyMca5.PyMcaGui.pymca.RGBCorrelator": [
-        CliScenario("help", ["--help"], system_exit=True),
+        CliScenario("help", ["--help"]),
         CliScenario("qt_noargs", ["--cli-test"], qt_app=True),
     ],
     "PyMca5.PyMcaGui.pymca.PyMcaPostBatch": [
-        CliScenario("help", ["--help"], system_exit=True),
+        CliScenario("help", ["--help"]),
         CliScenario("qt_noargs", ["--cli-test"], qt_app=True),
     ],
     "PyMca5.PyMcaGui.pymca.PyMcaBatch": [
-        CliScenario("help", ["--help"], system_exit=True),
+        CliScenario("help", ["--help"]),
         CliScenario("qt_noargs", ["--cli-test"], qt_app=True),
     ],
     "PyMca5.PyMcaGui.pymca.PyMcaMdi": [
-        CliScenario("help", ["--help"], system_exit=True),
+        CliScenario("help", ["--help"]),
         CliScenario("qt_noargs", ["--cli-test"], qt_app=True),
     ],
     "PyMca5.PyMcaGui.pymca.PyMcaMain": [
-        CliScenario("help", ["--help"], system_exit=True),
+        CliScenario("help", ["--help"]),
         CliScenario("qt_noargs", ["--cli-test"], qt_app=True),
     ],
     "PyMca5.PyMcaGui.pymca.Mca2Edf": [
-        CliScenario("help", ["--help"], system_exit=True),
+        CliScenario("help", ["--help"]),
         CliScenario("qt_noargs", ["--cli-test"], qt_app=True),
     ],
     "PyMca5.PyMcaGui.pymca.LegacyPyMcaBatch": [
-        CliScenario("help", ["--help"], system_exit=True),
+        CliScenario("help", ["--help"]),
         CliScenario("qt_noargs", ["--cli-test"], qt_app=True),
     ],
     "PyMca5.PyMcaGui.pymca.Fit2Spec": [
-        CliScenario("help", ["--help"], system_exit=True),
+        CliScenario("help", ["--help"]),
         CliScenario("qt_noargs", ["--cli-test"], qt_app=True),
     ],
     "PyMca5.PyMcaGui.pymca.EdfFileSimpleViewer": [
-        CliScenario("help", ["--help"], system_exit=True),
+        CliScenario("help", ["--help"]),
         CliScenario("qt_noargs", ["--cli-test"], qt_app=True),
     ],
     "PyMca5.PyMcaGui.plotting.ImageView": [
-        CliScenario("help", ["--help"], system_exit=True),
+        CliScenario("help", ["--help"]),
         CliScenario("qt_noargs", ["--cli-test", "test.edf"], qt_app=True),
     ],
     "PyMca5.PyMcaGui.plotting.MaskImageWidget": [
-        CliScenario("help", ["--help"], system_exit=True),
+        CliScenario("help", ["--help"]),
         CliScenario("qt_noargs", ["--cli-test"], qt_app=True),
     ],
     "PyMca5.PyMcaCore.XiaCorrect": [
-        CliScenario("help", ["--help"], system_exit=True),
+        CliScenario("help", ["--help"]),
         CliScenario("qt_noargs", ["--cli-test"], qt_app=True),
     ],
     "PyMca5.PyMcaCore.StackROIBatch": [
-        CliScenario("help", ["--help"], system_exit=True),
+        CliScenario("help", ["--help"]),
         CliScenario("qt_noargs", ["--cli-test"], qt_app=True),
     ],
     "PyMca5.PyMcaCore.LegacyStackROIBatch": [
-        CliScenario("help", ["--help"], system_exit=True),
+        CliScenario("help", ["--help"]),
         CliScenario("noargs", []),
     ],
     "PyMca5.PyMcaGui.physics.xrf.McaCalWidget": [
-        CliScenario("help", ["--help"], system_exit=True),
+        CliScenario("help", ["--help"]),
         CliScenario("qt_noargs", ["--cli-test"], qt_app=True),
     ],
     "PyMca5.PyMcaPhysics.McaAdvancedFitBatch": [
-        CliScenario("help", ["--help"], system_exit=True),
+        CliScenario("help", ["--help"]),
         CliScenario("requires_cfg", ["--cfg", "dummy.cfg"]),
     ],
     "PyMca5.PyMcaPhysics.FastXRFLinearFit": [
-        CliScenario("help", ["--help"], system_exit=True),
+        CliScenario("help", ["--help"]),
         CliScenario("requires_cfg", ["--cfg", "dummy.cfg"]),
     ],
     "PyMca5.PyMcaPhysics.LegacyMcaAdvancedFitBatch": [
-        CliScenario("help", ["--help"], system_exit=True),
+        CliScenario("help", ["--help"]),
         CliScenario("requires_cfg", ["--cfg", "dummy.cfg"]),
     ],
     "PyMca5.PyMcaPhysics.LegacyFastXRFLinearFit": [
-        CliScenario("help", ["--help"], system_exit=True),
+        CliScenario("help", ["--help"]),
         CliScenario("requires_cfg", ["--cfg", "dummy.cfg"]),
     ],
     "PyMca5.PyMcaPhysics.xrf.ClassMcaTheory": [
-        CliScenario("help", ["--help"], system_exit=True),
+        CliScenario("help", ["--help"]),
         CliScenario(
             "requires_existing_data",
             ["--cfg", "__STEEL_CFG__", "--file", "__STEEL_SPE__"],
@@ -223,7 +223,7 @@ class TestCliModules(unittest.TestCase):
         """
         try:
             from PyMca5 import PyMcaDataDir
-        except Exception as ex:
+        except Exception:
             self._original_data_dir = None
             self._current_data_dir = None
             return
@@ -235,7 +235,7 @@ class TestCliModules(unittest.TestCase):
     def _restore_pymca_data_dir(self):
         try:
             from PyMca5 import PyMcaDataDir
-        except Exception as ex:
+        except Exception:
             return
         if self._original_data_dir is None:
             return
@@ -244,10 +244,9 @@ class TestCliModules(unittest.TestCase):
         self._current_data_dir = None
 
     def _create_files(self):
-        """Create files in the current working directory.
-        """
-        image = numpy.arange(10*20).reshape((10,20))
-        edf = EdfFile("test.edf", 'wb+')
+        """Create files in the current working directory."""
+        image = numpy.arange(10 * 20).reshape((10, 20))
+        edf = EdfFile("test.edf", "wb+")
         edf.WriteImage({}, image)
         del edf
 
@@ -263,8 +262,8 @@ class TestCliModules(unittest.TestCase):
                     args[i] = self._get_data_file("Steel.spe")
 
         # Check execution
-        exit_code = self._call_cli(module, args, scenario)
-        self.assertEqual(exit_code, scenario.return_code)
+        return_code = self._call_cli(module, args, scenario)
+        self.assertEqual(return_code, scenario.return_code)
 
         # Check expected files
         for pattern in scenario.expect_files:
@@ -297,44 +296,55 @@ class TestCliModules(unittest.TestCase):
             self.skipTest("Qt CLI only tested in a subprocess")
 
         # Test the CLI in the current process.
-        if scenario.system_exit:
-            return self._run_cli_main_systemexit(module, args)
         return self._run_cli_main(module, args)
 
     def _run_cli_main_subprocess(self, cmd):
-        """Call CLI in a sub-process.
-        """
+        """Call CLI in a sub-process."""
         _logger.info("Execute command: %s", " ".join(cmd))
-        if _logger.getEffectiveLevel() <= logging.DEBUG:
-            completed = subprocess.run(cmd)
-        else:
-            completed = subprocess.run(cmd, stdout=subprocess.DEVNULL)
+
+        completed = subprocess.run(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+
+        if completed.returncode != 0:
+            print("\n--- Subprocess Output ---")
+            print(completed.stdout)
+            print("--- End Subprocess Output ---\n")
+
         return completed.returncode
 
     def _run_cli_main(self, module, args):
-        """Call CLI in the current process.
-        """
-        _logger.info("Execute CLI main from %s with arguments %s", module.__name__, args)
+        """Call CLI in the current process."""
+        _logger.info(
+            "Execute CLI main from %s with arguments %s",
+            module.__name__,
+            args,
+        )
 
         parser = module.build_parser()
 
-        return CliUtils.cli_main(module.main, parser, args=args)
+        buffer = io.StringIO()
 
-    def _run_cli_main_systemexit(self, module, args):
-        """Call CLI in the current process and expect a `SystemExit`.
-        """
-        _logger.info("Execute CLI main from %s with arguments %s", module.__name__, args)
+        with contextlib.redirect_stdout(buffer), contextlib.redirect_stderr(buffer):
+            try:
+                return_code = CliUtils.cli_main(module.main, parser, args=args)
+            except SystemExit as ex:
+                return_code = ex.code
 
-        parser = module.build_parser()
+        self.assertIsInstance(return_code, int)
 
-        with self.assertRaises(SystemExit) as cm:
-            return CliUtils.cli_main(module.main, parser, args=args)
+        if return_code != 0:
+            print("\n--- CLI Output ---")
+            print(buffer.getvalue())
+            print("--- End CLI Output ---\n")
 
-        return cm.exception.code
+        return return_code
 
     def _subprocess_cmd(self, module, args):
-        """Sub-process command to call the CLI.
-        """
+        """Sub-process command to call the CLI."""
         # Python CLI subprocess command if available.
         frozen = getattr(sys, "frozen", False)
         if not frozen:
@@ -343,7 +353,7 @@ class TestCliModules(unittest.TestCase):
         # Frozen binary subprocess command if available.
         name = module.__name__.split(".")[-1]
         exe_dir = Path(sys.executable).parent
-        executables = {exe.stem:exe for exe in exe_dir.iterdir() if exe.is_file()}
+        executables = {exe.stem: exe for exe in exe_dir.iterdir() if exe.is_file()}
         if name in executables:
             return [str(executables[name]), *args]
 
