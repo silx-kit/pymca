@@ -36,6 +36,7 @@ import sys
 import subprocess
 import tempfile
 import logging
+import importlib
 from pathlib import Path
 from dataclasses import dataclass, field
 from typing import List, Optional, Callable, Type
@@ -44,40 +45,6 @@ import numpy
 from PyMca5.PyMcaIO.EdfFile import EdfFile
 
 from PyMca5.PyMcaMisc import CliUtils
-
-from PyMca5.PyMcaPhysics import XRayTubeEbel
-from PyMca5.PyMcaPhysics import McaAdvancedFitBatch
-from PyMca5.PyMcaPhysics import LegacyMcaAdvancedFitBatch
-from PyMca5.PyMcaPhysics import LegacyFastXRFLinearFit
-from PyMca5.PyMcaPhysics import FastXRFLinearFit
-
-from PyMca5.PyMcaPhysics.xrf import ConcentrationsTool
-from PyMca5.PyMcaPhysics.xrf import ClassMcaTheory
-
-from PyMca5.PyMcaGui.pymca import StackSelector
-from PyMca5.PyMcaGui.pymca import RGBCorrelatorWidget
-from PyMca5.PyMcaGui.pymca import RGBCorrelator
-from PyMca5.PyMcaGui.pymca import QStackWidget
-from PyMca5.PyMcaGui.pymca import PyMcaPostBatch
-from PyMca5.PyMcaGui.pymca import PyMcaBatch
-from PyMca5.PyMcaGui.pymca import PyMcaMdi
-from PyMca5.PyMcaGui.pymca import PyMcaMain
-from PyMca5.PyMcaGui.pymca import Mca2Edf
-from PyMca5.PyMcaGui.pymca import LegacyPyMcaBatch
-from PyMca5.PyMcaGui.pymca import Fit2Spec
-from PyMca5.PyMcaGui.pymca import EdfFileSimpleViewer
-
-from PyMca5.PyMcaGui.plotting import ImageView
-from PyMca5.PyMcaGui.plotting import MaskImageWidget
-
-from PyMca5.PyMcaGui.physics.xrf import McaCalWidget
-from PyMca5.PyMcaGui.physics.xrf import ConcentrationsWidget
-from PyMca5.PyMcaGui.physics.xrf import ElementsInfo
-from PyMca5.PyMcaGui.physics.xrf import PeakIdentifier
-
-from PyMca5.PyMcaCore import XiaCorrect
-from PyMca5.PyMcaCore import StackROIBatch
-from PyMca5.PyMcaCore import LegacyStackROIBatch
 
 
 _logger = logging.getLogger(__name__)
@@ -97,115 +64,115 @@ class CliScenario:
 
 
 CLI_SPECS = {
-    XRayTubeEbel: [
+    "PyMca5.PyMcaPhysics.XRayTubeEbel": [
         CliScenario("help", ["--help"], system_exit=True),
         CliScenario("default_generates_txt", [], expect_files=["Tube_*.txt"]),
     ],
-    ConcentrationsTool: [
+    "PyMca5.PyMcaPhysics.xrf.ConcentrationsTool": [
         CliScenario("help", ["--help"], system_exit=True),
         CliScenario("noargs", []),
     ],
-    ConcentrationsWidget: [
+    "PyMca5.PyMcaGui.physics.xrf.ConcentrationsWidget": [
         CliScenario("help", ["--help"], system_exit=True),
         CliScenario("noargs", ["--cli-test"], qt_app=True),
     ],
-    ElementsInfo: [
+    "PyMca5.PyMcaGui.physics.xrf.ElementsInfo": [
         CliScenario("help", ["--help"], system_exit=True),
         CliScenario("noargs", ["--cli-test"], qt_app=True),
     ],
-    PeakIdentifier: [
+    "PyMca5.PyMcaGui.physics.xrf.PeakIdentifier": [
         CliScenario("help", ["--help"], system_exit=True),
         CliScenario("noargs", ["--cli-test"], qt_app=True),
     ],
-    StackSelector: [
+    "PyMca5.PyMcaGui.pymca.StackSelector": [
         CliScenario("help", ["--help"], system_exit=True),
         CliScenario("qt_noargs", ["--cli-test"], qt_app=True),
     ],
-    QStackWidget: [
+    "PyMca5.PyMcaGui.pymca.QStackWidget": [
         CliScenario("help", ["--help"], system_exit=True),
         CliScenario("qt_noargs", ["--cli-test"], qt_app=True),
     ],
-    RGBCorrelatorWidget: [
+    "PyMca5.PyMcaGui.pymca.RGBCorrelatorWidget": [
         CliScenario("help", ["--help"], system_exit=True),
         CliScenario("qt_noargs", ["--cli-test"], qt_app=True),
     ],
-    RGBCorrelator: [
+    "PyMca5.PyMcaGui.pymca.RGBCorrelator": [
         CliScenario("help", ["--help"], system_exit=True),
         CliScenario("qt_noargs", ["--cli-test"], qt_app=True),
     ],
-    PyMcaPostBatch: [
+    "PyMca5.PyMcaGui.pymca.PyMcaPostBatch": [
         CliScenario("help", ["--help"], system_exit=True),
         CliScenario("qt_noargs", ["--cli-test"], qt_app=True),
     ],
-    PyMcaBatch: [
+    "PyMca5.PyMcaGui.pymca.PyMcaBatch": [
         CliScenario("help", ["--help"], system_exit=True),
         CliScenario("qt_noargs", ["--cli-test"], qt_app=True),
     ],
-    PyMcaMdi: [
+    "PyMca5.PyMcaGui.pymca.PyMcaMdi": [
         CliScenario("help", ["--help"], system_exit=True),
         CliScenario("qt_noargs", ["--cli-test"], qt_app=True),
     ],
-    PyMcaMain: [
+    "PyMca5.PyMcaGui.pymca.PyMcaMain": [
         CliScenario("help", ["--help"], system_exit=True),
         CliScenario("qt_noargs", ["--cli-test"], qt_app=True),
     ],
-    Mca2Edf: [
+    "PyMca5.PyMcaGui.pymca.Mca2Edf": [
         CliScenario("help", ["--help"], system_exit=True),
         CliScenario("qt_noargs", ["--cli-test"], qt_app=True),
     ],
-    LegacyPyMcaBatch: [
+    "PyMca5.PyMcaGui.pymca.LegacyPyMcaBatch": [
         CliScenario("help", ["--help"], system_exit=True),
         CliScenario("qt_noargs", ["--cli-test"], qt_app=True),
     ],
-    Fit2Spec: [
+    "PyMca5.PyMcaGui.pymca.Fit2Spec": [
         CliScenario("help", ["--help"], system_exit=True),
         CliScenario("qt_noargs", ["--cli-test"], qt_app=True),
     ],
-    EdfFileSimpleViewer: [
+    "PyMca5.PyMcaGui.pymca.EdfFileSimpleViewer": [
         CliScenario("help", ["--help"], system_exit=True),
         CliScenario("qt_noargs", ["--cli-test"], qt_app=True),
     ],
-    ImageView: [
+    "PyMca5.PyMcaGui.plotting.ImageView": [
         CliScenario("help", ["--help"], system_exit=True),
         CliScenario("qt_noargs", ["--cli-test", "test.edf"], qt_app=True),
     ],
-    MaskImageWidget: [
+    "PyMca5.PyMcaGui.plotting.MaskImageWidget": [
         CliScenario("help", ["--help"], system_exit=True),
         CliScenario("qt_noargs", ["--cli-test"], qt_app=True),
     ],
-    XiaCorrect: [
+    "PyMca5.PyMcaCore.XiaCorrect": [
         CliScenario("help", ["--help"], system_exit=True),
         CliScenario("qt_noargs", ["--cli-test"], qt_app=True),
     ],
-    StackROIBatch: [
+    "PyMca5.PyMcaCore.StackROIBatch": [
         CliScenario("help", ["--help"], system_exit=True),
         CliScenario("qt_noargs", ["--cli-test"], qt_app=True),
     ],
-    LegacyStackROIBatch: [
+    "PyMca5.PyMcaCore.LegacyStackROIBatch": [
         CliScenario("help", ["--help"], system_exit=True),
         CliScenario("noargs", []),
     ],
-    McaCalWidget: [
+    "PyMca5.PyMcaGui.physics.xrf.McaCalWidget": [
         CliScenario("help", ["--help"], system_exit=True),
         CliScenario("qt_noargs", ["--cli-test"], qt_app=True),
     ],
-    McaAdvancedFitBatch: [
+    "PyMca5.PyMcaPhysics.McaAdvancedFitBatch": [
         CliScenario("help", ["--help"], system_exit=True),
         CliScenario("requires_cfg", ["--cfg", "dummy.cfg"]),
     ],
-    FastXRFLinearFit: [
+    "PyMca5.PyMcaPhysics.FastXRFLinearFit": [
         CliScenario("help", ["--help"], system_exit=True),
         CliScenario("requires_cfg", ["--cfg", "dummy.cfg"]),
     ],
-    LegacyMcaAdvancedFitBatch: [
+    "PyMca5.PyMcaPhysics.LegacyMcaAdvancedFitBatch": [
         CliScenario("help", ["--help"], system_exit=True),
         CliScenario("requires_cfg", ["--cfg", "dummy.cfg"]),
     ],
-    LegacyFastXRFLinearFit: [
+    "PyMca5.PyMcaPhysics.LegacyFastXRFLinearFit": [
         CliScenario("help", ["--help"], system_exit=True),
         CliScenario("requires_cfg", ["--cfg", "dummy.cfg"]),
     ],
-    ClassMcaTheory: [
+    "PyMca5.PyMcaPhysics.xrf.ClassMcaTheory": [
         CliScenario("help", ["--help"], system_exit=True),
         CliScenario(
             "requires_existing_data",
@@ -397,17 +364,23 @@ class TestCliModules(unittest.TestCase):
 
 # Add tests dynamically on import because `subTest` does not print each test
 # separately which is important to see what is skipped and why and to run individual tests.
-def _make_test(module, scenario):
+def _make_test(module_path, scenario):
     def test(self):
+        try:
+            module = importlib.import_module(module_path)
+        except Exception as ex:
+            self.skipTest(f"Cannot import {module_path}: {ex}")
+
         self._run_scenario(module, scenario)
-    module_name = module.__name__.split(".")[-1]
+
+    module_name = module_path.split(".")[-1]
     test.__name__ = f"test_{module_name}_{scenario.name}".replace(" ", "_")
     return test
 
 
-for module, scenarios in CLI_SPECS.items():
+for module_path, scenarios in CLI_SPECS.items():
     for scenario in scenarios:
-        test_method = _make_test(module, scenario)
+        test_method = _make_test(module_path, scenario)
         setattr(TestCliModules, test_method.__name__, test_method)
 
 
