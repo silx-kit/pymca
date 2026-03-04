@@ -235,9 +235,9 @@ class PyMcaImageWindow(RGBImageCalculator.RGBImageCalculator):
                                     self._imageData = self._imageData / tmpView.astype(numpy.float64)
                                 else:
                                     #let numpy raise the appropriate error
-                                    self._imageData = self._imageData / numpy.float(m)
+                                    self._imageData = self._imageData / numpy.float64(m)
                             else:
-                                self._imageData = self._imageData / numpy.float(m)
+                                self._imageData = self._imageData / numpy.float64(m)
                 self.slider.hide()
                 self.setName(legend)
             else:
@@ -275,7 +275,7 @@ class PyMcaImageWindow(RGBImageCalculator.RGBImageCalculator):
                 if dataObject.m is not None:
                     #is a list
                     for m in dataObject.m:
-                        data = data / numpy.float(m)
+                        data = data / numpy.float64(m)
             return data
         if len(shape) == 3:
             data = dataObject.data[index:index+1,:,:]
@@ -289,9 +289,9 @@ class PyMcaImageWindow(RGBImageCalculator.RGBImageCalculator):
                                 tmpView = tmpView.reshape(*data.shape)
                                 data = data / tmpView.astype(numpy.float64)
                             else:
-                                data = data / numpy.float(m)
+                                data = data / numpy.float64(m)
                         else:
-                            data = data / numpy.float(m)
+                            data = data / numpy.float64(m)
             return data
 
         #I have to deduce the appropriate indices from the given index
@@ -310,9 +310,9 @@ class PyMcaImageWindow(RGBImageCalculator.RGBImageCalculator):
                                 tmpView = tmpView.reshape(*data.shape)
                                 data = data / tmpView.astype(numpy.float64)
                             else:
-                                data = data / numpy.float(m)
+                                data = data / numpy.float64(m)
                         else:
-                            data = data / numpy.float(m)
+                            data = data / numpy.float64(m)
             return data
         raise IndexError("Unhandled dimension")
 
