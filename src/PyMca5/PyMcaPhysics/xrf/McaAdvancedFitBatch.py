@@ -1135,7 +1135,7 @@ def main(args):
         h5=args.h5,
         dat=args.dat,
         multipage=args.multipage,
-        overwrite=1  # original code always sets overwrite=1
+        overwrite=args.overwrite,
     )
 
     # Profiling context
@@ -1149,7 +1149,7 @@ def main(args):
             roiwidth=args.roiwidth,
             concentrations=args.concentrations,
             outbuffer=outbuffer,
-            overwrite=1
+            overwrite=args.overwrite,
         )
         b.processList()
         print("Total Elapsed = %s " % (time.time() - t0))
@@ -1173,6 +1173,7 @@ def build_parser():
     parser.add_argument("--outroot", default="", type=str, help="Output root name")
     parser.add_argument("--outentry", default="", type=str, help="File entry")
     parser.add_argument("--outprocess", default="", type=str, help="File process")
+    parser.add_argument("--overwrite", type=int, default=1, help="Overwrite existing files")
 
     # Positional arguments: list of input files
     parser.add_argument("filelist", nargs="*", help="Input files")
