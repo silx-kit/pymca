@@ -1638,8 +1638,9 @@ def build_parser():
     parser.add_argument("--linear", type=float, default=0)
     parser.add_argument("--strip", type=float, default=1)
     parser.add_argument("--maxiter", type=float)
-    parser.add_argument("--sumflag", type=float)
+    parser.add_argument("--sumflag", "--sum", dest="sumflag", type=float)
     parser.add_argument("--plotflag", type=float, default=0)
+    parser.add_argument("--pkm", type=str)
 
     return parser
 
