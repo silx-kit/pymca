@@ -316,7 +316,7 @@ def main(args):
             except Exception:
                 print("XiaCorrect ERROR: Cannot parse sum detectors")
                 print("\t%s" % s)
-                return 1
+                return 0
 
     # Expand input directories
     for iinput in options["input"]:
@@ -335,23 +335,23 @@ def main(args):
 
     if not options["files"]:
         print("XiaCorrect ERROR: No input datafiles")
-        return 1
+        return 0
 
     # Validation
     if not options["parsing"]:
         if not options["deadtime"] and not options["livetime"] and options["sums"] is None:
             print("XiaCorrect ERROR: Must have at least deadtime, livetime or sum options")
-            return 1
+            return 0
 
         if options["output"] is not None and not os.path.isdir(options["output"]):
             print("XiaCorrect ERROR: output directory is not valid")
-            return 1
+            return 0
 
     # Execute
     files = parseFiles(options["files"], options["verbose"])
 
     if files is None:
-        return 1
+        return 0
 
     if options["parsing"]:
         for group in files:
