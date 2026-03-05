@@ -158,7 +158,7 @@ def correctFiles(xiafiles, deadtime=1, livetime=0, sums=None, avgflag=0, outdir=
                 file.appendPrefix(outname)
                 name= file.get()
 
-                if sums is not None:
+                if sums:
                     err= xia.sum(sums, deadtime, livetime, avgflag)
                     file.setType("sum", -1)
                 else:
@@ -193,7 +193,7 @@ def correctFiles(xiafiles, deadtime=1, livetime=0, sums=None, avgflag=0, outdir=
                     file.setDirectory(outdir)
                     file.appendPrefix(outname)
 
-                if sums is None:
+                if not sums:
                     for file in group[:-1]:
                         det= file.getDetector()
 
@@ -299,14 +299,13 @@ def main(args):
         "verbose": int(args.verbose),
         "deadtime": int(args.deadtime),
         "livetime": int(args.livetime),
-        "sums": None,
+        "sums": [],
         "avgflag": int(args.avgflag),
         "parsing": int(args.parsing),
     }
 
     # Handle sums
     if args.sums:
-        options["sums"] = []
         for s in args.sums:
             try:
                 ssum = [int(det) for det in s.split(",")]
@@ -339,7 +338,7 @@ def main(args):
 
     # Validation
     if not options["parsing"]:
-        if not options["deadtime"] and not options["livetime"] and options["sums"] is None:
+        if not options["deadtime"] and not options["livetime"] and not options["sums"]:
             print("XiaCorrect ERROR: Must have at least deadtime, livetime or sum options")
             return 0
 
