@@ -129,7 +129,7 @@ def main(args):
 def build_parser():
     parser = CliUtils.create_parser(description="PyMca Post-Batch Processing GUI", add_qt_options=True)
 
-    parser.add_argument("--transpose", type=int, default=0, help="Transpose all images")
+    parser.add_argument("--transpose", "--fileindex", type=int, default=0, help="Transpose all images")
     parser.add_argument("--shape", type=str, default=None, help="Image shape as WxH or W,H")
 
     parser.add_argument("files", nargs="*", help="Optional list of data files to open")
