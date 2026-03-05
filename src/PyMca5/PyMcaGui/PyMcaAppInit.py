@@ -68,6 +68,8 @@ import sys
 import argparse
 import logging
 
+from PyMca5.PyMcaMisc.LoggingUtils import parse_log_level
+
 _logger = logging.getLogger(__name__)
 
 
@@ -117,7 +119,7 @@ def _silent_pre_cli_app():
         parser = argparse.ArgumentParser(description="PyMca pre-import CLI", add_help=False)
         parser.add_argument("--binding", type=str, default=None)
         parser.add_argument("--qt", type=str, default=None)
-        parser.add_argument("--log-level", type=str.upper, default=None)
+        parser.add_argument("--logging", dest="log_level", type=parse_log_level, default=None)
         args, _ = parser.parse_known_args()
     except Exception:
         args = argparse.Namespace(binding=None, qt=None, logging=None)
@@ -129,7 +131,7 @@ def _init_logging_from_cli(cli_args):
     Call this to log imports.
     """
     if cli_args.log_level:
-        logging.basicConfig(level=getattr(logging, cli_args.log_level))
+        logging.basicConfig(level=cli_args.log_level)
 
 
 def _init_qt_binding_from_cli(cli_args):

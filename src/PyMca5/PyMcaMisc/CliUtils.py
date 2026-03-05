@@ -58,6 +58,8 @@ import argparse
 import logging
 from typing import List, Union
 
+from PyMca5.PyMcaMisc.LoggingUtils import parse_log_level
+
 LOGGING_FORMAT = "%(levelname)s: %(message)s"
 
 
@@ -124,14 +126,19 @@ def _add_common_arguments(parser, default_log_level):
     """
     Common CLI arguments.
     """
-    parser.add_argument("--debug", type=int, default=0, help="Enable debug mode")
+    parser.add_argument(
+        "--debug",
+        type=int,
+        default=0,
+        help="DEBUG log level for relevant application loggers"
+    )
 
     parser.add_argument(
-        "--log-level",
-        default=default_log_level,
-        type=str.upper,
-        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
-        help="Logging level",
+        "--logging",
+        dest="log_level",
+        default=default_log_level.lower(),
+        type=parse_log_level,
+        help="Global log level (debug/info/warning/error/critical or 0-4)",
     )
 
     parser.add_argument("--version", action="store_true", help="Show version and exit")
@@ -190,9 +197,7 @@ def _configure_logging(args, loggers=tuple()):
     """
     Local and global logging configuration.
     """
-    local_level = getattr(args, "log_level", None)
     debug = getattr(args, "debug", None)
-
     if loggers:
         for logger in loggers:
             if debug:
@@ -200,9 +205,5 @@ def _configure_logging(args, loggers=tuple()):
             else:
                 logger.setLevel(logging.INFO)
 
-    if local_level:
-        level = getattr(logging, local_level.upper(), logging.INFO)
-    else:
-        level = None
-
+    level = getattr(args, "log_level", logging.WARNING)
     logging.basicConfig(level=level, format=LOGGING_FORMAT)
