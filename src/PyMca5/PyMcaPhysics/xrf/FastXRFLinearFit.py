@@ -1068,7 +1068,7 @@ def main(args):
 
     dataStack = prepareDataStack(filelist)
 
-    if args.outputDir is None:
+    if args.outdir is None:
         _logger.warning("RESULTS WILL NOT BE SAVED: No output directory specified")
 
     t0 = time.time()
@@ -1077,7 +1077,7 @@ def main(args):
     _logger.info("Main configuring Elapsed = %.3f s", time.time() - t0)
 
     outbuffer = OutputBuffer(
-        outputDir=args.outputDir,
+        outputDir=args.outdir,
         outputRoot=args.outroot,
         fileEntry=args.outentry,
         fileProcess=args.outprocess,
@@ -1113,7 +1113,7 @@ def build_parser():
     parser.add_argument("--begin", type=CliUtils.int_or_list, default=None, help="Begin index/indices, comma-separated")
     parser.add_argument("--end", type=CliUtils.int_or_list, default=None, help="End index/indices, comma-separated")
     parser.add_argument("--increment", type=CliUtils.int_or_list, default=None, help="Increment(s), comma-separated")
-    parser.add_argument("--outputDir", default=None, type=str, help="Output directory")
+    parser.add_argument("--outdir", default=None, type=str, help="Output directory")
     parser.add_argument("--outroot", default=None, type=str, help="Output root name")
     parser.add_argument("--outentry", default=None, type=str, help="File entry name")
     parser.add_argument("--outprocess", default=None, type=str, help="Process name")
