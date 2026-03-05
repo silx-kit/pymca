@@ -2077,6 +2077,9 @@ def build_parser():
     parser.add_argument("--exitonend", type=int, default=0)
     parser.add_argument("--showresult", type=int, default=1)
 
+    # Perhaps this flag was originally intended to be equivalent to --fitfiles=1
+    parser.add_argument("-f", action="store_true", help="UNUSED")
+
     parser.add_argument("--gui", type=int, default=0)
     parser.add_argument("--diagnostics", type=int, default=0)
     parser.add_argument("--tif", type=int, default=0)
