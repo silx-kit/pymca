@@ -124,7 +124,7 @@ def main(args):
     PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
 
     # File list (expand wildcards on Windows)
-    filelist = list(args.files)
+    filelist = args.files
     if len(filelist) == 1 and sys.platform.startswith("win") and "*" in filelist[0]:
         filelist = glob.glob(filelist[0])
 
