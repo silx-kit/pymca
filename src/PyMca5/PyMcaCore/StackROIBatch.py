@@ -33,14 +33,18 @@ __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 __doc__ = """
 Module to calculate a set of ROIs on a stack of data.
 """
+
 import os
-import numpy
+import sys
 import logging
 import copy
+
+import numpy
+
 from PyMca5.PyMcaIO import ConfigDict
 from PyMca5.PyMcaIO.OutputBuffer import OutputBuffer as OutputBufferBase
 from PyMca5.PyMcaCore import McaStackView
-
+from PyMca5.PyMcaMisc import CliUtils
 
 _logger = logging.getLogger(__name__)
 
@@ -347,113 +351,85 @@ def prepareDataStack(fileList):
     return dataStack
 
 
-def main():
-    import glob
-    import sys
-    import getopt
-    _logger.setLevel(logging.DEBUG)
-    options = ''
-    longoptions = ['cfg=', 'outdir=',
-                   'tif=', 'edf=', 'csv=', 'h5=', 'dat=',
-                   'filepattern=', 'begin=', 'end=', 'increment=',
-                   'outroot=', 'outentry=', 'outprocess=',
-                   'overwrite=', 'multipage=']
-    try:
-        opts, args = getopt.getopt(
-                     sys.argv[1:],
-                     options,
-                     longoptions)
-    except Exception:
-        _logger.error(sys.exc_info()[1])
-        sys.exit(1)
-    outputDir = None
-    outputRoot = ""
-    fileEntry = ""
-    fileProcess = ""
-    filepattern = None
-    begin = None
-    end = None
-    increment = None
-    tif = 0
-    edf = 0
-    csv = 0
-    h5 = 1
-    dat = 0
-    overwrite = 1
-    multipage = 0
-    for opt, arg in opts:
-        if opt in ('--cfg'):
-            configurationFile = arg
-        elif opt in '--begin':
-            if "," in arg:
-                begin = [int(x) for x in arg.split(",")]
-            else:
-                begin = [int(arg)]
-        elif opt in '--end':
-            if "," in arg:
-                end = [int(x) for x in arg.split(",")]
-            else:
-                end = int(arg)
-        elif opt in '--increment':
-            if "," in arg:
-                increment = [int(x) for x in arg.split(",")]
-            else:
-                increment = int(arg)
-        elif opt in '--filepattern':
-            filepattern = arg.replace('"', '')
-            filepattern = filepattern.replace("'", "")
-        elif opt in '--outdir':
-            outputDir = arg
-        elif opt == '--outroot':
-            outputRoot = arg
-        elif opt == '--outentry':
-            fileEntry = arg
-        elif opt == '--outprocess':
-            fileProcess = arg
-        elif opt in ('--tif', '--tiff'):
-            tif = int(arg)
-        elif opt == '--edf':
-            edf = int(arg)
-        elif opt == '--csv':
-            csv = int(arg)
-        elif opt == '--h5':
-            h5 = int(arg)
-        elif opt == '--dat':
-            dat = int(arg)
-        elif opt == '--overwrite':
-            overwrite = int(arg)
-        elif opt == '--multipage':
-            multipage = int(arg)
-    if filepattern is not None:
-        if (begin is None) or (end is None):
+def main(args):
+    if args.filepattern is not None:
+        if args.begin is None or args.end is None:
             raise ValueError(
-                "A file pattern needs at least a set of begin and end indices")
-    if filepattern is not None:
-        fileList = getFileListFromPattern(filepattern, begin, end,
-                                          increment=increment)
+                "A file pattern needs at least a set of begin and end indices"
+            )
+        fileList = getFileListFromPattern(
+            args.filepattern,
+            args.begin,
+            args.end,
+            increment=args.increment
+        )
     else:
-        fileList = args
-    if len(fileList):
-        dataStack = prepareDataStack(fileList)
-    else:
-        print("OPTIONS:", longoptions)
-        sys.exit(0)
-    if outputDir is None:
+        fileList = args.files
+
+    if not fileList:
+        print("No input files provided")
+        return 0
+
+    dataStack = prepareDataStack(fileList)
+
+    if args.outdir is None:
         print("RESULTS WILL NOT BE SAVED: No output directory specified")
+
     worker = StackROIBatch()
-    worker.setConfigurationFile(configurationFile)
-    outbuffer = OutputBuffer(outputDir=outputDir,
-                             outputRoot=outputRoot,
-                             fileEntry=fileEntry,
-                             fileProcess=fileProcess,
-                             tif=tif, edf=edf, csv=csv,
-                             h5=h5, dat=dat,
-                             multipage=multipage,
-                             overwrite=overwrite)
+    worker.setConfigurationFile(args.configurationFile)
+
+    outbuffer = OutputBuffer(
+        outputDir=args.outdir,
+        outputRoot=args.outroot,
+        fileEntry=args.outentry,
+        fileProcess=args.outprocess,
+        tif=args.tif,
+        edf=args.edf,
+        csv=args.csv,
+        h5=args.h5,
+        dat=args.dat,
+        multipage=args.multipage,
+        overwrite=args.overwrite,
+    )
+
     with outbuffer.saveContext():
-        worker.batchROIMultipleSpectra(y=dataStack,
-                                       outbuffer=outbuffer)
+        worker.batchROIMultipleSpectra(
+            y=dataStack,
+            outbuffer=outbuffer
+        )
+
+    return 0
+
+
+def build_parser():
+    parser = CliUtils.create_parser(description="Stack ROI Batch Processing")
+
+    parser.add_argument("--cfg", type=str, dest="configurationFile")
+
+    parser.add_argument("--outdir", type=str, default=None)
+    parser.add_argument("--outroot", type=str, default=None)
+    parser.add_argument("--outentry", type=str, default=None)
+    parser.add_argument("--outprocess", type=str, default=None)
+
+    parser.add_argument("--filepattern", type=str, default=None, help="File pattern")
+    parser.add_argument("--begin", type=CliUtils.int_or_list, default=None, help="Begin index/indices, comma-separated")
+    parser.add_argument("--end", type=CliUtils.int_or_list, help="End index/indices, comma-separated")
+    parser.add_argument("--increment", type=CliUtils.int_or_list, help="Increment(s), comma-separated")
+
+    parser.add_argument("--tif", type=int, default=0)
+    parser.add_argument("--edf", type=int, default=0)
+    parser.add_argument("--csv", type=int, default=0)
+    parser.add_argument("--h5", type=int, default=1)
+    parser.add_argument("--dat", type=int, default=0)
+
+    parser.add_argument("--overwrite", type=int, default=1)
+    parser.add_argument("--multipage", type=int, default=0)
+
+    parser.add_argument("files", nargs="*", help="Input files")
+
+    return parser
+
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-    main()
+    exit_code = CliUtils.cli_main(main, build_parser(), loggers=(_logger,))
+    sys.exit(exit_code)

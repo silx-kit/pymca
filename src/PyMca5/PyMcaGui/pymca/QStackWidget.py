@@ -28,6 +28,12 @@ __author__ = "V.A. Sole"
 __contact__ = "sole@esrf.fr"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
+
+from PyMca5.PyMcaGui import PyMcaAppInit
+
+if __name__== '__main__':
+    PyMcaAppInit.init_before_app_import()
+
 import sys
 import os
 import copy
@@ -35,60 +41,9 @@ import traceback
 import numpy
 import weakref
 import logging
-if __name__== '__main__':
-    # avoid issues if some module or dependency tries to use multiprocessing in frozen binaries
-    if getattr(sys, "frozen", False):
-        try:
-            import multiprocessing
-            multiprocessing.freeze_support()
-        except Exception:
-            pass
-_logger = logging.getLogger(__name__)
-
-if __name__ == "__main__":
-    # We are going to read. Disable file locking.
-    os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
-    _logger.info("%s set to %s" % ("HDF5_USE_FILE_LOCKING",
-                                    os.environ["HDF5_USE_FILE_LOCKING"]))
-    try:
-        # make sure hdf5plugins are imported
-        import hdf5plugin
-    except Exception:
-        _logger.info("Failed to import hdf5plugin")
-    # we have to get the Qt binding prior to import PyMcaQt
-    import getopt
-    options = ''
-    longoptions = ["fileindex=","old",
-                   "filepattern=", "begin=", "end=", "increment=",
-                   "nativefiledialogs=", "imagestack=", "image=",
-                   "backend=", "binding=", "logging=", "debug="]
-    opts, args = getopt.getopt(
-                 sys.argv[1:],
-                 options,
-                 longoptions)
-    binding = None
-    for opt, arg in opts:
-        if opt in ('--debug'):
-            if arg.lower() not in ['0', 'false']:
-                debugreport = 1
-                _logger.setLevel(logging.DEBUG)
-            # --debug is also parsed later for the global logging level
-        elif opt in ('--binding'):
-            binding = arg.lower()
-            if binding == "pyqt5":
-                import PyQt5.QtCore
-            elif binding == "pyside2":
-                import PySide2.QtCore
-            elif binding == "pyside6":
-                import PySide6.QtCore
-            elif binding == "pyqt6":
-                import PyQt6.QtCore
-            else:
-                raise ValueError("Unsupported Qt binding <%s>" % binding)
-    from PyMca5.PyMcaCore.LoggingLevel import getLoggingLevel
-    logging.basicConfig(level=getLoggingLevel(opts))
 
 from PyMca5.PyMcaGui import PyMcaQt as qt
+
 if hasattr(qt, "QString"):
     QString = qt.QString
 else:
@@ -110,17 +65,18 @@ from PyMca5.PyMcaGui.plotting import MaskImageWidget
 convertToRowAndColumn = MaskImageWidget.convertToRowAndColumn
 
 from PyMca5.PyMcaGui.pymca import RGBCorrelator
+from PyMca5.PyMcaGui.pymca import QStackWidget
+from PyMca5.PyMcaGui.pymca import StackSelector
 from PyMca5.PyMcaGui.pymca.RGBCorrelatorWidget import ImageShapeDialog
 from PyMca5.PyMcaGui.plotting.PyMca_Icons import IconDict
 from PyMca5.PyMcaGui.pymca import StackSelector
 from PyMca5 import PyMcaDirs
 from PyMca5.PyMcaIO import ArraySave
+from PyMca5.PyMcaMisc import CliUtils
+
 HDF5 = ArraySave.HDF5
 
-# _logger.setLevel(logging.DEBUG)
 QTVERSION = qt.qVersion()
-if _logger.getEffectiveLevel() == logging.DEBUG:
-    StackBase.logger.setLevel(logging.DEBUG)
 
 
 class QStackWidget(StackBase.StackBase,
@@ -1463,116 +1419,79 @@ class QStackWidget(StackBase.StackBase,
             PyMcaPrintPreview.resetSingletonPrintPreview()
 
 
-def test():
-    #create a dummy stack
-    nrows = 100
-    ncols = 200
-    nchannels = 1024
-    a = numpy.ones((nrows, ncols), numpy.float64)
-    stackData = numpy.zeros((nrows, ncols, nchannels), numpy.float64)
-    for i in range(nchannels):
-        stackData[:, :, i] = a * i
-    stackData[0:10, :, :] = 0
-    w = QStackWidget()
-    w.setStack(stackData, mcaindex=2)
-    w.show()
-    return w
+def main(args):
+    if args.cli_test and args.filepattern is None and not args.files:
+        print("No input files provided.")
+        return 0
 
+    if args.filepattern is not None:
+        if (args.begin is None) or (args.end is None):
+            raise ValueError(
+                "A file pattern needs at least a set of begin and end indices"
+            )
 
-if __name__ == "__main__":
-    sys.excepthook = qt.exceptionHandler
-    try:
-        opts, args = getopt.getopt(
-                     sys.argv[1:],
-                     options,
-                     longoptions)
-    except Exception:
-        print("%s" % sys.exc_info()[1])
-        sys.exit(1)
-    fileindex = 0
-    filepattern=None
-    begin = None
-    end = None
-    imagestack=None
-    increment=None
-    backend=None
-    PyMcaDirs.nativeFileDialogs=True
-
-    for opt, arg in opts:
-        if opt in '--begin':
-            if "," in arg:
-                begin = [int(x) for x in arg.split(",")]
-            else:
-                begin = [int(arg)]
-        elif opt in '--end':
-            if "," in arg:
-                end = [int(x) for x in arg.split(",")]
-            else:
-                end = int(arg)
-        elif opt in '--increment':
-            if "," in arg:
-                increment = [int(x) for x in arg.split(",")]
-            else:
-                increment = int(arg)
-        elif opt in '--filepattern':
-            filepattern = arg.replace('"', '')
-            filepattern = filepattern.replace("'", "")
-        elif opt in '--fileindex':
-            fileindex = int(arg)
-        elif opt in ['--imagestack', "--image"]:
-            imagestack = int(arg)
-        elif opt in '--nativefiledialogs':
-            if int(arg):
-                PyMcaDirs.nativeFileDialogs = True
-            else:
-                PyMcaDirs.nativeFileDialogs = False
-        elif opt in '--backend':
-            backend = arg
-        #elif opt in '--old':
-        #    import QEDFStackWidget
-        #    sys.exit(QEDFStackWidget.runAsMain())
-    if filepattern is not None:
-        if (begin is None) or (end is None):
-            raise ValueError("A file pattern needs at least a set of begin and end indices")
-    app = qt.QApplication([])
-    if sys.platform not in ["win32", "darwin"]:
-        # some themes of Ubuntu 16.04 give black tool tips on black background
-        try:
-            _ttp = qt.QApplication.instance().palette()
-            _ttText = _ttp.color(qt.QPalette.ToolTipText).name()
-            _ttBase = _ttp.color(qt.QPalette.ToolTipBase).name()
-            app.setStyleSheet("QToolTip { color: %s; background-color: %s; border: 1px solid %s; }" % (_ttText, _ttBase, _ttText))
-        except Exception:
-            app.setStyleSheet("QToolTip { color: #000000; background-color: #fff0cd; border: 1px solid black; }")
-    if backend is not None:
-        # set the default backend
+    if args.backend is not None:
         try:
             from PyMca5.PyMcaGraph.Plot import Plot
-            Plot.defaultBackend = backend
+            Plot.defaultBackend = args.backend
         except Exception:
-            _logger.warning("WARNING: Cannot set backend to %s", backend)
+            _logger.warning("Cannot set backend to %s", args.backend)
+
+    app = qt.QApplication([])
+    PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
+
     widget = QStackWidget()
     w = StackSelector.StackSelector(widget)
-    if filepattern is not None:
-        #ignore the args even if present
-        stack = w.getStackFromPattern(filepattern, begin, end, increment=increment,
-                                      imagestack=imagestack)
+
+    # Load stack from file pattern or positional arguments
+    if args.filepattern:
+        stack = w.getStackFromPattern(
+            args.filepattern, args.begin, args.end, increment=args.increment, imagestack=args.imagestack
+        )
     else:
-        stack = w.getStack(args, imagestack=imagestack)
-    if (type(stack) == type([])) or (isinstance(stack, list)):
-        #aifira like, two stacks
+        stack = w.getStack(args.files, imagestack=args.imagestack)
+
+    if stack is None:
+        print("No input files provided.")
+        return 0
+
+    # Handle multiple stacks (AIFIRA style)
+    if isinstance(stack, list):
         widget.setStack(stack[0])
-        if len(stack) > 1:
-            for i in range(1, len(stack)):
-                if stack[i] is not None:
-                    secondary = QStackWidget(primary=False,
-                                         rgbwidget=widget.rgbWidget)
-                    secondary.setStack(stack[i])
-                    widget.addSecondary(secondary)
+        for secondary_stack in stack[1:]:
+            if secondary_stack is not None:
+                secondary = QStackWidget(primary=False, rgbwidget=widget.rgbWidget)
+                secondary.setStack(secondary_stack)
+                widget.addSecondary(secondary)
         stack = None
     else:
         widget.setStack(stack)
-    widget.show()
-    app.exec()
-    app = None
 
+    widget.show()
+
+    # Auto-close Qt application for tests
+    if args.cli_test:
+        qt.QTimer.singleShot(0, app.quit)
+
+    return app.exec()
+
+
+def build_parser():
+    parser = CliUtils.create_parser(description="PyMca StackSelector GUI", add_qt_options=True, add_backend_options=True)
+
+    parser.add_argument("--fileindex", type=int, default=0, help="Index of stack to display")
+    parser.add_argument("--filepattern", type=str, default=None, help="Pattern to match stack files")
+    parser.add_argument("--begin", type=CliUtils.int_or_list, default=None, help="Begin index/indices, comma-separated")
+    parser.add_argument("--end", type=CliUtils.int_or_list, default=None, help="End index/indices, comma-separated")
+    parser.add_argument("--increment", type=CliUtils.int_or_list, default=None, help="Increment(s), comma-separated")
+    parser.add_argument("--imagestack", "--image", type=int, default=0, help="Load image stack")
+
+    parser.add_argument("files", nargs="*", help="Positional files if not using filepattern")
+
+    return parser
+
+
+if __name__ == "__main__":
+    PyMcaAppInit.init_before_app_create()
+    exit_code = CliUtils.cli_main(main, build_parser(), loggers=(StackBase.logger,))
+    sys.exit(exit_code)

@@ -45,8 +45,8 @@ def getSuite(auto=True):
         modName = os.path.splitext(os.path.basename(fname))[0]
         try:
             module = __import__(modName)
-        except ImportError:
-            print("Failed to import %s" % fname)
+        except ImportError as ex:
+            print("Failed to import %s: %s" % (fname, ex))
             continue
         if hasattr(module, "getSuite"):
             testSuite.addTest(module.getSuite(auto))

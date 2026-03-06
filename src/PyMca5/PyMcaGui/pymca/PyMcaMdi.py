@@ -27,8 +27,15 @@ __author__ = "V.A. Sole - ESRF"
 __contact__ = "sole@esrf.fr"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-import sys, getopt, string
+
+from PyMca5.PyMcaGui import PyMcaAppInit
+
+if __name__== '__main__':
+    PyMcaAppInit.init_before_app_import()
+
+import sys
 import logging
+
 from PyMca5.PyMcaGui import PyMcaQt as qt
 if hasattr(qt, "QString"):
     QString = qt.QString
@@ -40,10 +47,13 @@ QTVERSION = qt.qVersion()
 from PyMca5.PyMcaGui.plotting import PyMca_Icons
 IconDict = PyMca_Icons.IconDict
 IconDict0 = PyMca_Icons.IconDict0
-from .PyMca_help  import HelpDict
+
+from PyMca5.PyMcaMisc import CliUtils
+
 _logger = logging.getLogger(__name__)
 
 __version__ = "1.5"
+
 
 class PyMcaMdi(qt.QMainWindow):
     def __init__(self, parent=None, name="PyMca Mdi", fl=None, options={}):
@@ -419,32 +429,40 @@ class PyMcaMdi(qt.QMainWindow):
     def onPrint(self):
         qt.QMessageBox.about(self, "Print", "Not implemented")
 
+
 def main(args):
-    app = qt.QApplication(args)
+    # Qt application
+    app = qt.QApplication([])
+    PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
 
-    options     = ''
-    longoptions = ['spec=','shm=']
-    try:
-        opts, args = getopt.getopt(
-                     sys.argv[1:],
-                     options,
-                     longoptions)
-    except getopt.error:
-        _logger.error(sys.exc_info()[1])
-        sys.exit(1)
-    # --- waiting widget
-    kw={}
-    for opt, arg in opts:
-        if  opt in ('--spec'):
-            kw['spec'] = arg
-        elif opt in ('--shm'):
-            kw['shm']  = arg
-    #demo = McaWindow.McaWidget(**kw)
-    demo = PyMcaMdi()
-    app.lastWindowClosed.connect(app.quit)
+    # Extract optional keyword args
+    kw = {}
+    if args.spec:
+        kw["spec"] = args.spec
+    if args.shm:
+        kw["shm"] = args.shm
+
+    # Launch PyMcaMdi
+    demo = PyMcaMdi(**kw)
     demo.show()
-    app.exec()
 
-if __name__ == '__main__':
-    main(sys.argv)
+    # If running in test mode, quit immediately
+    if args.cli_test:
+        qt.QTimer.singleShot(0, app.quit)
 
+    return app.exec()
+
+
+def build_parser():
+    parser = CliUtils.create_parser(description="PyMcaMdi launcher", add_qt_options=True)
+
+    parser.add_argument("--spec", type=str, default=None, help="Optional spec file")
+    parser.add_argument("--shm", type=str, default=None, help="Optional shared memory")
+
+    return parser
+
+
+if __name__ == "__main__":
+    PyMcaAppInit.init_before_app_create()
+    exit_code = CliUtils.cli_main(main, build_parser(), loggers=(_logger,))
+    sys.exit(exit_code)

@@ -28,6 +28,12 @@ __author__ = "V.A. Sole"
 __contact__ = "sole@esrf.fr"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
+
+from PyMca5.PyMcaGui import PyMcaAppInit
+
+if __name__== '__main__':
+    PyMcaAppInit.init_before_app_import()
+
 import sys
 import os
 import time
@@ -62,6 +68,7 @@ from PyMca5.PyMcaGui.pymca import EdfFileSimpleViewer
 from PyMca5.PyMcaCore import HtmlIndex
 from PyMca5.PyMcaCore import PyMcaDirs
 from PyMca5.PyMcaCore import LegacyPyMcaBatchBuildOutput as PyMcaBatchBuildOutput
+from PyMca5.PyMcaMisc import CliUtils
 
 ROIWIDTH = 100.
 _logger = logging.getLogger(__name__)
@@ -1557,186 +1564,163 @@ class McaBatchWindow(qt.QWidget):
             _logger.debug("cmd = %s", cmd)
             os.system(cmd)
 
-def main():
-    sys.excepthook = qt.exceptionHandler
-    import getopt
-    from PyMca5.PyMcaCore.LoggingLevel import getLoggingLevel
-    options     = 'f'
-    longoptions = ['cfg=','outdir=','roifit=','roi=','roiwidth=',
-                   'overwrite=', 'filestep=', 'mcastep=', 'html=','htmlindex=',
-                   'listfile=','cfglistfile=', 'concentrations=', 'table=', 'fitfiles=',
-                   'filebeginoffset=','fileendoffset=','mcaoffset=', 'chunk=',
-                   'nativefiledialogs=','selection=', 'exitonend=',
-                   'logging=', 'debug=', 'showresult=']
-    filelist = None
-    outdir   = None
-    cfg      = None
-    listfile = None
-    cfglistfile = None
-    selection = False
-    roifit   = 0
-    roiwidth = ROIWIDTH
-    overwrite= 1
-    filestep = 1
-    html = 0
-    htmlindex= None
-    mcastep  = 1
-    table    = 2
-    fitfiles = 1
-    concentrations = 0
-    filebeginoffset = 0
-    fileendoffset = 0
-    mcaoffset = 0
-    chunk = None
-    exitonend = False
-    showresult = True
-    opts, args = getopt.getopt(
-                    sys.argv[1:],
-                    options,
-                    longoptions)
-    for opt,arg in opts:
-        if opt in ('--cfg'):
-            cfg = arg
-        elif opt in ('--outdir'):
-            outdir = arg
-        elif opt in ('--roi','--roifit'):
-            roifit   = int(arg)
-        elif opt in ('--roiwidth'):
-            roiwidth = float(arg)
-        elif opt in ('--overwrite'):
-            overwrite= int(arg)
-        elif opt in ('--filestep'):
-            filestep = int(arg)
-        elif opt in ('--mcastep'):
-            mcastep  = int(arg)
-        elif opt in ('--html'):
-            html  = int(arg)
-        elif opt in ('--htmlindex'):
-            htmlindex  = arg
-        elif opt in ('--listfile'):
-            listfile  = arg
-        elif opt in ('--cfglistfile'):
-            cfglistfile  = arg
-        elif opt in ('--concentrations'):
-            concentrations  = int(arg)
-        elif opt in ('--table'):
-            table  = int(arg)
-        elif opt in ('--fitfiles'):
-            fitfiles  = int(arg)
-        elif opt in ('--filebeginoffset'):
-            filebeginoffset = int(arg)
-        elif opt in ('--fileendoffset'):
-            fileendoffset   = int(arg)
-        elif opt in ('--mcaoffset'):
-            mcaoffset  = int(arg)
-        elif opt in ('--chunk'):
-            chunk  = int(arg)
-        elif opt in ('--selection'):
-            selection  = int(arg)
-            if selection:
-                selection = True
-            else:
-                selection = False
-        elif opt in ('--nativefiledialogs'):
-            if int(arg):
-                PyMcaDirs.nativeFileDialogs = True
-            else:
-                PyMcaDirs.nativeFileDialogs = False
-        elif opt in ('--exitonend'):
-            exitonend = int(arg)
-        elif opt in ('--showresult'):
-            showresult = int(arg)
 
-    logging.basicConfig(level=getLoggingLevel(opts))
-
-    if listfile is None:
-        filelist=[]
-        for item in args:
-            filelist.append(item)
+def main(args):
+    # Prepare file list
+    if args.listfile is None:
+        filelist = args.files or []
         selection = None
     else:
-        if selection:
+        if args.selection:
             tmpDict = ConfigDict.ConfigDict()
-            tmpDict.read(listfile)
+            tmpDict.read(args.listfile)
             tmpDict = tmpDict['PyMcaBatch']
             filelist = tmpDict['filelist']
-            if type(filelist) == type(""):
+            if isinstance(filelist, str):
                 filelist = [filelist]
             selection = tmpDict['selection']
         else:
-            fd = open(listfile, 'rb')
-            filelist = fd.readlines()
-            fd.close()
-            for i in range(len(filelist)):
-                filelist[i]=filelist[i].decode(sys.getfilesystemencoding()).replace('\n','')
+            with open(args.listfile, 'rb') as fd:
+                filelist = [line.decode(sys.getfilesystemencoding()).strip() for line in fd.readlines()]
             selection = None
-    if cfglistfile is not None:
-        fd = open(cfglistfile, 'rb')
-        cfg = fd.readlines()
-        fd.close()
-        for i in range(len(cfg)):
-            cfg[i]=cfg[i].decode(sys.getfilesystemencoding()).replace('\n','')
-    app=qt.QApplication(sys.argv)
+
+    # Prepare configurations
+    cfg = args.cfg
+    if args.cfglistfile is not None:
+        with open(args.cfglistfile, 'rb') as fd:
+            cfg = [line.decode(sys.getfilesystemencoding()).strip() for line in fd.readlines()]
+
+    # Qt application
+    app = qt.QApplication([])
+    PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
+
     if len(filelist) == 0:
-        app.lastWindowClosed.connect(app.quit)
+        # No files -> launch GUI
         w = McaBatchGUI(actions=1)
         w.show()
         w.raise_()
-        app.exec()
     else:
-        app.lastWindowClosed.connect(app.quit)
-        text = "LegacyBatch from %s to %s" % (os.path.basename(filelist[0]), os.path.basename(filelist[-1]))
-        window =  McaBatchWindow(name=text,actions=1,
-                                outputdir=outdir,html=html, htmlindex=htmlindex, table=table,
-                                chunk=chunk, exitonend=exitonend, showresult=showresult)
+        # Otherwise launch batch processing
+        text = f"LegacyBatch from {os.path.basename(filelist[0])} to {os.path.basename(filelist[-1])}"
+        window = McaBatchWindow(
+            name=text,
+            actions=1,
+            outputdir=args.outdir,
+            html=args.html,
+            htmlindex=args.htmlindex,
+            table=args.table,
+            chunk=args.chunk,
+            exitonend=args.exitonend,
+            showresult=args.showresult,
+        )
 
-        if html:fitfiles=1
+        if args.html:
+            fitfiles = 1
+        else:
+            fitfiles = args.fitfiles
+
         try:
-            b = McaBatch(window,cfg,filelist,outdir,roifit=roifit,roiwidth=roiwidth,
-                     overwrite = overwrite, filestep=filestep, mcastep=mcastep,
-                      concentrations=concentrations, fitfiles=fitfiles,
-                      filebeginoffset=filebeginoffset,fileendoffset=fileendoffset,
-                      mcaoffset=mcaoffset, chunk=chunk, selection=selection)
+            b = McaBatch(
+                window,
+                cfg,
+                filelist,
+                args.outdir,
+                roifit=args.roifit,
+                roiwidth=args.roiwidth,
+                overwrite=args.overwrite,
+                filestep=args.filestep,
+                mcastep=args.mcastep,
+                concentrations=args.concentrations,
+                fitfiles=fitfiles,
+                filebeginoffset=args.filebeginoffset,
+                fileendoffset=args.fileendoffset,
+                mcaoffset=args.mcaoffset,
+                chunk=args.chunk,
+                selection=selection,
+            )
         except Exception:
-            if exitonend:
-                _logger.warning("Error: ", sys.exc_info()[1])
+            b = None
+            if args.exitonend:
+                _logger.warning("Error: %s", sys.exc_info()[1])
                 _logger.warning("Quitting as requested")
                 qt.QApplication.instance().quit()
             else:
                 msg = qt.QMessageBox()
                 msg.setIcon(qt.QMessageBox.Critical)
-                msg.setText("%s" % sys.exc_info()[1])
+                msg.setText(f"{sys.exc_info()[1]}")
                 msg.exec()
                 return
 
-
+        # Cleanup and pause handling
         def cleanup():
+            if b is None:
+                return
             b.pleasePause = 0
             b.pleaseBreak = 1
             if hasattr(b, "wait"):
                 b.wait()
-            qApp = qt.QApplication.instance()
-            qApp.processEvents()
+            qt.QApplication.instance().processEvents()
 
         def pause():
+            if b is None:
+                return
             if b.pleasePause:
-                b.pleasePause=0
+                b.pleasePause = 0
                 window.pauseButton.setText("Pause")
             else:
-                b.pleasePause=1
+                b.pleasePause = 1
                 window.pauseButton.setText("Continue")
+
         window.pauseButton.clicked.connect(pause)
         window.abortButton.clicked.connect(window.close)
-        app.aboutToQuit[()].connect(cleanup)
-        window._rootname = "%s"% b._rootname
-        window.show()
-        b.start()
-        app.exec()
-    app = None
+        app.aboutToQuit.connect(cleanup)
+
+        if b is not None:
+            window._rootname = str(b._rootname)
+            window.show()
+            b.start()
+
+    # Auto-close for tests
+    if args.cli_test:
+        qt.QTimer.singleShot(0, app.quit)
+
+    return app.exec()
+
+
+def build_parser():
+    parser = CliUtils.create_parser(description="Legacy PyMca Batch Processing GUI", add_qt_options=True)
+
+    parser.add_argument("--cfg", type=str)
+    parser.add_argument("--cfglistfile", type=str)
+    parser.add_argument("--outdir", type=str)
+    parser.add_argument("--listfile", type=str)
+    parser.add_argument("--roifit", "--roi", type=int, default=0)
+    parser.add_argument("--roiwidth", type=float, default=ROIWIDTH)
+    parser.add_argument("--overwrite", type=int, default=1)
+    parser.add_argument("--filestep", type=int, default=1)
+    parser.add_argument("--mcastep", type=int, default=1)
+    parser.add_argument("--html", type=int, default=0)
+    parser.add_argument("--htmlindex", type=str)
+    parser.add_argument("--concentrations", type=int, default=0)
+    parser.add_argument("--table", type=int, default=2)
+    parser.add_argument("--fitfiles", type=int, default=1)
+    parser.add_argument("--filebeginoffset", type=int, default=0)
+    parser.add_argument("--fileendoffset", type=int, default=0)
+    parser.add_argument("--mcaoffset", type=int, default=0)
+    parser.add_argument("--chunk", type=int)
+    parser.add_argument("--selection", type=int, default=0)
+    parser.add_argument("--exitonend", type=int, default=0)
+    parser.add_argument("--showresult", type=int, default=1)
+
+    parser.add_argument("files", nargs="*", help="Files to process if --listfile is not provided")
+
+    return parser
+
 
 if __name__ == "__main__":
-    main()
-
+    PyMcaAppInit.init_before_app_create()
+    exit_code = CliUtils.cli_main(main, build_parser(), loggers=(_logger,))
+    sys.exit(exit_code)
 
 # LegacyPyMcaBatch.py --cfg=/mntdirect/_bliss/users/sole/COTTE/WithLead.cfg --outdir=/tmp/   /mntdirect/_bliss/users/sole/COTTE/ch09/ch09__mca_0003_0000_0007.edf /mntdirect/_bliss/users/sole/COTTE/ch09/ch09__mca_0003_0000_0008.edf /mntdirect/_bliss/users/sole/COTTE/ch09/ch09__mca_0003_0000_0009.edf /mntdirect/_bliss/users/sole/COTTE/ch09/ch09__mca_0003_0000_0010.edf /mntdirect/_bliss/users/sole/COTTE/ch09/ch09__mca_0003_0000_0011.edf /mntdirect/_bliss/users/sole/COTTE/ch09/ch09__mca_0003_0000_0012.edf /mntdirect/_bliss/users/sole/COTTE/ch09/ch09__mca_0003_0000_0013.edf &
 # LegacyPyMcaBatch.exe --cfg=E:/COTTE/WithLead.cfg --outdir=C:/tmp/   E:/COTTE/ch09/ch09__mca_0003_0000_0007.edf E:/COTTE/ch09/ch09__mca_0003_0000_0008.edf

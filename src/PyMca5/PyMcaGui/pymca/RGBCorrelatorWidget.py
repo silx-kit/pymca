@@ -27,6 +27,12 @@ __author__ = "V.A. Sole - ESRF"
 __contact__ = "sole@esrf.fr"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
+
+from PyMca5.PyMcaGui import PyMcaAppInit
+
+if __name__== '__main__':
+    PyMcaAppInit.init_before_app_import()
+
 import sys
 import os
 import numpy
@@ -35,8 +41,7 @@ import logging
 import warnings
 import re
 from typing import Optional
-from . import RGBCorrelatorSlider
-from . import RGBCorrelatorTable
+
 from PyMca5.PyMcaGui.pymca import RGBImageCalculator
 from PyMca5 import spslut
 from PyMca5.PyMcaGui.plotting.PyMca_Icons import IconDict
@@ -48,6 +53,11 @@ from PyMca5.PyMcaGui.pymca import ExternalImagesWindow
 from PyMca5.PyMcaIO import TiffIO
 from PyMca5.PyMcaGui.io import PyMcaFileDialogs
 from PyMca5.PyMcaGui.plotting import ScatterPlotCorrelatorWidget
+from PyMca5.PyMcaGui.plotting import RGBCorrelatorGraph
+from PyMca5.PyMcaMisc import CliUtils
+
+from . import RGBCorrelatorSlider
+from . import RGBCorrelatorTable
 
 DataReader = EdfFileDataSource.EdfFileDataSource
 USE_STRING = False
@@ -1777,14 +1787,12 @@ class MyQLabel(qt.QLabel):
             painter.font().setBold(0)
 
 
-def main():
-    from PyMca5.PyMcaGui.plotting import RGBCorrelatorGraph
-
+def main(args):
     app = qt.QApplication([])
-    app.lastWindowClosed.connect(app.quit)
+    PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
 
     container = qt.QSplitter()
-    # containerLayout = qt.QHBoxLayout(container)
+
     w = RGBCorrelatorWidget(container)
     graph = RGBCorrelatorGraph.RGBCorrelatorGraph(container)
 
@@ -1797,23 +1805,17 @@ def main():
             graph.graph.replot()
 
     w.sigRGBCorrelatorWidgetSignal.connect(slot)
-    import getopt
 
-    options = ""
-    longoptions = []
-    opts, args = getopt.getopt(sys.argv[1:], options, longoptions)
-    for opt, arg in opts:
-        pass
-    filelist = args
-    if len(filelist):
+    filelist = args.files
+
+    if filelist:
         try:
             import DataSource
-
             DataReader = DataSource.DataSource
         except Exception:
             from PyMca5.PyMcaCore import EdfFileDataSource
-
             DataReader = EdfFileDataSource.EdfFileDataSource
+
         for fname in filelist:
             source = DataReader(fname)
             for key in source.getSourceInfo()["KeyList"]:
@@ -1824,15 +1826,32 @@ def main():
         array2 = numpy.resize(numpy.arange(10000), (100, 100))
         array2 = numpy.transpose(array2)
         array3 = array1 * 1
+
         w.addImage(array1)
         w.addImage(array2)
         w.addImage(array3)
         w.setImageShape([100, 100])
+
     # containerLayout.addWidget(w)
     # containerLayout.addWidget(graph)
     container.show()
-    app.exec()
+
+    # Auto-close Qt application for tests
+    if args.cli_test:
+        qt.QTimer.singleShot(0, app.quit)
+
+    return app.exec()
+
+
+def build_parser():
+    parser = CliUtils.create_parser(description="RGB Correlator Viewer", add_qt_options=True)
+
+    parser.add_argument("files", nargs="*", help="Input files")
+
+    return parser
 
 
 if __name__ == "__main__":
-    main()
+    PyMcaAppInit.init_before_app_create()
+    exit_code = CliUtils.cli_main(main, build_parser(), loggers=(_logger,))
+    sys.exit(exit_code)

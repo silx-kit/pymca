@@ -28,11 +28,18 @@ __author__ = "V.A. Sole - ESRF"
 __contact__ = "sole@esrf.fr"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
+
+from PyMca5.PyMcaGui import PyMcaAppInit
+
+if __name__== '__main__':
+    PyMcaAppInit.init_before_app_import()
+
 import sys
 import os
 import copy
 import traceback
 import logging
+
 from PyMca5.PyMcaGui import PyMcaQt as qt
 from PyMca5 import PyMcaDirs
 from PyMca5 import DataObject
@@ -53,6 +60,9 @@ from PyMca5.PyMcaIO import JcampOpusStack
 from PyMca5.PyMcaIO import FsmMap
 from PyMca5.PyMcaIO import LabSpec6TxtMap
 from PyMca5.PyMcaIO import BrukerBCF
+from PyMca5.PyMcaMisc import CliUtils
+
+
 from .QStack import QStack, QSpecFileStack
 try:
     from PyMca5.PyMcaGui.pymca import QHDF5Stack1D
@@ -369,11 +379,11 @@ class StackSelector(object):
                             getfilter=False,
                             single=False,
                             native=True)
-        if not(len(filelist)):
-            return []
-        PyMcaDirs.inputDir = os.path.dirname(filelist[0])
-        if PyMcaDirs.outputDir is None:
-            PyMcaDirs.outputDir = os.path.dirname(filelist[0])
+
+        if len(filelist):
+            PyMcaDirs.inputDir = os.path.dirname(filelist[0])
+            if PyMcaDirs.outputDir is None:
+                PyMcaDirs.outputDir = os.path.dirname(filelist[0])
 
         if getfilter:
             return filelist, filterused
@@ -447,78 +457,78 @@ class StackSelector(object):
         return fileList
 
 
-if __name__ == "__main__":
-    from PyMca5 import QStackWidget
-    import getopt
-    options = ''
-    longoptions = ["fileindex=",
-                   "filepattern=", "begin=", "end=", "increment=",
-                   "nativefiledialogs=", "imagestack="]
-    try:
-        opts, args = getopt.getopt(
-                     sys.argv[1:],
-                     options,
-                     longoptions)
-    except Exception:
-        _logger.error(sys.exc_info()[1])
-        sys.exit(1)
-    fileindex = 0
-    filepattern = None
-    begin = None
-    end = None
-    imagestack = False
-    increment = None
-    for opt, arg in opts:
-        if opt in '--begin':
-            if "," in arg:
-                begin = [int(x) for x in arg.split(",")]
-            else:
-                begin = [int(arg)]
-        elif opt in '--end':
-            if "," in arg:
-                end = [int(x) for x in arg.split(",")]
-            else:
-                end = int(arg)
-        elif opt in '--increment':
-            if "," in arg:
-                increment = [int(x) for x in arg.split(",")]
-            else:
-                increment = int(arg)
-        elif opt in '--filepattern':
-            filepattern = arg.replace('"', '')
-            filepattern = filepattern.replace("'", "")
-        elif opt in '--fileindex':
-            fileindex = int(arg)
-        elif opt in '--imagestack':
-            imagestack = int(arg)
-        elif opt in '--nativefiledialogs':
-            if int(arg):
-                PyMcaDirs.nativeFileDialogs = True
-            else:
-                PyMcaDirs.nativeFileDialogs = False
-    if filepattern is not None:
-        if (begin is None) or (end is None):
-            raise ValueError(\
-                "A file pattern needs at least a set of begin and end indices")
+def main(args):
+    if args.cli_test and args.filepattern is None and not args.files:
+        print("No input files provided.")
+        return 0
+
+    from PyMca5.PyMcaGui.pymca import QStackWidget
+
+    if args.filepattern is not None:
+        if (args.begin is None) or (args.end is None):
+            raise ValueError(
+                "A file pattern needs at least a set of begin and end indices"
+            )
+
     app = qt.QApplication([])
+    PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
+
     widget = QStackWidget.QStackWidget()
     w = StackSelector(widget)
-    if filepattern is not None:
-        #ignore the args even if present
-        stack = w.getStackFromPattern(filepattern, begin, end,
-                                      increment=increment,
-                                      imagestack=imagestack)
+
+    if args.filepattern is not None:
+        stack = w.getStackFromPattern(
+            args.filepattern,
+            args.begin,
+            args.end,
+            increment=args.increment,
+            imagestack=args.imagestack,
+        )
     else:
-        stack = w.getStack(args, imagestack=imagestack)
-    if type(stack) == type([]):
-        #aifira like, two stacks
+        stack = w.getStack(args.files, imagestack=args.imagestack)
+
+    if stack is None:
+        print("No files selected.")
+        return 0
+
+    if isinstance(stack, list):
         widget.setStack(stack[0])
-        secondary = QStackWidget.QStackWidget(primary=False,
-                                          rgbwidget=widget.rgbWidget)
+        secondary = QStackWidget.QStackWidget(
+            primary=False,
+            rgbwidget=widget.rgbWidget,
+        )
         secondary.setStack(stack[1])
         widget.setSecondary(secondary)
-        stack = None
     else:
         widget.setStack(stack)
+
     widget.show()
-    app.exec()
+
+    # Auto-close Qt application for tests
+    if args.cli_test:
+        qt.QTimer.singleShot(0, app.quit)
+
+    return app.exec()
+
+
+def build_parser():
+    parser = CliUtils.create_parser(description="PyMca Stack Viewer", add_qt_options=True)
+
+    parser.add_argument("--fileindex", type=int, default=0)
+
+    parser.add_argument("--filepattern", type=str, default=None, help="File pattern")
+    parser.add_argument("--begin", type=CliUtils.int_or_list, default=None, help="Begin index/indices, comma-separated")
+    parser.add_argument("--end", type=CliUtils.int_or_list, default=None, help="End index/indices, comma-separated")
+    parser.add_argument("--increment", type=CliUtils.int_or_list, default=None, help="Increment(s), comma-separated")
+
+    parser.add_argument("--imagestack", type=int, default=0)
+
+    parser.add_argument("files", nargs="*", help="Input files if not using filepattern")
+
+    return parser
+
+
+if __name__ == "__main__":
+    PyMcaAppInit.init_before_app_create()
+    exit_code = CliUtils.cli_main(main, build_parser(), loggers=(_logger,))
+    sys.exit(exit_code)

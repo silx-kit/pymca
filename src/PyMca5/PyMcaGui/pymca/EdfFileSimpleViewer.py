@@ -28,16 +28,16 @@ __author__ = "V.A. Sole - ESRF"
 __contact__ = "sole@esrf.fr"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-import sys
-import logging
+
+from PyMca5.PyMcaGui import PyMcaAppInit
+
 if __name__== '__main__':
-    # avoid issues if some module or dependency tries to use multiprocessing in frozen binaries
-    if getattr(sys, "frozen", False):
-        try:
-            import multiprocessing
-            multiprocessing.freeze_support()
-        except Exception:
-            pass
+    PyMcaAppInit.init_before_app_import()
+
+import sys
+import glob
+import logging
+
 from PyMca5.PyMcaGui import PyMcaQt as qt
 
 QTVERSION = qt.qVersion()
@@ -46,6 +46,8 @@ _logger = logging.getLogger(__name__)
 from PyMca5.PyMcaGui.io import QSourceSelector
 from PyMca5.PyMcaGui.pymca import QDataSource
 from PyMca5.PyMcaGui.io import QEdfFileWidget
+from PyMca5.PyMcaMisc import CliUtils
+
 
 class EdfFileSimpleViewer(qt.QWidget):
     def __init__(self, parent=None):
@@ -116,31 +118,40 @@ class EdfFileSimpleViewer(qt.QWidget):
             self.sourceSelector.openFile(ffile, justloaded = 1)
 
 
-def main():
-    import sys
-    import getopt
-    import glob
-    from PyMca5.PyMcaCore.LoggingLevel import getLoggingLevel
-    app=qt.QApplication(sys.argv)
-    options=''
-    longoptions=['logging=', 'debug=']
-    opts, args = getopt.getopt(
-                    sys.argv[1:],
-                    options,
-                    longoptions)
-    logging.basicConfig(level=getLoggingLevel(opts))
-    _logger.setLevel(getLoggingLevel(opts))
-    filelist = args
-    if len(filelist) == 1:
-        if sys.platform.startswith("win")  and '*' in filelist[0]:
-            filelist = glob.glob(filelist[0])
-    app.lastWindowClosed.connect(app.quit)
-    w=EdfFileSimpleViewer()
-    if len(filelist):
+def main(args):
+    # Qt application
+    app = qt.QApplication([])
+    PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
+
+    # File list (expand wildcards on Windows)
+    filelist = args.files
+    if len(filelist) == 1 and sys.platform.startswith("win") and "*" in filelist[0]:
+        filelist = glob.glob(filelist[0])
+
+    # Launch viewer
+    w = EdfFileSimpleViewer()
+    if filelist:
         w.setFileList(filelist)
     w.show()
-    app.exec()
+
+    # Auto-close Qt for tests
+    if args.cli_test:
+        qt.QTimer.singleShot(0, app.quit)
+
+    return app.exec()
+
+
+def build_parser():
+    parser = CliUtils.create_parser(description="Simple EDF file viewer", add_qt_options=True)
+
+    parser.add_argument(
+        "files", nargs="*", help="EDF files to open (supports wildcards on Windows)"
+    )
+
+    return parser
 
 
 if __name__ == "__main__":
-    main()
+    PyMcaAppInit.init_before_app_create()
+    exit_code = CliUtils.cli_main(main, build_parser(), loggers=(_logger,))
+    sys.exit(exit_code)

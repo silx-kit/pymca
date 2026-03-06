@@ -28,33 +28,22 @@ __author__ = "V.A. Sole"
 __contact__ = "sole@esrf.fr"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
+
+from PyMca5.PyMcaGui import PyMcaAppInit
+
+if __name__== '__main__':
+    PyMcaAppInit.init_before_app_import()
+
 import sys
 import os
 import logging
-if __name__== '__main__':
-    # avoid issues if some module or dependency tries to use multiprocessing in frozen binaries
-    if getattr(sys, "frozen", False):
-        try:
-            import multiprocessing
-            multiprocessing.freeze_support()
-        except Exception:
-            pass
-_logger = logging.getLogger(__name__)
-if __name__ == "__main__":    
-    # We are going to read. Disable file locking.
-    os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
-    _logger.info("%s set to %s" % ("HDF5_USE_FILE_LOCKING",
-                                    os.environ["HDF5_USE_FILE_LOCKING"]))
-    try:
-        # make sure hdf5plugins are imported
-        import hdf5plugin
-    except Exception:
-        _logger.info("Failed to import hdf5plugin")
 
-from PyMca5 import PyMcaDirs
 from PyMca5.PyMcaGui import PyMcaQt as qt
+from PyMca5 import PyMcaDirs
 from PyMca5.PyMcaGui.io import PyMcaFileDialogs
 from PyMca5.PyMcaGui.pymca import RGBCorrelator
+from PyMca5.PyMcaMisc import CliUtils
+
 if hasattr(qt, "QString"):
     QString = qt.QString
     QStringList = qt.QStringList
@@ -62,6 +51,8 @@ else:
     QString = qt.safe_str
     QStringList = list
 QTVERSION = qt.qVersion()
+
+_logger = logging.getLogger(__name__)
 
 
 class PyMcaPostBatch(RGBCorrelator.RGBCorrelator):
@@ -98,58 +89,55 @@ class PyMcaPostBatch(RGBCorrelator.RGBCorrelator):
             return []
 
 
-def main():
-    from PyMca5.PyMcaCore.LoggingLevel import getLoggingLevel
-    sys.excepthook = qt.exceptionHandler
+def main(args):
     app = qt.QApplication([])
-    app.lastWindowClosed.connect(app.quit)
+    PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
 
-    import getopt
-    options = ''
-    longoptions = ["nativefiledialogs=", "transpose=", "fileindex=",
-                   "logging=", "debug=", "shape="]
-    opts, args = getopt.getopt(
-                    sys.argv[1:],
-                    options,
-                    longoptions)
-    transpose = False
-    image_shape = None
-    for opt, arg in opts:
-        if opt in '--nativefiledialogs':
-            if int(arg):
-                PyMcaDirs.nativeFileDialogs = True
-            else:
-                PyMcaDirs.nativeFileDialogs = False
-        elif opt in '--transpose':
-            if int(arg):
-                transpose = True
-        elif opt in '--fileindex':
-            if int(arg):
-                transpose = True
-        elif opt in '--shape':
-            if 'x' in arg:
-                split_on = "x"
-            else:
-                split_on = ","
-            image_shape = tuple(int(n) for n in arg.split(split_on))
+    if args.shape:
+        split_on = "x" if "x" in args.shape else ","
+        image_shape = tuple(int(n) for n in args.shape.split(split_on))
+    else:
+        image_shape = None
 
-    logging.basicConfig(level=getLoggingLevel(opts))
-
-    filelist = args
+    # Create the widget
     w = PyMcaPostBatch(image_shape=image_shape)
     w.layout().setContentsMargins(11, 11, 11, 11)
-    if not filelist:
-        filelist = w._getStackOfFiles()
+
+    # Handle files
+    filelist = args.files
+    if not filelist and not args.cli_test:
+        w._getStackOfFiles()
+
     if filelist:
         w.addFileList(filelist)
     else:
-        print("Usage:")
-        print("python PyMcaPostBatch.py PyMCA_BATCH_RESULT_DOT_DAT_FILE")
-    if transpose:
+        print("Usage: python PyMcaPostBatch.py PyMCA_BATCH_RESULT_DOT_DAT_FILE")
+
+    # Optional behaviors
+    if args.transpose:
         w.transposeImages()
+
     w.show()
-    app.exec()
+
+    # Auto-close Qt application for tests
+    if args.cli_test:
+        qt.QTimer.singleShot(0, app.quit)
+
+    return app.exec()
+
+
+def build_parser():
+    parser = CliUtils.create_parser(description="PyMca Post-Batch Processing GUI", add_qt_options=True)
+
+    parser.add_argument("--transpose", "--fileindex", type=int, default=0, help="Transpose all images")
+    parser.add_argument("--shape", type=str, default=None, help="Image shape as WxH or W,H")
+
+    parser.add_argument("files", nargs="*", help="Optional list of data files to open")
+
+    return parser
 
 
 if __name__ == "__main__":
-    main()
+    PyMcaAppInit.init_before_app_create()
+    exit_code = CliUtils.cli_main(main, build_parser(), loggers=(_logger,))
+    sys.exit(exit_code)

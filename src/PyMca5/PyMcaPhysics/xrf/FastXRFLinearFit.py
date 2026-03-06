@@ -33,20 +33,24 @@ __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 __doc__ = """
 Module to perform a fast linear fit on a stack of fluorescence spectra.
 """
+
 import os
-import numpy
-import logging
+import sys
 import time
-import h5py
-import collections
-from . import ClassMcaTheory
-from . import ConcentrationsTool
+import logging
+
+import numpy
+
 from PyMca5.PyMcaMath.linalg import lstsq
 from PyMca5.PyMcaMath.fitting import Gefit
 from PyMca5.PyMcaMath.fitting import SpecfitFuns
 from PyMca5.PyMcaIO import ConfigDict
-from .XRFBatchFitOutput import OutputBuffer
 from PyMca5.PyMcaCore import McaStackView
+from PyMca5.PyMcaMisc import CliUtils
+from PyMca5.PyMcaMisc import ProfilingUtils
+from . import ClassMcaTheory
+from . import ConcentrationsTool
+from .XRFBatchFitOutput import OutputBuffer
 
 _logger = logging.getLogger(__name__)
 
@@ -1046,148 +1050,90 @@ def prepareDataStack(fileList):
     return dataStack
 
 
-def main():
-    import sys
-    import getopt
-    options     = ''
-    longoptions = ['cfg=', 'outdir=', 'concentrations=', 'weight=', 'refit=',
-                   'tif=', 'edf=', 'csv=', 'h5=', 'dat=',
-                   'filepattern=', 'begin=', 'end=', 'increment=',
-                   'outroot=', 'outentry=', 'outprocess=',
-                   'diagnostics=', 'debug=', 'overwrite=', 'multipage=']
-    try:
-        opts, args = getopt.getopt(
-                     sys.argv[1:],
-                     options,
-                     longoptions)
-    except Exception:
-        print(sys.exc_info()[1])
-        sys.exit(1)
-    outputDir = None
-    outputRoot = ""
-    fileEntry = ""
-    fileProcess = ""
-    refit = None
-    filepattern = None
-    begin = None
-    end = None
-    increment = None
-    backend = None
-    weight = 0
-    tif = 0
-    edf = 0
-    csv = 0
-    h5 = 1
-    dat = 0
-    concentrations = 0
-    diagnostics = 0
-    debug = 0
-    overwrite = 1
-    multipage = 0
-    for opt, arg in opts:
-        if opt == '--cfg':
-            configurationFile = arg
-        elif opt == '--begin':
-            if "," in arg:
-                begin = [int(x) for x in arg.split(",")]
-            else:
-                begin = [int(arg)]
-        elif opt == '--end':
-            if "," in arg:
-                end = [int(x) for x in arg.split(",")]
-            else:
-                end = int(arg)
-        elif opt == '--increment':
-            if "," in arg:
-                increment = [int(x) for x in arg.split(",")]
-            else:
-                increment = int(arg)
-        elif opt == '--filepattern':
-            filepattern = arg.replace('"', '')
-            filepattern = filepattern.replace("'", "")
-        elif opt == '--outdir':
-            outputDir = arg
-        elif opt == '--weight':
-            weight = int(arg)
-        elif opt == '--refit':
-            refit = int(arg)
-        elif opt == '--concentrations':
-            concentrations = int(arg)
-        elif opt == '--diagnostics':
-            diagnostics = int(arg)
-        elif opt == '--outroot':
-            outputRoot = arg
-        elif opt == '--outentry':
-            fileEntry = arg
-        elif opt == '--outprocess':
-            fileProcess = arg
-        elif opt in ('--tif', '--tiff'):
-            tif = int(arg)
-        elif opt == '--edf':
-            edf = int(arg)
-        elif opt == '--csv':
-            csv = int(arg)
-        elif opt == '--h5':
-            h5 = int(arg)
-        elif opt == '--dat':
-            dat = int(arg)
-        elif opt == '--debug':
-            debug = int(arg)
-        elif opt == '--overwrite':
-            overwrite = int(arg)
-        elif opt == '--multipage':
-            multipage = int(arg)
+def main(args):
+    """
+    Main entry point for the FastXRFLinearFit CLI.
+    """
+    # Validate file pattern arguments
+    if args.filepattern is not None:
+        if args.begin is None or args.end is None:
+            raise ValueError("A file pattern needs at least a set of begin and end indices")
+        filelist = getFileListFromPattern(args.filepattern, args.begin, args.end, increment=args.increment)
+    else:
+        filelist = args.filelist
 
-    logging.basicConfig()
-    if debug:
-        _logger.setLevel(logging.DEBUG)
-    else:
-        _logger.setLevel(logging.INFO)
-    if filepattern is not None:
-        if (begin is None) or (end is None):
-            raise ValueError(\
-                "A file pattern needs at least a set of begin and end indices")
-    if filepattern is not None:
-        fileList = getFileListFromPattern(filepattern, begin, end, increment=increment)
-    else:
-        fileList = args
-    if refit is None:
-        refit = 0
-        _logger.warning("--refit=%d taken as default" % refit)
-    if len(fileList):
-        dataStack = prepareDataStack(fileList)
-    else:
-        print("OPTIONS:", longoptions)
-        sys.exit(0)
-    if outputDir is None:
-        print("RESULTS WILL NOT BE SAVED: No output directory specified")
+    if not filelist:
+        _logger.warning("No input files provided")
+        return 0
+
+    dataStack = prepareDataStack(filelist)
+
+    if args.outdir is None:
+        _logger.warning("RESULTS WILL NOT BE SAVED: No output directory specified")
 
     t0 = time.time()
     fastFit = FastXRFLinearFit()
-    fastFit.setFitConfigurationFile(configurationFile)
-    print("Main configuring Elapsed = % s " % (time.time() - t0))
+    fastFit.setFitConfigurationFile(args.cfg)
+    _logger.info("Main configuring Elapsed = %.3f s", time.time() - t0)
 
-    outbuffer = OutputBuffer(outputDir=outputDir,
-                             outputRoot=outputRoot,
-                             fileEntry=fileEntry,
-                             fileProcess=fileProcess,
-                             diagnostics=diagnostics,
-                             tif=tif, edf=edf, csv=csv,
-                             h5=h5, dat=dat,
-                             multipage=multipage,
-                             overwrite=overwrite)
+    outbuffer = OutputBuffer(
+        outputDir=args.outdir,
+        outputRoot=args.outroot,
+        fileEntry=args.outentry,
+        fileProcess=args.outprocess,
+        diagnostics=args.diagnostics,
+        tif=args.tif,
+        edf=args.edf,
+        csv=args.csv,
+        h5=args.h5,
+        dat=args.dat,
+        multipage=args.multipage,
+        overwrite=args.overwrite
+    )
 
-    from PyMca5.PyMcaMisc import ProfilingUtils
-    with ProfilingUtils.profile(memory=debug, time=debug):
+    with ProfilingUtils.profile(memory=args.debug, time=args.debug):
         with outbuffer.saveContext():
-            outbuffer = fastFit.fitMultipleSpectra(y=dataStack,
-                                                weight=weight,
-                                                refit=refit,
-                                                concentrations=concentrations,
-                                                outbuffer=outbuffer)
-        print("Total Elapsed = % s " % (time.time() - t0))
+            outbuffer = fastFit.fitMultipleSpectra(
+                y=dataStack,
+                weight=args.weight,
+                refit=args.refit,
+                concentrations=args.concentrations,
+                outbuffer=outbuffer
+            )
+
+    _logger.info("Total Elapsed = %.3f s", time.time() - t0)
+    return 0
+
+
+def build_parser():
+    parser = CliUtils.create_parser(description="Batch fast XRF fit")
+
+    parser.add_argument("--cfg", required=True, type=str, help="Configuration file")
+    parser.add_argument("--filepattern", default=None, type=str, help="File pattern")
+    parser.add_argument("--begin", type=CliUtils.int_or_list, default=None, help="Begin index/indices, comma-separated")
+    parser.add_argument("--end", type=CliUtils.int_or_list, default=None, help="End index/indices, comma-separated")
+    parser.add_argument("--increment", type=CliUtils.int_or_list, default=None, help="Increment(s), comma-separated")
+    parser.add_argument("--outdir", default=None, type=str, help="Output directory")
+    parser.add_argument("--outroot", default=None, type=str, help="Output root name")
+    parser.add_argument("--outentry", default=None, type=str, help="File entry name")
+    parser.add_argument("--outprocess", default=None, type=str, help="Process name")
+    parser.add_argument("--weight", default=0, type=int, help="Weight")
+    parser.add_argument("--refit", type=int, default=0, help="Refit flag")
+    parser.add_argument("--concentrations", type=int, default=0, help="Concentration flag")
+    parser.add_argument("--diagnostics", type=int, default=0, help="Diagnostics flag")
+    parser.add_argument("--tif", type=int, default=0, help="TIF output flag")
+    parser.add_argument("--edf", type=int, default=0, help="EDF output flag")
+    parser.add_argument("--csv", type=int, default=0, help="CSV output flag")
+    parser.add_argument("--h5", type=int, default=1, help="H5 output flag")
+    parser.add_argument("--dat", type=int, default=0, help="DAT output flag")
+    parser.add_argument("--overwrite", type=int, default=1, help="Overwrite existing files")
+    parser.add_argument("--multipage", type=int, default=0, help="Multipage flag")
+
+    parser.add_argument("filelist", nargs="*", help="Input files if not using filepattern")
+
+    return parser
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-    main()
+    exit_code = CliUtils.cli_main(main, build_parser(), loggers=(_logger,))
+    sys.exit(exit_code)

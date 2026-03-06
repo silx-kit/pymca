@@ -28,8 +28,16 @@ __author__ = "V.A. Sole - ESRF"
 __contact__ = "sole@esrf.fr"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
+
+from PyMca5.PyMcaGui import PyMcaAppInit
+
+if __name__== '__main__':
+    PyMcaAppInit.init_before_app_import()
+
 import sys
 import os
+
+
 import numpy
 from PyMca5.PyMcaGui.pymca import RGBCorrelatorWidget
 qt = RGBCorrelatorWidget.qt
@@ -39,6 +47,8 @@ else:
     QString = str
 from PyMca5.PyMcaGui.plotting import RGBCorrelatorGraph
 from PyMca5.PyMcaGui.pymca import QPyMcaMatplotlibSave
+from PyMca5.PyMcaMisc import CliUtils
+
 USE_MASK_WIDGET = False
 if USE_MASK_WIDGET:
     from PyMca5.PyMcaGui.plotting import MaskImageWidget
@@ -167,54 +177,67 @@ class RGBCorrelator(qt.QWidget):
             self.controller.show()
         qt.QWidget.show(self)
 
-def test():
-    import logging
+
+def main(args):
     app = qt.QApplication([])
-    app.lastWindowClosed.connect(app.quit)
-    if 0:
+    PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
+
+    # Create the widget
+    if args.image:
+        w = RGBCorrelator()
+        w.resize(800, 600)
+    else:
         graphWidget = RGBCorrelatorGraph.RGBCorrelatorGraph()
         graph = graphWidget.graph
         w = RGBCorrelator(graph=graph)
-    else:
-        w = RGBCorrelator()
-        w.resize(800, 600)
-    import getopt
-    from PyMca5.PyMcaCore.LoggingLevel import getLoggingLevel
-    options = ''
-    longoptions = ["logging=", "debug="]
-    opts, args = getopt.getopt(
-                    sys.argv[1:],
-                    options,
-                    longoptions)
 
-    logging.basicConfig(level=getLoggingLevel(opts))
-    filelist=args
-    if len(filelist):
+    # Load files if any
+    filelist = args.files or []
+    if filelist:
         try:
             import DataSource
             DataReader = DataSource.DataSource
         except Exception:
             import EdfFileDataSource
             DataReader = EdfFileDataSource.EdfFileDataSource
+
         for fname in filelist:
             source = DataReader(fname)
-            for key in source.getSourceInfo()['KeyList']:
+            for key in source.getSourceInfo()["KeyList"]:
                 dataObject = source.getDataObject(key)
-                w.addImage(dataObject.data, os.path.basename(fname)+" "+key)
+                w.addImage(dataObject.data, os.path.basename(fname) + " " + key)
     else:
+        # Default test data
         print("This is a just test method using 100 x 100 matrices.")
         print("Run PyMcaPostBatch to have file loading capabilities.")
         array1 = numpy.arange(10000)
-        array2 = numpy.resize(numpy.arange(10000), (100, 100))
-        array2 = numpy.transpose(array2)
+        array2 = numpy.resize(numpy.arange(10000), (100, 100)).T
         array3 = array1 * 1
         w.addImage(array1)
         w.addImage(array2)
         w.addImage(array3)
         w.setImageShape([100, 100])
+
     w.show()
-    app.exec()
+
+    # Auto-close Qt application for tests
+    if args.cli_test:
+        qt.QTimer.singleShot(0, app.quit)
+
+    return app.exec()
+
+
+def build_parser():
+    parser = CliUtils.create_parser(description="RGBCorrelator GUI", add_qt_options=True)
+
+    parser.add_argument("--image", action="store_true", help="Show image")
+
+    parser.add_argument("files", nargs="*", help="Files to load (optional)")
+
+    return parser
+
 
 if __name__ == "__main__":
-    test()
-
+    PyMcaAppInit.init_before_app_create()
+    exit_code = CliUtils.cli_main(main, build_parser())
+    sys.exit(exit_code)

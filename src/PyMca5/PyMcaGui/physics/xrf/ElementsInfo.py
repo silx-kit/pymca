@@ -30,20 +30,20 @@ __author__ = "V. Armando Sole - ESRF"
 __contact__ = "sole@esrf.fr"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
+
+from PyMca5.PyMcaGui import PyMcaAppInit
+
+if __name__== '__main__':
+    PyMcaAppInit.init_before_app_import()
+
 import sys
 import logging
-if __name__== '__main__':
-    # avoid issues if some module or dependency tries to use multiprocessing in frozen binaries
-    if getattr(sys, "frozen", False):
-        try:
-            import multiprocessing
-            multiprocessing.freeze_support()
-        except Exception:
-            pass
+
 from PyMca5.PyMcaGui import PyMcaQt as qt
 from PyMca5.PyMcaPhysics.xrf import ElementHtml
 from PyMca5.PyMcaPhysics.xrf import Elements
 from PyMca5.PyMcaGui.physics.xrf.QPeriodicTable import QPeriodicTable
+from PyMca5.PyMcaMisc import CliUtils
 
 _logger = logging.getLogger(__name__)
 
@@ -286,12 +286,28 @@ class MyQLineEdit(qt.QLineEdit):
             qt.QApplication.instance().palette().color(qt.QPalette.Base))
         self.sigFocusOut.emit()
 
-def main():
-    logging.basicConfig(level=logging.INFO)
+
+def main(args):
     app  = qt.QApplication([])
-    w= ElementsInfo()
+    PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
+
+    w = ElementsInfo()
     w.show()
-    app.exec()
+
+    # Auto-close Qt for tests
+    if args.cli_test:
+        qt.QTimer.singleShot(0, app.quit)
+
+    return app.exec()
+
+
+def build_parser():
+    parser = CliUtils.create_parser(description="Elements Tool", add_qt_options=True)
+
+    return parser
+
 
 if __name__ == "__main__":
-    main()
+    PyMcaAppInit.init_before_app_create()
+    exit_code = CliUtils.cli_main(main, build_parser(), loggers=(_logger,))
+    sys.exit(exit_code)

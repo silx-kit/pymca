@@ -27,9 +27,9 @@
 #
 #############################################################################*/
 __author__ = "Wout De Nolf"
-__contact__ = "wout.de_nolf@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
+
 import unittest
 import sys
 import os
@@ -153,7 +153,7 @@ class testPyMcaBatch(TestCaseQt):
         self._assertSlowFitMap('edf', roiwidth=100, outputdir='fitresulta')
         self._assertSlowGuiFitMap('edf', roiwidth=100, outputdir='fitresultb')
 
-    @unittest.skipIf(hasattr(sys, 'frozen') or numpy.version.version == '1.17.0', "skipped running as frozen binary or numpy issue 13715")
+    @unittest.skipIf(getattr(sys, 'frozen', False) or numpy.version.version == '1.17.0', "skipped running as frozen binary or numpy issue 13715")
     def testSlowMultiFitEdfMap(self):
         self._assertSlowMultiFitMap('edf')
 
@@ -167,7 +167,7 @@ class testPyMcaBatch(TestCaseQt):
         self._assertSlowFitMap('specmesh', roiwidth=100, outputdir='fitresulta')
         self._assertSlowGuiFitMap('specmesh', roiwidth=100, outputdir='fitresultb')
 
-    @unittest.skipIf(hasattr(sys, 'frozen') or numpy.version.version == '1.17.0', "skipped running as frozen binary or numpy issue 13715")
+    @unittest.skipIf(getattr(sys, 'frozen', False) or numpy.version.version == '1.17.0', "skipped running as frozen binary or numpy issue 13715")
     def testSlowMultiFitSpecMap(self):
         self._assertSlowMultiFitMap('specmesh')
 
@@ -205,10 +205,12 @@ class testPyMcaBatch(TestCaseQt):
     def _assertSlowMultiFitMap(self, typ, outputdir='fitresults', **kwargs):
         from PyMca5.PyMcaGui.pymca.PyMcaBatch import ranAsBootstrap
         info = self._generateData(typ=typ)
+
         # Compare single vs. multi processing
         result1 = self._fitMap(info, nBatches=2, outputdir=outputdir+'1', **kwargs)
         result2 = self._fitMap(info, nBatches=1, outputdir=outputdir+'2', **kwargs)
         self._assertEqualFitResults(result1, result2, rtol=0)
+
         if not ranAsBootstrap() and typ != 'hdf5':
             # REMARK: not supported by legacy code
             #  - testing from source
@@ -222,14 +224,17 @@ class testPyMcaBatch(TestCaseQt):
                                    outputdir=outputdir+'4', **kwargs)
             if typ != 'specmesh':
                 self._assertEqualFitResults(result3, result4, rtol=0)
+
             # Compare with legacy PyMcaBatch
             if typ != 'specmesh':
                 self._assertEqualFitResults(result1, result3, rtol=self._rtolLegacy)
             self._assertEqualFitResults(result2, result4, rtol=self._rtolLegacy)
+
         # Compare thread vs. process
         result5 = self._fitMap(info, nBatches=0,
                                outputdir=outputdir+'5', **kwargs)
         self._assertEqualFitResults(result2, result5, rtol=0)
+
         # Compare blocking vs. non-blocking process
         result6 = self._fitMap(info, nBatches=1, blocking=True,
                                outputdir=outputdir+'6', **kwargs)
@@ -239,6 +244,7 @@ class testPyMcaBatch(TestCaseQt):
         from PyMca5.PyMcaGui.pymca.PyMcaBatch import ranAsBootstrap
         info = self._generateData(typ=typ)
         result1 = self._fitMap(info, nBatches=1, outputdir=outputdir+'1', **kwargs)
+
         if not ranAsBootstrap() and typ != 'hdf5':
             # Compare with legacy PyMcaBatch
             result2 = self._fitMap(info, nBatches=1, legacy=True,
@@ -669,7 +675,7 @@ def getSuite(auto=True):
         testSuite.addTest(testPyMcaBatch("testFastFitEdfMap"))
         testSuite.addTest(testPyMcaBatch("testSlowFitEdfMap"))
         testSuite.addTest(testPyMcaBatch("testSlowRoiFitEdfMap"))
-        if not hasattr(sys, 'frozen'):
+        if not getattr(sys, 'frozen', False):
             testSuite.addTest(testPyMcaBatch("testSlowMultiFitEdfMap"))
         testSuite.addTest(testPyMcaBatch("testFastFitHdf5Map"))
         testSuite.addTest(testPyMcaBatch("testSlowFitHdf5Map"))
@@ -678,7 +684,7 @@ def getSuite(auto=True):
         testSuite.addTest(testPyMcaBatch("testFastFitSpecMap"))
         testSuite.addTest(testPyMcaBatch("testSlowFitSpecMap"))
         testSuite.addTest(testPyMcaBatch("testSlowRoiFitSpecMap"))
-        if not hasattr(sys, 'frozen'):
+        if not getattr(sys, 'frozen', False):
             testSuite.addTest(testPyMcaBatch("testSlowMultiFitSpecMap"))
     return testSuite
 

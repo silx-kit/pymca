@@ -36,7 +36,7 @@ class testHDF5Utils(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.path)
 
-    @unittest.skipIf(hasattr(sys, 'frozen'), "skipped running as frozen binary")
+    @unittest.skipIf(getattr(sys, 'frozen', False), "skipped running as frozen binary")
     def testHdf5GroupKeys(self):
         filename = os.path.join(self.path, "test.h5")
         with h5py.File(filename, "w", track_order=True) as f:
@@ -148,7 +148,7 @@ def getSuite(auto=True):
         testSuite.addTest(unittest.TestLoader().loadTestsFromTestCase(testHDF5Utils))
     else:
         # use a predefined order
-        if not hasattr(sys, 'frozen'):
+        if not getattr(sys, 'frozen', False):
             testSuite.addTest(testHDF5Utils("testHdf5GroupKeys"))
         testSuite.addTest(testHDF5Utils("testSegFault"))
     return testSuite

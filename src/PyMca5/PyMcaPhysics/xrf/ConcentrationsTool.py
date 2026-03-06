@@ -26,15 +26,21 @@
 # THE SOFTWARE.
 #
 #############################################################################*/
+
 __author__ = "V.A. Sole"
 __contact__ = "sole@esrf.fr"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
+
 import sys
 import copy
 import numpy
+
+from PyMca5.PyMcaIO import ConfigDict
+from PyMca5.PyMcaMisc import CliUtils
 from . import Elements
 from .XRFMC import XRFMCHelper
+
 FISX = False
 try:
     from . import FisxHelper
@@ -797,47 +803,69 @@ class ConcentrationsTool(object):
                         weight = weightHelp
         return weight
 
-def main():
-    import sys
-    import getopt
 
-    from PyMca5.PyMcaIO import ConfigDict
+def main(args):
+    tool = ConcentrationsTool()
 
-    if len(sys.argv) > 1:
-        options = ''
-        longoptions = ['flux=', 'time=', 'area=', 'distance=',
-                       'attenuators=', 'usematrix=']
-        tool = ConcentrationsTool()
-        opts, args = getopt.getopt(
-                        sys.argv[1:],
-                        options,
-                        longoptions)
-        config = tool.configure()
-        for opt, arg in opts:
-            if opt in ('--flux'):
-                config['flux'] = float(arg)
-            elif opt in ('--area'):
-                config['area'] = float(arg)
-            elif opt in ('--time'):
-                config['time'] = float(arg)
-            elif opt in ('--distance'):
-                config['distance'] = float(arg)
-            elif opt in ('--attenuators'):
-                config['useattenuators'] = int(float(arg))
-            elif opt in ('--usematrix'):
-                config['usematrix'] = int(float(arg))
-        tool.configure(config)
-        filelist = args
-        for filename in filelist:
-            d = ConfigDict.ConfigDict()
-            d.read(filename)
-            for material in d['result']['config']['materials'].keys():
-                Elements.Material[material] =\
-                    copy.deepcopy(d['result']['config']['materials'][material])
-            print(tool.processFitResult(fitresult=d, elementsfrommatrix=True))
-    else:
-        print("Usage:")
-        print("ConcentrationsTool [--flux=xxxx --area=xxxx] fitresultfile")
+    # Get default configuration
+    config = tool.configure()
+
+    # Override config from CLI arguments
+    if args.flux is not None:
+        config['flux'] = args.flux
+
+    if args.area is not None:
+        config['area'] = args.area
+
+    if args.time is not None:
+        config['time'] = args.time
+
+    if args.distance is not None:
+        config['distance'] = args.distance
+
+    if args.attenuators is not None:
+        config['useattenuators'] = int(args.attenuators)
+
+    if args.usematrix is not None:
+        config['usematrix'] = int(args.usematrix)
+
+    tool.configure(config)
+
+    if not args.files:
+        print("No input files provided.")
+        return 0
+
+    for filename in args.files:
+        d = ConfigDict.ConfigDict()
+        d.read(filename)
+
+        # Restore materials into global Elements registry
+        for material in d['result']['config']['materials'].keys():
+            Elements.Material[material] = copy.deepcopy(
+                d['result']['config']['materials'][material]
+            )
+
+        print(tool.processFitResult(fitresult=d, elementsfrommatrix=True))
+
+    return 0
+
+
+def build_parser():
+    parser = CliUtils.create_parser(description="Process fit result files and compute concentrations")
+
+    parser.add_argument("--flux", type=float, default=None, help="Incident flux")
+    parser.add_argument("--time", type=float, default=None, help="Acquisition time")
+    parser.add_argument("--area", type=float, default=None, help="Detector area")
+    parser.add_argument("--distance", type=float, default=None, help="Sample-detector distance")
+    parser.add_argument("--attenuators", type=float, default=None, help="Use attenuators (0/1)")
+    parser.add_argument("--usematrix", type=float, default=None, help="Use matrix correction (0/1)")
+
+    # Positional input files
+    parser.add_argument("files", nargs="*", help="Fit result files")
+
+    return parser
+
 
 if __name__ == "__main__":
-    main()
+    exit_code = CliUtils.cli_main(main, build_parser())
+    sys.exit(exit_code)

@@ -33,11 +33,17 @@ __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 __doc__ = """
 Module to calculate a set of ROIs on a stack of data.
 """
+
 import os
-import numpy
-from PyMca5.PyMcaIO import ConfigDict
-import time
+import sys
 import logging
+
+import numpy
+
+from PyMca5.PyMcaIO import ConfigDict
+from PyMca5.PyMca import EDFStack
+from PyMca5.PyMca import ArraySave
+from PyMca5.PyMcaMisc import CliUtils
 
 _logger = logging.getLogger(__name__)
 
@@ -274,113 +280,111 @@ def getFileListFromPattern(pattern, begin, end, increment=None):
         raise ValueError("Cannot handle more than three indices.")
     return fileList
 
-if __name__ == "__main__":
-    import glob
-    import sys
-    from PyMca5.PyMca import EDFStack
-    from PyMca5.PyMca import ArraySave
-    import getopt
-    _logger.setLevel(logging.DEBUG)
-    options     = ''
-    longoptions = ['cfg=', 'outdir=',
-                   'tif=', #'listfile=',
-                   'filepattern=', 'begin=', 'end=', 'increment=',
-                   "outfileroot="]
-    try:
-        opts, args = getopt.getopt(
-                     sys.argv[1:],
-                     options,
-                     longoptions)
-    except Exception:
-        _logger.error(sys.exc_info()[1])
-        sys.exit(1)
-    fileRoot = ""
-    outputDir = None
-    fileindex = 0
-    filepattern=None
-    begin = None
-    end = None
-    increment=None
-    tif=0
-    for opt, arg in opts:
-        if opt in ('--cfg'):
-            configurationFile = arg
-        elif opt in '--begin':
-            if "," in arg:
-                begin = [int(x) for x in arg.split(",")]
-            else:
-                begin = [int(arg)]
-        elif opt in '--end':
-            if "," in arg:
-                end = [int(x) for x in arg.split(",")]
-            else:
-                end = int(arg)
-        elif opt in '--increment':
-            if "," in arg:
-                increment = [int(x) for x in arg.split(",")]
-            else:
-                increment = int(arg)
-        elif opt in '--filepattern':
-            filepattern = arg.replace('"', '')
-            filepattern = filepattern.replace("'", "")
-        elif opt in '--outdir':
-            outputDir = arg
-        elif opt in '--outfileroot':
-            fileRoot = arg
-        elif opt in ['--tif', '--tiff']:
-            tif = int(arg)
-    if filepattern is not None:
-        if (begin is None) or (end is None):
-            raise ValueError(\
-                "A file pattern needs at least a set of begin and end indices")
-    if filepattern is not None:
-        fileList = getFileListFromPattern(filepattern, begin, end, increment=increment)
-    else:
-        fileList = args
-    if len(fileList):
-        dataStack = EDFStack.EDFStack(fileList, dtype=numpy.float32)
-    else:
-        print("OPTIONS:", longoptions)
-        sys.exit(0)
-    if outputDir is None:
-        print("RESULTS WILL NOT BE SAVED: No output directory specified")
-    t0 = time.time()
-    worker = StackROIBatch()
-    worker.setConfigurationFile(configurationFile)
-    result = worker.batchROIMultipleSpectra(y=dataStack)
-    if outputDir is not None:
-        imageNames = result['names']
-        images = result['images']
-        nImages = images.shape[0]
 
-        if fileRoot in [None, ""]:
-            fileRoot = "images"
-        if not os.path.exists(outputDir):
-            os.mkdir(outputDir)
-        imagesDir = os.path.join(outputDir, "IMAGES")
-        if not os.path.exists(imagesDir):
-            os.mkdir(imagesDir)
-        imageList = [None] * (nImages)
-        fileImageNames = [None] * (nImages)
-        j = 0
-        for i in range(nImages):
-            name = imageNames[i].replace(" ", "-")
-            fileImageNames[j] = name
-            imageList[j] = images[i]
-            j += 1
-        fileName = os.path.join(imagesDir, fileRoot+".edf")
-        ArraySave.save2DArrayListAsEDF(imageList, fileName,
-                                       labels=fileImageNames)
-        fileName = os.path.join(imagesDir, fileRoot+".csv")
-        ArraySave.save2DArrayListAsASCII(imageList, fileName, csv=True,
-                                         labels=fileImageNames)
-        if tif:
-            i = 0
-            for i in range(len(fileImageNames)):
-                label = fileImageNames[i]
-                fileName = os.path.join(imagesDir,
-                                        fileRoot + fileImageNames[i] + ".tif")
-                ArraySave.save2DArrayListAsMonochromaticTiff([imageList[i]],
-                                        fileName,
-                                        labels=[label],
-                                        dtype=numpy.float32)
+def main(args):
+    if args.filepattern is not None:
+        if args.begin is None or args.end is None:
+            raise ValueError(
+                "A file pattern needs at least a set of begin and end indices"
+            )
+        fileList = getFileListFromPattern(
+            args.filepattern,
+            args.begin,
+            args.end,
+            increment=args.increment,
+        )
+    else:
+        fileList = args.files
+
+    if not fileList:
+        print("No input files provided")
+        return 0
+
+    dataStack = EDFStack.EDFStack(fileList, dtype=numpy.float32)
+
+    if args.outdir is None:
+        print("RESULTS WILL NOT BE SAVED: No output directory specified")
+
+    worker = StackROIBatch()
+    worker.setConfigurationFile(args.configurationFile)
+    result = worker.batchROIMultipleSpectra(y=dataStack)
+
+    if args.outdir is None:
+        print("No output directory provided")
+        return 0
+
+    imageNames = result["names"]
+    images = result["images"]
+    nImages = images.shape[0]
+
+    if not fileRoot:
+        fileRoot = "images"
+
+    os.makedirs(args.outdir, exist_ok=True)
+    imagesDir = os.path.join(args.outdir, "IMAGES")
+    os.makedirs(imagesDir, exist_ok=True)
+
+    imageList = []
+    fileImageNames = []
+
+    for i in range(nImages):
+        name = imageNames[i].replace(" ", "-")
+        fileImageNames.append(name)
+        imageList.append(images[i])
+
+    # Save EDF
+    fileName = os.path.join(imagesDir, fileRoot + ".edf")
+    ArraySave.save2DArrayListAsEDF(
+        imageList,
+        fileName,
+        labels=fileImageNames,
+    )
+
+    # Save CSV
+    fileName = os.path.join(imagesDir, fileRoot + ".csv")
+    ArraySave.save2DArrayListAsASCII(
+        imageList,
+        fileName,
+        csv=True,
+        labels=fileImageNames,
+    )
+
+    # Optional TIFF
+    if args.tif:
+        for i, label in enumerate(fileImageNames):
+            fileName = os.path.join(
+                imagesDir,
+                fileRoot + label + ".tif"
+            )
+            ArraySave.save2DArrayListAsMonochromaticTiff(
+                [imageList[i]],
+                fileName,
+                labels=[label],
+                dtype=numpy.float32,
+            )
+
+    return 0
+
+
+def build_parser():
+    parser = CliUtils.create_parser(description="Stack ROI Batch Processing")
+
+    parser.add_argument("--cfg", type=str, dest="configurationFile")
+    parser.add_argument("--outdir", type=str, default=None)
+    parser.add_argument("--outfileroot", type=str, dest="fileRoot", default=None)
+
+    parser.add_argument("--filepattern", type=str, default=None, help="File pattern")
+    parser.add_argument("--begin", type=CliUtils.int_or_list, default=None, help="Begin index/indices, comma-separated")
+    parser.add_argument("--end", type=CliUtils.int_or_list, default=None, help="End index/indices, comma-separated")
+    parser.add_argument("--increment", type=CliUtils.int_or_list, default=None, help="Increment(s), comma-separated")
+
+    parser.add_argument("--tif", type=int, default=0)
+
+    parser.add_argument("files", nargs="*")
+
+    return parser
+
+
+if __name__ == "__main__":
+    exit_code = CliUtils.cli_main(main, build_parser(), loggers=(_logger,))
+    sys.exit(exit_code)

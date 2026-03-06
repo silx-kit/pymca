@@ -30,26 +30,38 @@ __author__ = "V.A. Sole"
 __contact__ = "sole@esrf.fr"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
+
 import os
 import sys
-import numpy
 import copy
+import time
+import profile
+import pstats
 import logging
+
+import numpy
+
+from PyMca5.PyMcaMath.fitting import SpecfitFuns
+from PyMca5.PyMcaIO import ConfigDict
+from PyMca5.PyMcaMath.fitting import Gefit
+from PyMca5 import PyMcaDataDir
+from PyMca5.PyMcaMisc import CliUtils
+
 from .Strategies import STRATEGIES
 from . import ConcentrationsTool
 FISX = ConcentrationsTool.FISX
 if FISX:
     FisxHelper = ConcentrationsTool.FisxHelper
 from . import Elements
-from PyMca5.PyMcaMath.fitting import SpecfitFuns
-from PyMca5.PyMcaIO import ConfigDict
-from PyMca5.PyMcaMath.fitting import Gefit
-from PyMca5 import PyMcaDataDir
+
+
 _logger = logging.getLogger(__name__)
 #"python ClassMcaTheory.py -s1.1 --file=03novs060sum.mca --pkm=McaTheory.dat --continuum=0 --strip=1 --sumflag=1 --maxiter=4"
 CONTINUUM_LIST = [None,'Constant','Linear','Parabolic','Linear Polynomial','Exp. Polynomial']
 OLDESCAPE = 0
 MAX_ATTENUATION = 1.0E-300
+
+
 class McaTheory(object):
     def __init__(self, initdict=None, filelist=None, **kw):
         self.ydata0  = None
@@ -2899,8 +2911,8 @@ def test(inputfile=None,scankey=None,pkm=None,
     if inputfile is None:
         print("USAGE")
         print("python -m PyMca5.PyMcaPhysics.xrf.ClassMcaTheory.py -s1.1 --file=filename --cfg=cfgfile [--plotflag=1]")
-        #python ClassMcaTheory.py -s2.1 --file=ch09__mca_0005.mca --pkm=TEST.cfg --continuum=0 --stripflag=1 --sumflag=1 --maxiter=4
-        sys.exit(0)
+        return
+
     print("assuming is a specfile ...")
     sf=specfile.Specfile(inputfile)
     if scankey is None:
@@ -2956,72 +2968,66 @@ def test(inputfile=None,scankey=None,pkm=None,
                                     "Summing")
         graph.addCurve(mcafitresult['energy'],mcafitresult['continuum'],"Continuum")
         graph.show()
-        app.exec()
+        return app.exec()
 
-PROFILING = 0
-if __name__ == "__main__":
-    import time
-    t0=time.time()
-    if PROFILING:
-        import profile
-        import pstats
-        profile.run('test()',"test")
-        p=pstats.Stats("test")
+
+def main(args):
+    t0 = time.time()
+
+    kwargs = dict(
+        inputfile=args.file,
+        scankey=args.scan,
+        pkm=args.pkm,
+        maxiter=args.maxiter,
+        continuum=args.continuum,
+        stripflag=args.stripflag,
+        sumflag=args.sumflag,
+        hypermetflag=args.hypermetflag,
+        escapeflag=args.escapeflag,
+        plotflag=args.plotflag,
+        attenuatorsflag=args.attenuatorsflag,
+        outfile=args.outfile,
+    )
+
+    if args.profiling:
+        profile.runctx(
+            "test(**kwargs)", globals=dict(), locals=dict(kwargs=kwargs), filename="test.profile"
+        )
+        p = pstats.Stats("test.profile")
         p.strip_dirs().sort_stats(-1).print_stats()
+        exit_code = None
     else:
-        import getopt
-        if 1:
-        #try:
-            options     = 'f:s:o'
-            longoptions = ['file=','scan=','pkm=','cfg=',
-                            'output=','continuum=','stripflag=',
-                            'maxiter=','sumflag=','escapeflag=','hypermetflag=','plotflag=',
-                            'attenuatorsflag=','outfile=']
-            opts, args = getopt.getopt(
-                sys.argv[1:],
-                options,
-                longoptions)
-            inputfile = None
-            outfile   = None
-            scan      = None
-            pkm       = None
-            maxiter   = 100
-            sumflag   = 0
-            hypermetflag   = 1
-            plotflag  = 0
-            stripflag = 1
-            escapeflag= 1
-            continuum = 0
-            attenuatorsflag    = 1
-            for opt,arg in opts:
-                if opt in ('-f','--file'):
-                    inputfile = arg
-                if opt in ('-s','--scan'):
-                    scan = arg
-                if opt in ('--pkm','--cfg'):
-                    pkm = arg
-                if opt in ('--continuum'):
-                    continuum = int(float(arg))
-                if opt in ('--strip'):
-                    strip = int(float(arg))
-                if opt in ('--maxiter'):
-                    maxiter = int(float(arg))
-                if opt in ('--sumflag'):
-                    sumflag = int(float(arg))
-                if opt in ('--escapeflag'):
-                    escapeflag = int(float(arg))
-                if opt in ('--stripflag'):
-                    stripflag = int(float(arg))
-                if opt in ('--plotflag'):
-                    plotflag = int(float(arg))
-                if opt in ('--hypermetflag'):
-                    hypermetflag = int(float(arg))
-                if opt in ('--attenuatorsflag'):
-                    attenuatorsflag = int(float(arg))
-                if opt in ('--outfile'):
-                    outfile = arg
-            test(inputfile=inputfile,scankey=scan,pkm=pkm,
-                maxiter=maxiter,continuum=continuum,stripflag=stripflag,sumflag=sumflag,
-                hypermetflag=hypermetflag,escapeflag=escapeflag,plotflag=plotflag,
-                attenuatorsflag=attenuatorsflag,outfile=outfile)
-            print("TIME = ",time.time()-t0)
+        exit_code = test(**kwargs)
+
+    print("TIME = ", time.time() - t0)
+    return exit_code
+
+
+def build_parser():
+    parser = CliUtils.create_parser(description="Run test fitting procedure")
+
+    parser.add_argument("-f", "--file", type=str, help="Input file")
+    parser.add_argument("-s", "--scan", type=str, help="Scan key")
+    parser.add_argument("--pkm", "--cfg", dest="pkm", required=True, type=str, help="PKM/CFG file")
+
+    parser.add_argument("--continuum", type=int, default=0)
+    parser.add_argument("--stripflag", type=int, default=1)
+    parser.add_argument("--maxiter", type=int, default=100)
+    parser.add_argument("--sumflag", type=int, default=0)
+    parser.add_argument("--escapeflag", type=int, default=1)
+    parser.add_argument("--plotflag", type=int, default=0)
+    parser.add_argument("--hypermetflag", type=int, default=1)
+    parser.add_argument("--attenuatorsflag", type=int, default=1)
+
+    parser.add_argument("--outfile", type=str, help="Output file")
+    parser.add_argument("--profiling", action="store_true", help="Enable profiling")
+
+    return parser
+
+
+if __name__ == "__main__":
+    exit_code = CliUtils.cli_main(main, build_parser())
+    sys.exit(exit_code)
+
+    # python -m PyMca5.PyMcaPhysics.xrf.ClassMcaTheory --cfg ./src/PyMca5/PyMcaData/Steel.cfg --file ./src/PyMca5/PyMcaData/Steel.spe
+    # python ClassMcaTheory.py -s2.1 --file=ch09__mca_0005.mca --pkm=TEST.cfg --continuum=0 --stripflag=1 --sumflag=1 --maxiter=4

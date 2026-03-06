@@ -49,6 +49,7 @@ try:
 except ImportError:
     HDF5SUPPORT = False
 from PyMca5.PyMcaIO import ConfigDict
+from PyMca5.PyMcaMisc import CliUtils
 from . import ConcentrationsTool
 
 
@@ -959,32 +960,36 @@ class McaAdvancedFitBatch(object):
                         i=1
 
 
-if __name__ == "__main__":
-    import getopt
-    options     = 'f'
-    longoptions = ['cfg=','pkm=','outdir=','roifit=','roi=','roiwidth=']
-    filelist = None
-    outdir   = None
-    cfg      = None
-    roifit   = 0
-    roiwidth = 250.
-    opts, args = getopt.getopt(
-                    sys.argv[1:],
-                    options,
-                    longoptions)
-    for opt,arg in opts:
-        if opt in ('--pkm','--cfg'):
-            cfg = arg
-        elif opt in ('--outdir'):
-            outdir = arg
-        elif opt in ('--roi','--roifit'):
-            roifit   = int(arg)
-        elif opt in ('--roiwidth'):
-            roiwidth = float(arg)
-    filelist=args
-    if len(filelist) == 0:
-        print("No input files, run GUI")
-        sys.exit(0)
+def main(args):
+    if not args.filelist:
+        print("No input files provided.")
+        return 0
 
-    b = McaAdvancedFitBatch(cfg,filelist,outdir,roifit,roiwidth)
+    # Create batch object and process
+    b = McaAdvancedFitBatch(
+        args.cfg,
+        args.filelist,
+        args.outdir,
+        args.roi,
+        args.roiwidth
+    )
     b.processList()
+
+
+def build_parser():
+    parser = CliUtils.create_parser(description="Batch MCA advanced fit (simple)")
+
+    parser.add_argument("--cfg", "--pkm", dest="cfg", required=True, type=str, help="Configuration file")
+    parser.add_argument("--outdir", default=None, type=str, help="Output directory")
+    parser.add_argument("--roi", "--roifit", default=0, type=int, help="ROI fit")
+    parser.add_argument("--roiwidth", default=250.0, type=float, help="ROI width")
+
+    # Positional argument: list of input files
+    parser.add_argument("filelist", nargs="*", help="Input files")
+
+    return parser
+
+
+if __name__ == "__main__":
+    exit_code = CliUtils.cli_main(main, build_parser())
+    sys.exit(exit_code)

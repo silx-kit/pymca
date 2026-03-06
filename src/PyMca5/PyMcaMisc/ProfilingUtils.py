@@ -27,7 +27,6 @@
 #
 #############################################################################*/
 __author__ = "Wout De Nolf"
-__contact__ = "wout.de_nolf@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 try:

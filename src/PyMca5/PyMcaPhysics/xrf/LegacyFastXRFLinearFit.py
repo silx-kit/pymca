@@ -33,16 +33,24 @@ __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 __doc__ = """
 Module to perform a fast linear fit on a stack of fluorescence spectra.
 """
+
 import os
-import numpy
+import sys
+import time
 import logging
+
+import numpy
+
 from PyMca5.PyMcaMath.linalg import lstsq
-from . import ClassMcaTheory
 from PyMca5.PyMcaMath.fitting import Gefit
-from . import ConcentrationsTool
 from PyMca5.PyMcaMath.fitting import SpecfitFuns
 from PyMca5.PyMcaIO import ConfigDict
-import time
+from PyMca5.PyMca import EDFStack
+from PyMca5.PyMcaIO import HDF5Stack1D
+from PyMca5.PyMcaMisc import CliUtils
+
+from . import ClassMcaTheory
+from . import ConcentrationsTool
 
 _logger = logging.getLogger(__name__)
 
@@ -771,127 +779,97 @@ def save(result, outputDir, fileRoot=None, tif=False, csv=True):
                                     dtype=numpy.float32)
 
 
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-    _logger.setLevel(logging.DEBUG)
-    import glob
-    import sys
-    import getopt
-    from PyMca5.PyMca import EDFStack
-    options     = ''
-    longoptions = ['cfg=', 'outdir=', 'concentrations=', 'weight=', 'refit=',
-                   'tif=', #'listfile=',
-                   'filepattern=', 'begin=', 'end=', 'increment=',
-                   "outfileroot="]
-    try:
-        opts, args = getopt.getopt(
-                     sys.argv[1:],
-                     options,
-                     longoptions)
-    except Exception:
-        print(sys.exc_info()[1])
-        sys.exit(1)
-    fileRoot = ""
-    outputDir = None
-    refit = None
-    fileindex = 0
-    filepattern=None
-    begin = None
-    end = None
-    increment=None
-    backend=None
-    weight=0
-    tif=0
-    concentrations=0
-    for opt, arg in opts:
-        if opt in ('--cfg'):
-            configurationFile = arg
-        elif opt in '--begin':
-            if "," in arg:
-                begin = [int(x) for x in arg.split(",")]
-            else:
-                begin = [int(arg)]
-        elif opt in '--end':
-            if "," in arg:
-                end = [int(x) for x in arg.split(",")]
-            else:
-                end = int(arg)
-        elif opt in '--increment':
-            if "," in arg:
-                increment = [int(x) for x in arg.split(",")]
-            else:
-                increment = int(arg)
-        elif opt in '--filepattern':
-            filepattern = arg.replace('"', '')
-            filepattern = filepattern.replace("'", "")
-        elif opt in '--outdir':
-            outputDir = arg
-        elif opt in '--weight':
-            weight = int(arg)
-        elif opt in '--refit':
-            refit = int(arg)
-        elif opt in '--concentrations':
-            concentrations = int(arg)
-        elif opt in '--outfileroot':
-            fileRoot = arg
-        elif opt in ['--tif', '--tiff']:
-            tif = int(arg)
+def main(args):
+    """
+    Main entry point for the FastXRFLinearFit CLI.
+    """
+    # Build file list
+    filepattern = args.filepattern
     if filepattern is not None:
-        if (begin is None) or (end is None):
-            raise ValueError(\
-                "A file pattern needs at least a set of begin and end indices")
-    if filepattern is not None:
+        if begin is None or end is None:
+            raise ValueError("A file pattern needs at least a set of begin and end indices")
         fileList = getFileListFromPattern(filepattern, begin, end, increment=increment)
     else:
-        fileList = args
-    if refit is None:
-        refit = 0
-        print("WARNING: --refit=%d taken as default" % refit)
-    if len(fileList):
-        if (not os.path.exists(fileList[0])) and \
-           os.path.exists(fileList[0].split("::")[0]):
-            # odo convention to get a dataset form an HDF5
-            fname, dataPath = fileList[0].split("::")
-            # compared to the ROI imaging tool, this way of reading puts data
-            # into memory while with the ROI imaging tool, there is a check.
-            if 0:
-                import h5py
-                h5 = h5py.File(fname, "r")
-                dataStack = h5[dataPath][:]
-                h5.close()
-            else:
-                from PyMca5.PyMcaIO import HDF5Stack1D
-                # this way reads information associated to the dataset (if present)
-                if dataPath.startswith("/"):
-                    pathItems = dataPath[1:].split("/")
-                else:
-                    pathItems = dataPath.split("/")
-                if len(pathItems) > 1:
-                    scanlist = ["/" + pathItems[0]]
-                    selection = {"y":"/" + "/".join(pathItems[1:])}
-                else:
-                    selection = {"y":dataPath}
-                    scanlist = None
-                print(selection)
-                print("scanlist = ", scanlist)
-                dataStack = HDF5Stack1D.HDF5Stack1D([fname],
-                                                    selection,
-                                                    scanlist=scanlist)
+        fileList = args.filelist
+
+    if not fileList:
+        _logger.warning("No input files provided.")
+        return 0
+
+    # Parse comma-separated lists
+    def parse_index_list(s):
+        if s is None:
+            return None
+        parts = s.split(",")
+        return [int(x) for x in parts] if len(parts) > 1 else int(parts[0])
+
+    begin = parse_index_list(args.begin)
+    end = parse_index_list(args.end)
+    increment = parse_index_list(args.increment)
+
+    # Handle HDF5 stack convention if first file exists as "file::dataset"
+    first = fileList[0]
+    if (not os.path.exists(first)) and os.path.exists(first.split("::")[0]):
+        fname, dataPath = first.split("::")
+        if dataPath.startswith("/"):
+            pathItems = dataPath[1:].split("/")
         else:
-            dataStack = EDFStack.EDFStack(fileList, dtype=numpy.float32)
+            pathItems = dataPath.split("/")
+
+        if len(pathItems) > 1:
+            scanlist = ["/" + pathItems[0]]
+            selection = {"y": "/" + "/".join(pathItems[1:])}
+        else:
+            scanlist = None
+            selection = {"y": dataPath}
+
+        _logger.debug("selection = %s, scanlist = %s", selection, scanlist)
+        dataStack = HDF5Stack1D.HDF5Stack1D([fname], selection, scanlist=scanlist)
     else:
-        print("OPTIONS:", longoptions)
-        sys.exit(0)
-    if outputDir is None:
+        dataStack = EDFStack.EDFStack(fileList, dtype=numpy.float32)
+
+    if args.outdir is None:
         print("RESULTS WILL NOT BE SAVED: No output directory specified")
+
+    # Main fitting
     t0 = time.time()
     fastFit = FastXRFLinearFit()
-    fastFit.setFitConfigurationFile(configurationFile)
-    print("Main configuring Elapsed = % s " % (time.time() - t0))
-    result = fastFit.fitMultipleSpectra(y=dataStack,
-                                         weight=weight,
-                                         refit=refit,
-                                         concentrations=concentrations)
-    print("Total Elapsed = % s " % (time.time() - t0))
-    if outputDir is not None:
-        save(result, outputDir, fileRoot=fileRoot, tif=False)
+    fastFit.setFitConfigurationFile(args.cfg)
+    print("Main configuring Elapsed = %s" % (time.time() - t0))
+
+    result = fastFit.fitMultipleSpectra(
+        y=dataStack,
+        weight=args.weight,
+        refit=args.refit,
+        concentrations=args.concentrations
+    )
+
+    print("Total Elapsed = %s" % (time.time() - t0))
+
+    if args.outdir is not None:
+        save(result, args.outdir, fileRoot=args.outfileroot, tif=args.tif)
+
+
+def build_parser():
+    parser = CliUtils.create_parser(description="Batch fast XRF fit")
+
+    parser.add_argument("--cfg", required=True, type=str, help="Configuration file")
+    parser.add_argument("--outdir", default=None, type=str, help="Output directory")
+    parser.add_argument("--concentrations", default=0, type=int, help="Compute concentrations")
+    parser.add_argument("--weight", default=0, type=int, help="Weight for fitting")
+    parser.add_argument("--refit", default=0, type=int, help="Refit flag")
+    parser.add_argument("--tif", "--tiff", default=0, type=int, help="Write TIFF files")
+    parser.add_argument("--filepattern", default=None, type=str, help="File pattern")
+    parser.add_argument("--begin", default=None, type=CliUtils.int_or_list, help="Begin index/indices, comma-separated")
+    parser.add_argument("--end", default=None, type=CliUtils.int_or_list, help="End index/indices, comma-separated")
+    parser.add_argument("--increment", default=None, type=CliUtils.int_or_list, help="Increment(s), comma-separated")
+    parser.add_argument("--outfileroot", default=None, type=str, help="Output root file name")
+
+    parser.add_argument("filelist", nargs="*", help="Input files if not using filepattern")
+
+    return parser
+
+
+if __name__ == "__main__":
+    exit_code = CliUtils.cli_main(main, build_parser())
+    sys.exit(exit_code)

@@ -28,133 +28,29 @@ __author__ = "V.A. Sole - ESRF"
 __contact__ = "sole@esrf.fr"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
+
+from PyMca5.PyMcaGui import PyMcaAppInit
+
+if __name__== '__main__':
+    PyMcaAppInit.init_before_app_import()
+
 import os
-import sys, getopt
+import sys
+import profile
+import pstats
 import traceback
 import logging
-if __name__== '__main__':
-    # avoid issues if some module or dependency tries to use multiprocessing in frozen binaries
-    if getattr(sys, "frozen", False):
-        try:
-            import multiprocessing
-            multiprocessing.freeze_support()
-        except Exception:
-            pass
+
 if sys.platform == 'win32':
     import ctypes
     from ctypes.wintypes import MAX_PATH
 
-nativeFileDialogs = None
-_logger = logging.getLogger(__name__)
-backend=None
-if __name__ == '__main__':
-    options     = '-f'
-    longoptions = ['spec=',
-                   'shm=',
-                   'debug=',
-                   'qt=',
-                   'backend=',
-                   'nativefiledialogs=',
-                   'PySide=',
-                   'binding=',
-                   'logging=',
-                   'test']
-    try:
-        opts, args = getopt.getopt(
-                     sys.argv[1:],
-                     options,
-                     longoptions)
-    except getopt.error:
-        print("%s" % sys.exc_info()[1])
-        sys.exit(1)
-
-    keywords={}
-    debugreport = 0
-    qtversion = None
-    binding = None
-    for opt, arg in opts:
-        if  opt in ('--spec'):
-            keywords['spec'] = arg
-        elif opt in ('--shm'):
-            keywords['shm']  = arg
-        elif opt in ('--debug'):
-            if arg.lower() not in ['0', 'false']:
-                debugreport = 1
-                _logger.setLevel(logging.DEBUG)
-            # --debug is also parsed later for the global logging level
-        elif opt in ('-f'):
-            keywords['fresh'] = 1
-        elif opt in ('--qt'):
-            qtversion = arg
-        elif opt in ('--backend'):
-            backend = arg
-        elif opt in ('--nativefiledialogs'):
-            if int(arg):
-                nativeFileDialogs = True
-            else:
-                nativeFileDialogs = False
-        elif opt in ('--PySide'):
-            print("Please use --binding=PySide6")
-            import PySide6.QtCore
-        elif opt in ('--binding'):
-            binding = arg.lower()
-            if binding == "pyqt5":
-                import PyQt5.QtCore
-            elif binding == "pyside2":
-                import PySide2.QtCore
-            elif binding == "pyside6":
-                import PySide6.QtCore
-            elif binding == "pyqt6":
-                import PyQt6.QtCore
-            else:
-                raise ValueError("Unknown Qt binding <%s>" % binding)
-        elif opt in ('--test'):
-            try:
-                from PyMca5.tests import TestAll
-                print("Running PyMca Unit Tests...")
-                result = TestAll.main()
-                exit_code = 0 if result.wasSuccessful() else 1
-                print('exit code: ', exit_code)
-                sys.exit(exit_code)
-            except Exception as e:
-                import traceback
-                print("Failed to run tests:", e)
-                traceback.print_exc()
-                sys.exit(1)
-
-    from PyMca5.PyMcaCore.LoggingLevel import getLoggingLevel
-    logging.basicConfig(level=getLoggingLevel(opts))
-    # We are going to read. Disable file locking.
-    os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
-    _logger.info("%s set to %s" % ("HDF5_USE_FILE_LOCKING",
-                                    os.environ["HDF5_USE_FILE_LOCKING"]))
-    if binding is None:
-        if qtversion in ('3', '4'):
-            raise NotImplementedError("Qt%d is no longer supported" % int(qtversion))
-        elif qtversion == '5':
-            try:
-                import PyQt5.QtCore
-            except ImportError:
-                import PySide2.QtCore
-        elif qtversion == '6':
-            import PySide6.QtCore
-    try:
-        # make sure hdf5plugins are imported
-        import hdf5plugin
-    except Exception:
-        _logger.info("Failed to import hdf5plugin")
+from PyMca5.PyMcaMisc import CliUtils
 
 from PyMca5.PyMcaGui import PyMcaQt as qt
 from PyMca5.PyMcaGui.io import PyMcaFileDialogs
 QTVERSION = qt.qVersion()
 
-try:
-    import silx
-    # try to import silx prior to importing matplotlib to prevent
-    # unnecessary warning
-    import silx.gui.plot
-except Exception:
-    pass
 from PyMca5.PyMcaGui.pymca import PyMcaMdi
 IconDict = PyMcaMdi.IconDict
 IconDict0 = PyMcaMdi.IconDict0
@@ -182,59 +78,7 @@ import PyMca5
 from PyMca5 import PyMcaDataDir
 __version__ = PyMca5.version()
 
-if __name__ == "__main__":
-    sys.excepthook = qt.exceptionHandler
-    
-    app = qt.QApplication(sys.argv)
-    
-    if sys.platform not in ["win32", "darwin"]:
-        # some themes of Ubuntu 16.04 give black tool tips on black background
-        try:
-            _ttp = qt.QApplication.instance().palette()
-            _ttText = _ttp.color(qt.QPalette.ToolTipText).name()
-            _ttBase = _ttp.color(qt.QPalette.ToolTipBase).name()
-            app.setStyleSheet("QToolTip { color: %s; background-color: %s; border: 1px solid %s; }" % (_ttText, _ttBase, _ttText))
-        except Exception:
-            app.setStyleSheet("QToolTip { color: #000000; background-color: #fff0cd; border: 1px solid black; }")
-
-    mpath = PyMcaDataDir.PYMCA_DATA_DIR
-    if mpath[-3:] == "exe":
-        mpath = os.path.dirname(mpath)
-
-    fname = os.path.join(mpath, 'PyMcaSplashImage.png')
-    if not os.path.exists(fname):
-       while len(mpath) > 3:
-         fname = os.path.join(mpath, 'PyMcaSplashImage.png')
-         if not os.path.exists(fname):
-             mpath = os.path.dirname(mpath)
-         else:
-             break
-    if os.path.exists(fname):
-        pixmap = qt.QPixmap(QString(fname))
-        splash  = qt.QSplashScreen(pixmap)
-    else:
-        splash = qt.QSplashScreen()
-    splash.show()
-    splash.raise_()
-    from PyMca5.PyMcaGui.pymca import ChangeLog
-    font = splash.font()
-    font.setBold(1)
-    splash.setFont(font)
-    try:
-        # there is a deprecation warning in Python 3.8 when
-        # dealing with the alignement flags.
-        alignment = int(qt.Qt.AlignLeft|qt.Qt.AlignBottom)
-        splash.showMessage( 'PyMca %s' % __version__,
-                alignment,
-                qt.Qt.white)
-    except Exception:
-        # fall back to original implementation in case of troubles
-        splash.showMessage( 'PyMca %s' % __version__,
-                qt.Qt.AlignLeft|qt.Qt.AlignBottom,
-                qt.Qt.white)
-    if sys.platform == "darwin":
-        qApp = qt.QApplication.instance()
-        qApp.processEvents()
+_logger = logging.getLogger(__name__)
 
 from PyMca5.PyMcaGraph.Plot import Plot
 from PyMca5.PyMcaGui.pymca import ScanWindow
@@ -308,7 +152,6 @@ from PyMca5.PyMcaGui.pymca import QDispatcher
 from PyMca5.PyMcaGui.physics.xrf import ElementsInfo
 from PyMca5.PyMcaGui.physics.xrf import PeakIdentifier
 from PyMca5.PyMcaGui.pymca import PyMcaBatch
-###########import Fit2Spec
 from PyMca5.PyMcaGui.pymca import Mca2Edf
 try:
     from PyMca5.PyMcaGui.pymca import QStackWidget
@@ -319,6 +162,7 @@ except Exception:
 from PyMca5.PyMcaGui.pymca import PyMcaPostBatch
 from PyMca5.PyMcaGui.pymca import RGBCorrelator
 from PyMca5.PyMcaGui.physics.xrf import MaterialEditor
+from PyMca5.PyMcaGui.pymca import ChangeLog
 
 from PyMca5.PyMcaIO import ConfigDict
 from PyMca5 import PyMcaDirs
@@ -333,7 +177,9 @@ except Exception:
 SOURCESLIST = QDispatcher.QDataSource.source_types.keys()
 
 class PyMcaMain(PyMcaMdi.PyMcaMdi):
-    def __init__(self, parent=None, name="PyMca", fl=None,**kw):
+    def __init__(
+            self, parent=None, name="PyMca", fl=None, spec=None, shm=None, fresh=None, backend=None
+        ):
             if fl is None:
                 fl = qt.Qt.WA_DeleteOnClose
             PyMcaMdi.PyMcaMdi.__init__(self, parent, name, fl)
@@ -418,9 +264,9 @@ class PyMcaMain(PyMcaMdi.PyMcaMdi):
             self.sourceWidget.sigOtherSignals.connect( \
                          self.dispatcherOtherSignalsSlot)
             if 0:
-                if 'shm' in kw:
-                    if len(kw['shm']) >= 8:
-                        if kw['shm'][0:8] in ['MCA_DATA', 'XIA_DATA']:
+                if shm:
+                    if len(shm) >= 8:
+                        if shm[0:8] in ['MCA_DATA', 'XIA_DATA']:
                             self.mcaWindow.showMaximized()
                             self.toggleSource()
                 else:
@@ -430,25 +276,25 @@ class PyMcaMain(PyMcaMdi.PyMcaMdi):
                 defaultFileName = PyMca5.getDefaultSettingsFile()
                 self.configDir  = os.path.dirname(defaultFileName)
             except Exception:
-                if not ('fresh' in kw):
+                if not fresh:
                     raise
-            if not ('fresh' in kw):
+            if not fresh:
                 if os.path.exists(defaultFileName):
                     currentConfigDict.read(defaultFileName)
                     self.setConfig(currentConfigDict)
-            if ('spec' in kw) and ('shm' in kw):
-                if len(kw['shm']) >= 8:
-                    #if kw['shm'][0:8] in ['MCA_DATA', 'XIA_DATA']:
-                    if kw['shm'][0:8] in ['MCA_DATA']:
+            if spec and shm:
+                if len(shm) >= 8:
+                    #if shm[0:8] in ['MCA_DATA', 'XIA_DATA']:
+                    if shm[0:8] in ['MCA_DATA']:
                         #self.mcaWindow.showMaximized()
                         self.toggleSource()
-                        self._startupSelection(source=kw['spec'],
-                                                selection=kw['shm'])
+                        self._startupSelection(source=spec,
+                                                selection=shm)
                     else:
-                        self._startupSelection(source=kw['spec'],
+                        self._startupSelection(source=spec,
                                                 selection=None)
                 else:
-                     self._startupSelection(source=kw['spec'],
+                     self._startupSelection(source=spec,
                                                 selection=None)
 
     def connectDispatcher(self, viewer, dispatcher=None):
@@ -1321,6 +1167,8 @@ class PyMcaMain(PyMcaMdi.PyMcaMdi):
         self.__mca2Edf.raise_()
 
     def __fit2SpecConversion(self):
+        from PyMca5.PyMcaGui.pymca import Fit2Spec
+
         if self.__fit2Spec is None:
             self.__fit2Spec = Fit2Spec.Fit2SpecGUI(fl=0,actions=1)
         if self.__fit2Spec.isHidden():
@@ -1854,42 +1702,133 @@ class PixmapLabel(qt.QLabel):
         ddict['data'] = event
         self.sigPixmapLabelMousePressEvent.emit(ddict)
 
-if __name__ == '__main__':
-    PROFILING = 0
-    if PROFILING:
-        import profile
-        import pstats
-    PyMcaMainWidgetInstance = PyMcaMain(**keywords)
-    if nativeFileDialogs is not None:
-        PyMcaDirs.nativeFileDialogs = nativeFileDialogs
-    if debugreport:
-        PyMcaMainWidgetInstance.onDebug()
-    app.lastWindowClosed.connect(app.quit)
 
-    splash.finish(PyMcaMainWidgetInstance)
-    PyMcaMainWidgetInstance.show()
-    PyMcaMainWidgetInstance.raise_()
-    PyMcaMainWidgetInstance.mcaWindow.replot()
-
-    #try to interpret rest of command line arguments as data sources
+def run_tests():
+    """Run PyMca unit tests."""
     try:
-        for source in args:
-            PyMcaMainWidgetInstance.sourceWidget.sourceSelector.openSource(source)
-    except Exception:
-        msg = qt.QMessageBox(PyMcaMainWidgetInstance)
-        msg.setIcon(qt.QMessageBox.Critical)
-        msg.setWindowTitle("Error opening data source")
-        msg.setText("Cannot open data source %s" % source)
-        msg.setInformativeText(str(sys.exc_info()[1]))
-        msg.setDetailedText(traceback.format_exc())
-        msg.exec()
+        from PyMca5.tests import TestAll
+        print("Running PyMca Unit Tests...")
+        result = TestAll.main()
+        exit_code = 0 if result.wasSuccessful() else 1
+        print("exit code:", exit_code)
+        return exit_code
+    except Exception as e:
+        print("Failed to run tests:", e)
+        traceback.print_exc()
+        return 1
 
-    if PROFILING:
-        profile.run('sys.exit(app.exec())',"test")
-        p=pstats.Stats("test")
+
+def _splash_screen():
+    mpath = PyMcaDataDir.PYMCA_DATA_DIR
+    if mpath[-3:] == "exe":
+        mpath = os.path.dirname(mpath)
+
+    fname = os.path.join(mpath, 'PyMcaSplashImage.png')
+    if not os.path.exists(fname):
+       while len(mpath) > 3:
+         fname = os.path.join(mpath, 'PyMcaSplashImage.png')
+         if not os.path.exists(fname):
+             mpath = os.path.dirname(mpath)
+         else:
+             break
+
+    if os.path.exists(fname):
+        pixmap = qt.QPixmap(QString(fname))
+        splash  = qt.QSplashScreen(pixmap)
+    else:
+        splash = qt.QSplashScreen()
+
+    splash.show()
+    splash.raise_()
+
+    # Add PyMca version to splash screen
+    font = splash.font()
+    font.setBold(1)
+    splash.setFont(font)
+    try:
+        # there is a deprecation warning in Python 3.8 when
+        # dealing with the alignment flags.
+        splash.showMessage(f'PyMca {__version__}',
+                int(qt.Qt.AlignLeft|qt.Qt.AlignBottom),
+                qt.Qt.white)
+    except Exception:
+        # fall back to original implementation in case of troubles
+        splash.showMessage(f'PyMca {__version__}',
+                qt.Qt.AlignLeft|qt.Qt.AlignBottom,
+                qt.Qt.white)
+
+    # Ensure the splash screen is rendered
+    if sys.platform == "darwin":
+        qApp = qt.QApplication.instance()
+        qApp.processEvents()
+
+    return splash
+
+
+def main(args):
+    # Handle test mode immediately
+    if args.test:
+        return run_tests()
+
+    # Initialize Qt application
+    app = qt.QApplication([])
+    PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
+
+    # Splash screen
+    splash = _splash_screen()
+
+    # Launch main PyMca GUI
+    main_widget = PyMcaMain(spec=args.spec, shm=args.shm, fresh=args.fresh, backend=args.backend)
+    if args.debug:
+        main_widget.onDebug()
+
+    # Close splash screen and show main window
+    splash.finish(main_widget)
+    main_widget.show()
+    main_widget.raise_()
+    main_widget.mcaWindow.replot()
+
+    # Attempt to open files
+    for source in args.files:
+        try:
+            main_widget.sourceWidget.sourceSelector.openSource(source)
+        except Exception:
+            msg = qt.QMessageBox(main_widget)
+            msg.setIcon(qt.QMessageBox.Critical)
+            msg.setWindowTitle("Error opening data source")
+            msg.setText(f"Cannot open data source {source}")
+            msg.setInformativeText(str(sys.exc_info()[1]))
+            msg.setDetailedText(traceback.format_exc())
+            msg.exec()
+
+    # If running in test mode, quit immediately
+    if args.cli_test:
+        qt.QTimer.singleShot(0, app.quit)
+
+    if args.profiling:
+        profile.runctx('app.exec()', globals=dict(), locals=dict(app=app), filename='profile_output')
+        p = pstats.Stats('profile_output')
         p.strip_dirs().sort_stats(-1).print_stats()
     else:
-        ret = app.exec()
-        app = None
-        sys.exit(ret)
+        return app.exec()
 
+
+def build_parser():
+    parser = CliUtils.create_parser(description="Main PyMca GUI", add_qt_options=True, add_backend_options=True)
+
+    parser.add_argument("--spec", type=str, default=None, help="Spec file")
+    parser.add_argument("--shm", type=str, default=None, help="Shared memory spec")
+
+    parser.add_argument("--fresh", "-f", action="store_true", help="Clear configuration")
+    parser.add_argument("--profiling", action="store_true", help="Run main loop under profiler")
+    parser.add_argument("--test", action="store_true", help="Run unit tests")
+
+    parser.add_argument("files", nargs="*", help="Optional list of data files to open")
+
+    return parser
+
+
+if __name__ == "__main__":
+    PyMcaAppInit.init_before_app_create()
+    exit_code = CliUtils.cli_main(main, build_parser(), loggers=(_logger,))
+    sys.exit(exit_code)

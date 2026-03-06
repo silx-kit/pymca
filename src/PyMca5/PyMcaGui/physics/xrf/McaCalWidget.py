@@ -31,11 +31,18 @@ __contact__ = "sole@esrf.fr"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 
+from PyMca5.PyMcaGui import PyMcaAppInit
+
+if __name__== '__main__':
+    PyMcaAppInit.init_before_app_import()
+
+import os
 import sys
-import numpy
-from numpy.linalg import inv as inverse
 import copy
 import logging
+
+import numpy
+from numpy.linalg import inv as inverse
 
 from PyMca5.PyMcaGui import PyMcaQt as qt
 from PyMca5.PyMcaGui.plotting.PlotWidget import PlotWidget
@@ -51,8 +58,12 @@ from PyMca5.PyMcaMath.fitting import SpecfitFuns
 from PyMca5.PyMcaGui.plotting import PyMca_Icons
 IconDict = PyMca_Icons.IconDict
 from . import PeakTableWidget
-if 0:
-    from PyMca5 import XRDPeakTableWidget
+# from PyMca5 import XRDPeakTableWidget
+from PyMca5.PyMcaIO import specfilewrapper as specfile
+from PyMca5 import PyMcaDataDir
+from PyMca5.PyMcaMisc import CliUtils
+
+
 _logger = logging.getLogger(__name__)
 
 LOW_HEIGHT_THRESHOLD = 660
@@ -1563,68 +1574,78 @@ class SimpleComboBox(qt.QComboBox):
     def getCurrent(self):
         return   self.currentIndex(),str(self.currentText())
 
-def test(x,y,legend):
-    app = qt.QApplication(args)
-    demo = McaCalWidget(x=x,y=y,modal=1,legend=legend)
-    ret=demo.exec()
-    if ret == qt.QDialog.Accepted:
-        ddict=demo.getDict()
+
+def main(args):
+    # Resolve input file
+    inputfile = args.inputfile
+    if inputfile is None:
+        inputfile = os.path.join(
+            PyMcaDataDir.PYMCA_DATA_DIR,
+            "XRFSpectrum.mca"
+        )
+
+    # Read spec file
+    sf = specfile.Specfile(inputfile)
+
+    if args.scan is None:
+        scan = sf[len(sf) - 1]
     else:
-        ddict={}
+        scan = sf.select(args.scan)
+
+    nbmca = scan.nbmca()
+    mcadata = scan.mca(nbmca)
+
+    y = numpy.array(mcadata).astype(numpy.float64)
+    x = numpy.arange(len(y)).astype(numpy.float64)
+
+    # Qt application
+    app = qt.QApplication([])
+    PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
+
+    demo = McaCalWidget(
+        x=x,
+        y=y,
+        modal=1,
+        legend=inputfile
+    )
+
+    if args.cli_test:
+        qt.QTimer.singleShot(0, demo.close)
+
+    ret = demo.exec()
+
+    if ret == qt.QDialog.Accepted:
+        ddict = demo.getDict()
+    else:
+        ddict = {}
+
     print(" output = ", ddict)
+
     demo.close()
     del demo
-    #app.exec_loop()
 
-if __name__ == '__main__':
-    import os
-    import getopt
-    from PyMca5.PyMcaIO import specfilewrapper as specfile
-    options     = 'f:s:o'
-    longoptions = ['file=','scan=','pkm=',
-                    'output=','linear=','strip=',
-                    'maxiter=','sumflag=','plotflag=']
-    opts, args = getopt.getopt(
-        sys.argv[1:],
-        options,
-        longoptions)
-    inputfile = None
-    scan      = None
-    pkm       = None
-    scankey   = None
-    plotflag  = 0
-    strip = 1
-    linear    = 0
-    for opt,arg in opts:
-        if opt in ('-f','--file'):
-            inputfile = arg
-        if opt in ('-s','--scan'):
-            scan = arg
-        if opt in ('--pkm'):
-            pkm = arg
-        if opt in ('--linear'):
-            linear = int(float(arg))
-        if opt in ('--strip'):
-            strip = int(float(arg))
-        if opt in ('--maxiter'):
-            maxiter = int(float(arg))
-        if opt in ('--sum'):
-            sumflag = int(float(arg))
-        if opt in ('--plotflag'):
-            plotflag = int(float(arg))
-    if len(sys.argv) > 1:
-        inputfile = sys.argv[1]
-    if inputfile is None:
-        from PyMca5 import PyMcaDataDir
-        inputfile = os.path.join(PyMcaDataDir.PYMCA_DATA_DIR,
-                                 'XRFSpectrum.mca')
-    sf=specfile.Specfile(inputfile)
-    if scankey is None:
-        scan=sf[len(sf) - 1]
-    else:
-        scan=sf.select(scankey)
-    nbmca=scan.nbmca()
-    mcadata=scan.mca(nbmca)
-    y=numpy.array(mcadata).astype(numpy.float64)
-    x=numpy.arange(len(y)).astype(numpy.float64)
-    test(x,y,inputfile)
+    if args.cli_test:
+        qt.QTimer.singleShot(0, app.quit)
+
+    return ret
+
+
+def build_parser():
+    parser = CliUtils.create_parser(description="MCA Calibration Tool", add_qt_options=True)
+
+    parser.add_argument("-f", "--file", dest="inputfile", help="Input spec file")
+    parser.add_argument("-s", "--scan", help="Scan key to select")
+    parser.add_argument("--linear", type=float, default=0)
+    parser.add_argument("--strip", type=float, default=1)
+    parser.add_argument("--maxiter", type=float)
+    parser.add_argument("--sumflag", "--sum", dest="sumflag", type=float)
+    parser.add_argument("--plotflag", type=float, default=0)
+    parser.add_argument("--pkm", type=str)
+
+    return parser
+
+
+if __name__ == "__main__":
+    PyMcaAppInit.init_before_app_create()
+    exit_code = CliUtils.cli_main(main, build_parser(), loggers=(_logger,))
+    sys.exit(exit_code)
