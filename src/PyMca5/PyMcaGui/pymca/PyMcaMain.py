@@ -51,6 +51,14 @@ from PyMca5.PyMcaGui import PyMcaQt as qt
 from PyMca5.PyMcaGui.io import PyMcaFileDialogs
 QTVERSION = qt.qVersion()
 
+try:
+    import silx
+    # try to import silx prior to importing matplotlib to prevent
+    # unnecessary warning
+    import silx.gui.plot
+except Exception:
+    pass
+
 from PyMca5.PyMcaGui.pymca import PyMcaMdi
 IconDict = PyMcaMdi.IconDict
 IconDict0 = PyMcaMdi.IconDict0
@@ -167,12 +175,11 @@ from PyMca5.PyMcaGui.pymca import ChangeLog
 from PyMca5.PyMcaIO import ConfigDict
 from PyMca5 import PyMcaDirs
 
-XIA_CORRECT = False
 try:
     from PyMca5.PyMcaCore import XiaCorrect
     XIA_CORRECT = True
 except Exception:
-    pass
+    XIA_CORRECT = False
 
 SOURCESLIST = QDispatcher.QDataSource.source_types.keys()
 
