@@ -708,9 +708,9 @@ class QStackWidget(StackBase.StackBase,
             for i in range(len(stack)):
                 if stack[i] is not None:
                     secondary = QStackWidget(primary=False,
-                                         rgbwidget=widget.rgbWidget)
+                                         rgbwidget=self.rgbWidget)
                     secondary.setStack(stack[i])
-                    widget.addSecondary(secondary)
+                    self.addSecondary(secondary)
                     stack[i] = None
         else:
             secondary = QStackWidget(rgbwidget=self.rgbWidget,

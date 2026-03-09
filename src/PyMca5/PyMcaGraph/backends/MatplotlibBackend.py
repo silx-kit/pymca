@@ -2496,6 +2496,11 @@ class MatplotlibBackend(PlotBackend.PlotBackend):
         shape = data.shape
         if 0:
             # this supports non regularly spaced coordenates!!!!
+
+            if colormap is None:
+                colormap = self.getDefaultColormap()
+            cmap = self.__getColormap(colormap['name'])
+            
             x = xmin + numpy.arange(w) * xScale[1]
             y = ymin + numpy.arange(h) * yScale[1]
             image = NonUniformImage(self.ax,
@@ -2504,8 +2509,6 @@ class MatplotlibBackend(PlotBackend.PlotBackend):
                                     extent=extent,
                                     picker=picker,
                                     cmap=cmap)
-
-
 
             image.set_data(x, y, data)
             xmin, xmax = self.getGraphXLimits()

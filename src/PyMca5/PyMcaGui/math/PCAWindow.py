@@ -295,7 +295,7 @@ class PCAParametersDialog(qt.QDialog):
             else:
                 self.binningCombo.setEnabled(False)
         if "regions" in ddict:
-            self.regionsWidget.setRegions(regions)
+            self.regionsWidget.setRegions(ddict["regions"])
         return
 
     def getParameters(self):

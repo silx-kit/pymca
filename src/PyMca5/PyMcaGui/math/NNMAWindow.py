@@ -301,7 +301,7 @@ class NNMAParametersDialog(qt.QDialog):
         if "method" in ddict:
             self.buttonGroup.buttons()[ddict["method"]].setChecked(True)
         if "regions" in ddict:
-            self.regionsWidget.setRegions(regions)
+            self.regionsWidget.setRegions(ddict["regions"])
         return
 
     def getParameters(self):

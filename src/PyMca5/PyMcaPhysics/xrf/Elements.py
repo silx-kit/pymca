@@ -3011,11 +3011,18 @@ class BoundMethodWeakref:
             if func is not None:
                 return func.__get__(obj)
 
-    def __cmp__( self, other ):
-        """Compare with another reference"""
-        if not isinstance (other,self.__class__):
-            return cmp( self.__class__, type(other) )
-        return cmp( self.func_ref, other.func_ref) and cmp( self.obj_ref, other.obj_ref)
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return (self.func_ref == other.func_ref and
+                self.obj_ref == other.obj_ref)
+
+    def __lt__(self, other):
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        if self.func_ref != other.func_ref:
+            return self.func_ref < other.func_ref
+        return self.obj_ref < other.obj_ref
 
 _registeredCallbacks=[]
 

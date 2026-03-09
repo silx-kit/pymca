@@ -41,6 +41,7 @@ import os
 import sys
 import glob
 import logging
+import copy
 
 logger = logging.getLogger(__name__)
 

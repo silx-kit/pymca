@@ -323,7 +323,7 @@ def removeDirectory(dirName):
             shutil.rmtree(dirName)
 
 def start(fitFile, outputDir, xmimsim_pymca, parameters=None, verbose=True):
-    args = XRFMCHelper.getBasicSubprocessCommand(fitFile, outputDir, xmimsim_pymca)
+    args = getBasicSubprocessCommand(fitFile, outputDir, xmimsim_pymca)
     if parameters is None:
         parameters = ["--enable-single-run",
                       "--set-threads=2"]

@@ -1102,7 +1102,7 @@ class McaBatchGUI(qt.QWidget):
         except Exception:
             qt.QMessageBox.critical(self,
                                     sys.exc_info()[0],
-                                    'I do not know what to do with file\n %s' % ffile)
+                                    'I do not know what to do with file\n %s' % inputfile)
             self.raise_()
             return None
 

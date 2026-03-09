@@ -220,6 +220,7 @@ def getMultilayerFluorescence(multilayerSample,
                     name = userattenuatorList[userAttenuator].get("comment","")
                 else:
                     continue
+            from fisx import TransmissionTable
             ttable = TransmissionTable()
             ttable.setTransmissionTableFromLists(energy,
                                                  transmission,

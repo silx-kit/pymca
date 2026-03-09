@@ -65,7 +65,7 @@ def search_com(xdata,ydata):
     try:
        result = num/denom
     except ZeroDivisionError:
-       result = numpy.mean(x)
+       result = numpy.mean(xdata)
     return result
 
 

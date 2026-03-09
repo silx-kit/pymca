@@ -47,6 +47,8 @@ __contact__ = "sole@esrf.fr"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 
+import sys
+import traceback
 import numpy
 import logging
 

@@ -36,11 +36,12 @@ import numpy
 
 class MarCCD(object):
     def __init__(self, filename):
-        if isinstance(filename, file):
-            fd = filename
-        else:
+        if isinstance(filename, str):
             # make sure we work with bytes
             fd = open(filename, 'rb')
+        else:
+            fd = filename
+            
         order = fd.read(2)
         if order == "II":
             #intel, little endian
@@ -74,7 +75,7 @@ class MarCCD(object):
         data = data.reshape(info["nfast"], info["nslow"])
         self.__data = data
         self.__info = info
-        if not isinstance(filename, file):
+        if isinstance(filename, str):
             fd.close()
 
     def getData(self, *var, **kw):

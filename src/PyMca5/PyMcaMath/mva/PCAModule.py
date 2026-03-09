@@ -235,10 +235,10 @@ def lanczosPCA2(stack, ncomponents=10, binning=None, legacy=True, **kw):
     images = images.reshape(ncomponents, r, c)
     return images, evals, vectors
     if legacy:
-        return images, eigenvalues, vectors
+        return images, evals, vectors
     else:
         return {"scores": images,
-                "eigenvalues": eigenvalues,
+                "eigenvalues": evals,
                 "eigenvectors": vectors,
                 "average": mediadata,
                 "pixels": ndata,

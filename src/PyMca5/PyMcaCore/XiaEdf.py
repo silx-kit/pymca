@@ -107,7 +107,7 @@ class XiaEdfCountFile:
         try:
             self.__readStat()
         except Exception:
-            raise XiaEdfError("Cannot parse header in <%s>"%filename)
+            raise XiaEdfError("Cannot parse header in <%s>" % self.filename)
 
     def __readStat(self):
         self.header= self.edf.GetHeader(0)

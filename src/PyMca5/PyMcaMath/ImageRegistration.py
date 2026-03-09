@@ -150,7 +150,7 @@ def measure_offset_from_ffts(img0_fft2, img1_fft2, withLog=False):
     if 0:
         # one way to deal with zeros
         if (absf0 < 1.0e-20).any() or (absf1 < 1.0e-20).any():
-            ofsset = [0.0, 0.0]
+            offset = [0.0, 0.0]
             logs.append("MeasureOffset: empty or uniform image?")
             if withLog:
                 return offset, logs

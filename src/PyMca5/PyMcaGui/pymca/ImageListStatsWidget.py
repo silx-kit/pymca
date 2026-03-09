@@ -81,7 +81,7 @@ class ImageListStatsWidget(qt.QTabWidget):
             self.imageList = images
             if image_names is None:
                 self.imageNames = []
-                for i in range(nimages):
+                for i in range(len(images)):
                     self.imageNames.append("Image %02d" % i)
             else:
                 self.imageNames = image_names

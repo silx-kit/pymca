@@ -62,9 +62,7 @@ from .XRFBatchFitOutput import OutputBuffer
 _logger = logging.getLogger(__name__)
 
 
-def getRootName(filelist=None):
-    if filelist is None:
-        filelist = self._filelist
+def getRootName(filelist):
     first = os.path.basename(filelist[ 0])
     last = os.path.basename(filelist[-1])
     if first == last:
