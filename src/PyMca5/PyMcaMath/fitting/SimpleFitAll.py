@@ -37,10 +37,7 @@ from PyMca5.PyMcaIO import ConfigDict
 import PyMca5
 
 
-if sys.version_info < (3, ):
-    text_dtype = h5py.special_dtype(vlen=unicode)
-else:
-    text_dtype = h5py.special_dtype(vlen=str)
+text_dtype = h5py.special_dtype(vlen=str)
 
 
 _logger = logging.getLogger(__name__)
