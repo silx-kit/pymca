@@ -384,7 +384,7 @@ class HDF5McaTable(qt.QTableWidget):
         if 0:
             if 'aliaslist' in keys:
                 aliaslist = ddict['aliaslist']
-            elif len(self.aliasList) == len(self.mcaList):
+            elif len(self.aliasList) == len(mcalist):
                 aliaslist = self.aliasList * 1
             else:
                 aliaslist = self.mcaList * 1
