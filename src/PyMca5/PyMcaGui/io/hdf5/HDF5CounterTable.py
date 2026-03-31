@@ -219,7 +219,7 @@ class HDF5CounterTable(qt.QTableWidget):
 
     sigHDF5CounterTableSignal = qt.pyqtSignal(object)
 
-    def __init__(self, parent=None, signalsREnabled=False, monitorMultipleEnabled=False):
+    def __init__(self, parent=None, signalsRAllowed=False, monitorMultipleAllowed=False):
         qt.QTableWidget.__init__(self, parent)
         self.cntList      = []
         self.aliasList    = []
@@ -234,8 +234,8 @@ class HDF5CounterTable(qt.QTableWidget):
         self.yrightSelectionType = []
         self.monSelectionType = []
         self.__monitorMultipleMode = False
-        self.__signalsREnabled = signalsREnabled
-        self.__monitorMultipleEnabled = monitorMultipleEnabled
+        self.__signalsRAllowed = signalsRAllowed
+        self.__monitorMultipleAllowed = monitorMultipleAllowed
         self.__oldSelection = self.getCounterSelection()
         self.__is3DEnabled = False
         self.__is2DEnabled = False
@@ -359,9 +359,9 @@ class HDF5CounterTable(qt.QTableWidget):
 
     def _headerContextMenu(self, pos):
         logicalIndex = self.horizontalHeader().logicalIndexAt(pos)
-        if logicalIndex == 2 and self.__signalsREnabled:
+        if logicalIndex == 2 and self.__signalsRAllowed:
             self._signalsHeaderContextMenu(pos)
-        elif logicalIndex == 4 and self.__monitorMultipleEnabled:
+        elif logicalIndex == 4 and self.__monitorMultipleAllowed:
             self._monitorHeaderContextMenu(pos)
 
     def _signalsHeaderContextMenu(self, pos):
@@ -758,8 +758,8 @@ def main(args):
     app = qt.QApplication([])
     PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
     tab = HDF5CounterTable(
-        signalsREnabled=args.allow_signals_r,
-        monitorMultipleEnabled=args.allow_monitor_multiple,
+        signalsRAllowed=args.allow_signals_r,
+        monitorMultipleAllowed=args.allow_monitor_multiple,
     )
     tab.build(["Cnt1", "Cnt2", "Cnt3", "Cnt 4", "Cnt 5"],
               shapelist=[None, (10, 10), (10, 20), (10, 10), (20, 10)])
