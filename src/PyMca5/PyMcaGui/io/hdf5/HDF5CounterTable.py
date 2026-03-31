@@ -357,12 +357,6 @@ class HDF5CounterTable(qt.QTableWidget):
         else:
             item.setText(alias)
 
-    def setSignalsREnabled(self, enabled=False):
-        self.__signalsREnabled = enabled
-
-    def setMonitorMultipleEnabled(self, enabled=False):
-        self.__monitorMultipleEnabled = enabled
-
     def _headerContextMenu(self, pos):
         logicalIndex = self.horizontalHeader().logicalIndexAt(pos)
         if logicalIndex == 2 and self.__signalsREnabled:
