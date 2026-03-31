@@ -130,11 +130,8 @@ class PluginLoader(object):
                         del self.pluginInstanceDict[plugin]
                     if plugin in sys.modules:
                         if hasattr(sys.modules[plugin], targetMethod):
-                            if sys.version.startswith('3'):
-                                import importlib
-                                importlib.reload(sys.modules[plugin])
-                            else:
-                                reload(sys.modules[plugin])
+                            import importlib
+                            importlib.reload(sys.modules[plugin])
                     else:
                         __import__(plugin)
                     if hasattr(sys.modules[plugin], targetMethod):

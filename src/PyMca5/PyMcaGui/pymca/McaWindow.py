@@ -175,7 +175,7 @@ class McaWindow(ScanWindow):
             self.__simplefitcalibration = calib
             calibrationOrder = curveinfo.get('McaCalibOrder', 2)
             if calibrationOrder == 'TOF':
-                x = calib[2] + calib[0] / pow(x - alib[1],2)
+                x = calib[2] + calib[0] / pow(x - calib[1],2)
             else:
                 x = calib[0] + calib[1] * x + calib[2] * x * x
             self.simplefit.setdata(x=x,y=y,

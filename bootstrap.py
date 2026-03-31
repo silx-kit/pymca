@@ -169,7 +169,7 @@ def find_executable(target):
     # scripts from project configuration
     if "scripts" in config:
         for script_name in config["scripts"]:
-            if os.path.basename(script) == target:
+            if os.path.basename(script_name) == target:
                 return ("path", os.path.abspath(script_name))
     # entry-points from project configuration
     if "entry_points" in config:

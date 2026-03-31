@@ -359,7 +359,7 @@ class Specfit(object):
 
         self.bkgdict[background] = [function, parameters, estimate]
         if background not in self.bkglist:
-            self.bkglist.append(bkg)
+            self.bkglist.append(background)
         return 0
 
     def settheory(self,theory):
@@ -854,7 +854,7 @@ class Specfit(object):
        elif self.fitconfig['fitbkg'] == 'Square Filter':
             fwhm=5
             if 'AutoFwhm' in self.fitconfig:
-                fwhm=self.guess_fwhm(y=y)
+                fwhm=self.guess_fwhm(y=yy)
             elif 'fwhm' in self.fitconfig:
                 fwhm=self.fitconfig['fwhm']
             elif 'Fwhm' in self.fitconfig:

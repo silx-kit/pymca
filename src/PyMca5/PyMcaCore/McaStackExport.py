@@ -45,10 +45,7 @@ except Exception:
     HAS_NEXUS_UTILS = False
     _logger.info("PyMca5.PyMcaIO.NexusUtils could not be imported")
 
-if sys.version_info < (3,):
-    strdtype = h5py.special_dtype(vlen=unicode)
-else:
-    strdtype = h5py.special_dtype(vlen=str)
+strdtype = h5py.special_dtype(vlen=str)
 
 def exportStackList(stackList, filename, channels=None, calibration=None):
     if hasattr(stackList, "data") and hasattr(stackList, "info"):

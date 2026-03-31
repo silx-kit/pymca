@@ -31,10 +31,11 @@ __contact__ = "sole@esrf.fr"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 __doc__= "Generate specfile from XCOM generated files"
+
 import sys
 import os
-import numpy
 from PyMca5.PyMcaPhysics import Elements
+
 
 def getHeader(filename):
     text  = '#F %s\n' % filename
@@ -115,7 +116,7 @@ if __name__ == "__main__":
             labels = labels.replace("barn/atom", "cm2/g")
             factor = 1.0
         else:
-            factor = Elements.Element[ele]['mass'] /(1.0E-24*AVOGADRO_NUMBER)
+            factor = Elements.Element[ele]['mass'] /(1.0E-24*Elements.AVOGADRO_NUMBER)
         text += labels
         if 0:
             fformat = "%g %g %g %g %g %g %g\n"

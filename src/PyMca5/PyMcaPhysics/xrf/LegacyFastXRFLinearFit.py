@@ -783,29 +783,24 @@ def main(args):
     """
     Main entry point for the FastXRFLinearFit CLI.
     """
-    # Build file list
-    filepattern = args.filepattern
-    if filepattern is not None:
-        if begin is None or end is None:
-            raise ValueError("A file pattern needs at least a set of begin and end indices")
-        fileList = getFileListFromPattern(filepattern, begin, end, increment=increment)
+    # Validate file pattern arguments
+    if args.filepattern is not None:
+        if args.begin is None or args.end is None:
+            raise ValueError(
+                "A file pattern needs at least a set of begin and end indices"
+            )
+        fileList = getFileListFromPattern(
+            args.filepattern,
+            args.begin,
+            args.end,
+            increment=args.increment
+        )
     else:
         fileList = args.filelist
 
     if not fileList:
         _logger.warning("No input files provided.")
         return 0
-
-    # Parse comma-separated lists
-    def parse_index_list(s):
-        if s is None:
-            return None
-        parts = s.split(",")
-        return [int(x) for x in parts] if len(parts) > 1 else int(parts[0])
-
-    begin = parse_index_list(args.begin)
-    end = parse_index_list(args.end)
-    increment = parse_index_list(args.increment)
 
     # Handle HDF5 stack convention if first file exists as "file::dataset"
     first = fileList[0]

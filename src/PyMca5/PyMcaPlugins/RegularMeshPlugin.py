@@ -132,10 +132,10 @@ class RegularMeshPlugins(Plugin1DBase.Plugin1DBase):
                                  (int(item[m0idx + 3])+plusOne)),1))
 
         try:
-            if xLabel.upper() == motor0Mne.upper():
+            if xLabel.upper() == self._motor0Mne.upper():
                 self._motor0 = self._x
                 self._motor0Mne = self._xLabel
-            elif xLabel.upper() == motor1Mne.upper():
+            elif xLabel.upper() == self._motor1Mne.upper():
                 self._motor1 = self._x
                 self._motor1Mne = self._xLabel
             elif xLabel == info['selection']['cntlist'][0]:

@@ -301,7 +301,7 @@ class RadioField(qt.QWidget):
         return
 
 def test():
-    a = qt.QApplication(sys.argv)
+    app = qt.QApplication(sys.argv)
     app.lastWindowClosed.connect(app.quit)
     #w = FieldSheet(fields=(["TextField",'Simple Entry'],
     #                       ["EntryField",'entry','MyLabel'],
@@ -317,7 +317,7 @@ def test():
     w=QScriptOption(name='QScriptOptions',sheets=(sheet1,sheet2),
                             default={'radio':1,'entry':'type here','label':1})
     w.show()
-    a.exec()
+    app.exec()
     print(w.output)
 
 if __name__ == "__main__":

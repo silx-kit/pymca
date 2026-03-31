@@ -157,7 +157,7 @@ def getSuite(auto=True):
         )
     else:
         # use a predefined order
-        testSuite.addTest(testPyMcaBatch("testCommand"))
+        testSuite.addTest(testFastXRFLinearFit("testCommand"))
     return testSuite
 
 

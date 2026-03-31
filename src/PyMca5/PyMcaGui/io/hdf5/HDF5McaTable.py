@@ -384,7 +384,7 @@ class HDF5McaTable(qt.QTableWidget):
         if 0:
             if 'aliaslist' in keys:
                 aliaslist = ddict['aliaslist']
-            elif len(self.aliasList) == len(cntlist):
+            elif len(self.aliasList) == len(mcalist):
                 aliaslist = self.aliasList * 1
             else:
                 aliaslist = self.mcaList * 1
@@ -404,8 +404,7 @@ class HDF5McaTable(qt.QTableWidget):
         self.mcaSelection = []
         self.mcaSelectionType = []
         for i in range(len(selection)):
-            idx = selection[idx]
-            if idx < len(mcalist):
+            if selection[i] < len(mcalist):
                 self.mcaSelection.append(selection[i])
                 self.mcaSelectionType.append(selectionType[i])
         self._update()

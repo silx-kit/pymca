@@ -35,7 +35,7 @@ import os
 import posixpath
 try:
     # try to import hdf5plugin
-    if hdf5plugin not in sys.modules:
+    if "hdf5plugin" not in sys.modules:
         import hdf5plugin
 except Exception:
     # but do not crash just because of it

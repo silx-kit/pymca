@@ -1034,7 +1034,8 @@ class QEdfFileWidget(qt.QWidget):
         #print self.selection
         if (self.selection is not None) and filename in self.selection:
             nmca = 0
-            for key in self.selection[filename].keys():
+            mcakeys = list(self.selection[filename].keys())
+            for key in mcakeys:
                 nmca += len(self.selection[filename][key]['rows']) + len(self.selection[filename][key]['cols'])
             if nmca:
                 msg= "%d mca are linked to that EdfFile source.\n"% nmca

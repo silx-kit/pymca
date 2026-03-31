@@ -151,7 +151,7 @@ class SilxScatterWindow(qt.QWidget):
                         break
                 if not gotIt:
                     raise ValueError("Unmatched dimensions following C order")
-                data = data.reshape(xsize, *oldDataShape[i+1:])
+                data = data.reshape(x.size, *oldDataShape[i+1:])
                 nscatter = data.shape[0]
             else:
                 raise ValueError("Unmatched dimensions among axes and signals")

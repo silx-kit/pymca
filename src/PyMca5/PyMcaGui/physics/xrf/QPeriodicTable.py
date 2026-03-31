@@ -430,7 +430,7 @@ class QPeriodicList(qt.QTreeWidget):
         self.detailed= (detailed==1)
 
         try:
-            strlist= QStringList()
+            strlist= qt.QStringList()
         except Exception:
             strlist= []
         strlist.append("Z")

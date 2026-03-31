@@ -58,6 +58,9 @@ functions:
     stackUpdated
     selectionMaskUpdated
 """
+
+import sys
+import traceback
 import numpy
 import logging
 from PyMca5 import StackPluginBase
@@ -237,7 +240,7 @@ class NNMAStackPlugin(StackPluginBase.StackPluginBase):
             data = stack
         try:
             if _logger.getEffectiveLevel() == logging.DEBUG:
-                result = function(inputStack, **ddict)
+                result = function(stack, **ddict)
                 self.threadFinished(result)
             else:
                 thread = CalculationThread.CalculationThread(\

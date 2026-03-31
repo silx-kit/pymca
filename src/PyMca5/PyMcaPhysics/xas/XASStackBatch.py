@@ -265,7 +265,7 @@ class XASStackBatch(object):
             sigma_b = None
         elif weightPolicy == 1:
             # the +1 is to prevent misbehavior due to weights less than 1.0
-            sigma_b = 1 + numpy.sqrt(dummySpectrum)/nPixels
+            sigma_b = 1 + numpy.sqrt(totalSpectra)/nPixels
             SVD = True
         else:
             SVD = True

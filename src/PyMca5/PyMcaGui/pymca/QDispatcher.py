@@ -199,6 +199,7 @@ class QDispatcher(qt.QWidget):
                             #the clients will be able to retrieve the data
                             #the problem is that 10 clients will requiere
                             #10 read outs
+                            import weakref
                             ddict["sourcereference"] = weakref.ref(source)
                             selectionList.append(ddict)
                         if lastEvent != event:

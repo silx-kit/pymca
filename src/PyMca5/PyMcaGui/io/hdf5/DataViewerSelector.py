@@ -97,8 +97,8 @@ class SelectorFromDataViewer(Hdf5NodeViewer):
         ddict = {}
         ddict["action"] = action
         ddict["slice"] = self.getSelection()
-        shape = self.__data.shape
-        ddict["index"] = sel
+        # shape = self.__data.shape
+        # ddict["index"] = sel
         self.sigSliceSelectorSignal.emit(ddict)
 
     def setData(self, data, mode=None):

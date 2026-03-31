@@ -80,8 +80,10 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
         self.setGraphYLabel("Y")
         self.setCallback(callback)
 
+        self._legends = legends
+
     def showLegends(self, flag=True):
-        if legends:
+        if self._legends:
             _logger.warning("Legends widget to be implemented")
 
     def graphCallback(self, ddict=None):

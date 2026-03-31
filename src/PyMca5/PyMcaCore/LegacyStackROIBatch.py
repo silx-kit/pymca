@@ -317,6 +317,7 @@ def main(args):
     images = result["images"]
     nImages = images.shape[0]
 
+    fileRoot = args.fileRoot
     if not fileRoot:
         fileRoot = "images"
 

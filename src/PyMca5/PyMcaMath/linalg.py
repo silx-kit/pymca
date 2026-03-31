@@ -408,7 +408,7 @@ def lstsq(a, b, rcond=None, sigma_b=None, weight=False,
                 if uncertainties:
                     sigmapar[:, i] = numpy.sqrt(numpy.diag(_covariance))
                 if covariances:
-                    covarianceMatrix[i] = covariance
+                    covarianceMatrix[i] = covariances
         else:
             # Matrix inversion with buffers does not improve
             bufferProduct = numpy.empty((n, n + 1), numpy.float64)
@@ -433,7 +433,7 @@ def lstsq(a, b, rcond=None, sigma_b=None, weight=False,
                 if uncertainties:
                     sigmapar[:, i] = numpy.sqrt(numpy.diag(_covariance))
                 if covariances:
-                    covarianceMatrix[i] = covariance
+                    covarianceMatrix[i] = covariances
     if len(original) == 1:
         parameters = numpy.ravel(parameters)
     if covariances:

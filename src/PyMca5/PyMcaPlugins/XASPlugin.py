@@ -30,13 +30,18 @@ __author__ = "V.A. Sole - ESRF Data Analysis"
 __contact__ = "sole@esrf.fr"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
+
 import numpy
+from PyMca5.PyMcaMath.fitting import SpecfitFuns
+from PyMca5.PyMcaPhysics.xas import XASNormalization
+
 from PyMca5.PyMcaCore import Plugin1DBase
 try:
     from PyMca5.PyMcaPhysics.xas import XASClass
     from PyMca5.PyMcaGui.physics.xas import XASWindow
 except ImportError:
     print("XASPlugin problem")
+
 
 class XASPlugin(Plugin1DBase.Plugin1DBase):
     '''Normalization, EXAFS signal extraction and FT of XAS data''' 

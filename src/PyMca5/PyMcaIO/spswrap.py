@@ -268,7 +268,7 @@ def getmetadata(spec, shm):
                 if shm != "SCAN_D":
                     return None
                 # try to put a minimum of protection
-                if ("os." not in medatadata) and ("sys." not in metadata):
+                if ("os." not in metadata) and ("sys." not in metadata):
                     try:
                         uncoded_data = eval(metadata)
                     except Exception:

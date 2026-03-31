@@ -1048,7 +1048,7 @@ class QSpsWidget(qt.QWidget):
     def __refreshSelection(self):
         return
         _logger.debug("__refreshSelection(self) called")
-        _logger.debug(selection)
+        _logger.debug(self.selection)
         if self.selection is not None:
             sel = self.selection.get(self.data.SourceName, {})
             selkeys = []

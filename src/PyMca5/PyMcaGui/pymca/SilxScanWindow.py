@@ -784,7 +784,7 @@ class ScanWindow(BaseScanWindow):
                 # no need to add a second one
                 return title
         except Exception:
-            logger.warning('Problem accessing ScanWindow plot title')
+            _logger.warning('Problem accessing ScanWindow plot title')
         if self.scanWindowInfoWidget is not None:
             if not self.infoDockWidget.isHidden():
                 info = self.scanWindowInfoWidget.getInfo()

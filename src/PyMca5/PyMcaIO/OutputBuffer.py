@@ -31,16 +31,11 @@ __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 
 import os
-import sys
 import numpy
 import logging
 import time
 import re
 import itertools
-if sys.version_info[0] < 3:
-    string_types = basestring,
-else:
-    string_types = str,
 from contextlib import contextmanager
 from collections import defaultdict
 try:
@@ -673,7 +668,7 @@ class OutputBuffer(MutableMapping):
         """
         update = {}
         for k, v in self._buffers.items():
-            if isinstance(v, string_types):
+            if isinstance(v, str):
                 update[k] = f[v]
         self._buffers.update(update)
         try:

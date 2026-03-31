@@ -41,6 +41,7 @@ import os
 import sys
 import glob
 import logging
+import copy
 
 logger = logging.getLogger(__name__)
 
@@ -167,11 +168,8 @@ class StackBase(object):
                         del self.pluginInstanceDict[plugin]
                     if plugin in sys.modules:
                         if hasattr(sys.modules[plugin], targetMethod):
-                            if sys.version < '3.0':
-                                reload(sys.modules[plugin])
-                            else:
-                                import imp
-                                imp.reload(sys.modules[plugin])
+                            import importlib
+                            importlib.reload(sys.modules[plugin])
                     else:
                         try:
                             __import__(plugin)

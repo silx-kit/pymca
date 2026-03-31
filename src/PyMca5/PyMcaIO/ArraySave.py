@@ -48,10 +48,7 @@ except ImportError:
 HDF5 = True
 try:
     import h5py
-    if sys.version_info < (3, ):
-        text_dtype = h5py.special_dtype(vlen=unicode)
-    else:
-        text_dtype = h5py.special_dtype(vlen=str)
+    text_dtype = h5py.special_dtype(vlen=str)
 except ImportError:
     HDF5 = False
 

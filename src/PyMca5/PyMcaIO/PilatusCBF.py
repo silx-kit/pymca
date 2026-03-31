@@ -43,11 +43,8 @@ import sys
 import os
 import numpy as np
 import logging
-if sys.version < '3':
-    _fileClass = file
-else:
-    import io
-    _fileClass = io.IOBase
+import io
+_fileClass = io.IOBase
 
 _logger = logging.getLogger(__name__)
 

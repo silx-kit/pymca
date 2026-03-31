@@ -252,8 +252,8 @@ class SpecfitFunctions(object):
         #                     pars[0],pars[1])
         yy=SpecfitFuns.subac(self.ydata*1.0,
                              pars[0],pars[1])
-        nrx=shape(x)[0]
-        nry=shape(yy)[0]
+        nrx=numpy.shape(x)[0]
+        nry=numpy.shape(yy)[0]
         if nrx == nry:
             return SpecfitFuns.subac(yy,pars[0],pars[1])
         else:
@@ -498,8 +498,8 @@ class SpecfitFunctions(object):
                     cons [1] [1:len(param):3] = param[1:len(param):3]-0.5*fwhmx
                     cons [2] [1:len(param):3] = param[1:len(param):3]+0.5*fwhmx
                 else:
-                    cons [1] [1:len(param):3] = numpy.ones(shape(param[1:len(param):3]),numpy.float64)*min(xw)
-                    cons [2] [1:len(param):3] = numpy.ones(shape(param[1:len(param):3]),numpy.float64)*max(xw)
+                    cons [1] [1:len(param):3] = numpy.ones(numpy.shape(param[1:len(param):3]),numpy.float64)*min(xw)
+                    cons [2] [1:len(param):3] = numpy.ones(numpy.shape(param[1:len(param):3]),numpy.float64)*max(xw)
 
             if 0:
                 cons [0] [2:len(param):3] = CFACTOR
