@@ -219,7 +219,7 @@ class HDF5CounterTable(qt.QTableWidget):
 
     sigHDF5CounterTableSignal = qt.pyqtSignal(object)
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, signalsREnabled=False, monitorMultipleEnabled=False):
         qt.QTableWidget.__init__(self, parent)
         self.cntList      = []
         self.aliasList    = []
@@ -234,8 +234,8 @@ class HDF5CounterTable(qt.QTableWidget):
         self.yrightSelectionType = []
         self.monSelectionType = []
         self.__monitorMultipleMode = False
-        self.__signalsREnabled = False
-        self.__monitorMultipleEnabled = False
+        self.__signalsREnabled = signalsREnabled
+        self.__monitorMultipleEnabled = monitorMultipleEnabled
         self.__oldSelection = self.getCounterSelection()
         self.__is3DEnabled = False
         self.__is2DEnabled = False
@@ -260,8 +260,6 @@ class HDF5CounterTable(qt.QTableWidget):
         #but I wonder about the checkboxes being destroyed
         """
         self.cellChanged[int, int].connect(self._aliasSlot)
-        self.setSignalsREnabled(False)
-        self.setMonitorMultipleEnabled(False)
 
     def build(self, cntlist, aliaslist=None, selection=None, shapelist=None):
         _logger.debug("build cntlist = %s aliaslist = %s shapelist = %s" % (cntlist, aliaslist, shapelist))
@@ -761,16 +759,53 @@ class CheckBoxItem(qt.QCheckBox):
         ddict["column"] = self.__col * 1
         self.sigCheckBoxItemSignal.emit(ddict)
 
-def main():
+def main(args):
+    from PyMca5.PyMcaGui import PyMcaAppInit
     app = qt.QApplication([])
-    tab = HDF5CounterTable()
-    tab.build(["Cnt1", "Cnt2", "Cnt3", "Cnt 4", "Cnt 5"], shapelist=[None, (10, 10), (10, 20), (10, 10), (20, 10)])
+    PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
+    tab = HDF5CounterTable(
+        signalsREnabled=args.signals_r,
+        monitorMultipleEnabled=args.monitor_multiple,
+    )
+    tab.build(["Cnt1", "Cnt2", "Cnt3", "Cnt 4", "Cnt 5"],
+              shapelist=[None, (10, 10), (10, 20), (10, 10), (20, 10)])
     tab.show()
     def slot(ddict):
         print("Received = ", ddict)
         print("Selection = ", tab.getCounterSelection())
     tab.sigHDF5CounterTableSignal.connect(slot)
-    app.exec()
+
+    if args.cli_test:
+        qt.QTimer.singleShot(0, app.quit)
+
+    return app.exec()
+
+
+def build_parser():
+    from PyMca5.PyMcaMisc import CliUtils
+    parser = CliUtils.create_parser(
+        description="HDF5 counter table widget.",
+        add_qt_options=True,
+    )
+    parser.add_argument(
+        "--signals-r",
+        action="store_true",
+        default=False,
+        help="Enable the Signals R (right Y-axis) column",
+    )
+    parser.add_argument(
+        "--monitor-multiple",
+        action="store_true",
+        default=False,
+        help="Enable multiple monitor selection",
+    )
+    return parser
+
 
 if __name__ == "__main__":
-    main()
+    import sys
+    from PyMca5.PyMcaGui import PyMcaAppInit
+    from PyMca5.PyMcaMisc import CliUtils
+    PyMcaAppInit.init_before_app_create()
+    exit_code = CliUtils.cli_main(main, build_parser())
+    sys.exit(exit_code)

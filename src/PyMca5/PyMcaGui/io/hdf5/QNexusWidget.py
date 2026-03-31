@@ -112,7 +112,8 @@ class QNexusWidget(qt.QWidget):
     sigRemoveSelection = qt.pyqtSignal(object)
     sigReplaceSelection = qt.pyqtSignal(object)
     sigOtherSignals = qt.pyqtSignal(object)
-    def __init__(self, parent=None, mca=False, buttons=False):
+    def __init__(self, parent=None, mca=False, buttons=False,
+                 signalsREnabled=False, monitorMultipleEnabled=False):
         qt.QWidget.__init__(self, parent)
         self.data = None
         self._dataSourceList = []
@@ -134,6 +135,8 @@ class QNexusWidget(qt.QWidget):
         self._lastCntSelection = None
         self._mca = mca
         self._BUTTONS = buttons
+        self._signalsREnabled = signalsREnabled
+        self._monitorMultipleEnabled = monitorMultipleEnabled
         self.build()
 
     def sizeHint(self):
@@ -155,8 +158,12 @@ class QNexusWidget(qt.QWidget):
         self.hdf5Widget.setSelectionMode(qt.QAbstractItemView.ExtendedSelection)
         self.tableTab = qt.QTabWidget(self.splitter)
         self.tableTab.setContentsMargins(0, 0, 0, 0)
-        self.cntTable = HDF5CounterTable.HDF5CounterTable(self.tableTab)
-        self.autoTable = HDF5CounterTable.HDF5CounterTable(self.tableTab)
+        self.cntTable = HDF5CounterTable.HDF5CounterTable(self.tableTab,
+                            signalsREnabled=self._signalsREnabled,
+                            monitorMultipleEnabled=self._monitorMultipleEnabled)
+        self.autoTable = HDF5CounterTable.HDF5CounterTable(self.tableTab,
+                            signalsREnabled=self._signalsREnabled,
+                            monitorMultipleEnabled=self._monitorMultipleEnabled)
         self.tableTabOrder = ["AUTO", "USER", "MCA"]
         self.tableTab.addTab(self.autoTable, "AUTO")
         self.tableTab.addTab(self.cntTable, "USER")
