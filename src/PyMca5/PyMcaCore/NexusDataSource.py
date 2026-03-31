@@ -331,6 +331,9 @@ class NexusDataSource(object):
             _logger.warning(txt)
             output.info["title"] = ""
         output.info['selection'] = selection
+        # promote plot_yaxis from selection to top-level info so the right Y-axis could appear
+        if 'plot_yaxis' in selection:
+            output.info['plot_yaxis'] = selection['plot_yaxis']
         if entry != "/":
             try:
                 positioners = NexusTools.getPositionersGroup(phynxFile, entry)
@@ -604,8 +607,13 @@ class NexusDataSource(object):
                         data = phynxFile[path][()]
                         output.x.append(data)
             elif cnt == 'm':
-                #only one monitor
+                # support multiple monitors
                 output.m = [data]
+                if len(selection[cnt]) > 1:
+                    for midx in range(1, len(selection[cnt])):
+                        mpath = entry + selection['cntlist'][selection[cnt][midx]]
+                        mdata = phynxFile[mpath][()]
+                        output.m.append(mdata)
 
         # SCAN specific to handle asynchronous writing
         if output.info['selectiontype'] in ["1D"]:
@@ -617,9 +625,10 @@ class NexusDataSource(object):
                     delta = abs(ylength - xlength)
                     length = min(length, xlength)
                 if output.m:
-                    mlength = output.m[0].size
-                    delta = max(delta, ylength - mlength)
-                    length = min(length, mlength)
+                    for mi in range(len(output.m)):
+                        mlength = output.m[mi].size
+                        delta = max(delta, ylength - mlength)
+                        length = min(length, mlength)
                 if delta > 1:
                     _logger.warning("Stripping last %d points" % delta)
                 elif delta == 1:

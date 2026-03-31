@@ -219,7 +219,7 @@ class HDF5CounterTable(qt.QTableWidget):
 
     sigHDF5CounterTableSignal = qt.pyqtSignal(object)
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, signalsRAllowed=False, monitorMultipleAllowed=False):
         qt.QTableWidget.__init__(self, parent)
         self.cntList      = []
         self.aliasList    = []
@@ -227,14 +227,19 @@ class HDF5CounterTable(qt.QTableWidget):
         self.mcaList      = []
         self.xSelection   = []
         self.ySelection   = []
+        self.yrightSelection = []
         self.monSelection = []
         self.xSelectionType   = []
         self.ySelectionType   = []
+        self.yrightSelectionType = []
         self.monSelectionType = []
+        self.__monitorMultipleMode = False
+        self.__signalsRAllowed = signalsRAllowed
+        self.__monitorMultipleAllowed = monitorMultipleAllowed
         self.__oldSelection = self.getCounterSelection()
         self.__is3DEnabled = False
         self.__is2DEnabled = False
-        labels = ['Dataset', 'Axes', 'Signals', 'Monitor', 'Alias']
+        labels = ['Dataset', 'Axes', 'Signals', 'Signals R', 'Monitor', 'Alias']
         self.setColumnCount(len(labels))
         for i in range(len(labels)):
             item = self.horizontalHeaderItem(i)
@@ -243,6 +248,12 @@ class HDF5CounterTable(qt.QTableWidget):
                                            qt.QTableWidgetItem.Type)
             item.setText(labels[i])
             self.setHorizontalHeaderItem(i,item)
+
+        # hide Signals R column by default
+        self.setColumnHidden(3, True)
+
+        self.horizontalHeader().setContextMenuPolicy(qt.Qt.CustomContextMenu)
+        self.horizontalHeader().customContextMenuRequested.connect(self._headerContextMenu)
 
         """
         #the cell is not the same as the check box
@@ -293,7 +304,7 @@ class HDF5CounterTable(qt.QTableWidget):
                     self.__addLine(i, cntlist[i], shape=self.shapeList[i])
                 else:
                     self.__addLine(i, posixpath.basename(cntlist[i]), shape=self.shapeList[i])
-                for j in range(1, 4, 1):
+                for j in range(1, 5, 1):
                     widget = self.cellWidget(i, j)
                     widget.setEnabled(True)
         else:
@@ -302,6 +313,7 @@ class HDF5CounterTable(qt.QTableWidget):
         self.resizeColumnToContents(1)
         self.resizeColumnToContents(2)
         self.resizeColumnToContents(3)
+        self.resizeColumnToContents(4)
         self.setCounterSelection(self.__oldSelection)
         self.__building = False
 
@@ -320,7 +332,7 @@ class HDF5CounterTable(qt.QTableWidget):
         item.setFlags(qt.Qt.ItemIsEnabled)
 
         #the checkboxes
-        for j in range(1, 4, 1):
+        for j in range(1, 5, 1):
             widget = self.cellWidget(i, j)
             if widget is None:
                 """
@@ -335,15 +347,61 @@ class HDF5CounterTable(qt.QTableWidget):
                 pass
 
         #the alias
-        item = self.item(i, 4)
+        item = self.item(i, 5)
         alias = self.aliasList[i]
         if item is None:
             item = qt.QTableWidgetItem(alias,
                                        qt.QTableWidgetItem.Type)
             item.setTextAlignment(qt.Qt.AlignHCenter | qt.Qt.AlignVCenter)
-            self.setItem(i, 4, item)
+            self.setItem(i, 5, item)
         else:
             item.setText(alias)
+
+    def _headerContextMenu(self, pos):
+        logicalIndex = self.horizontalHeader().logicalIndexAt(pos)
+        if logicalIndex == 2 and self.__signalsRAllowed:
+            self._signalsHeaderContextMenu(pos)
+        elif logicalIndex == 4 and self.__monitorMultipleAllowed:
+            self._monitorHeaderContextMenu(pos)
+
+    def _signalsHeaderContextMenu(self, pos):
+        menu = qt.QMenu(self)
+        oneAction = menu.addAction("One Y-axis")
+        twoAction = menu.addAction("Two Y-axis")
+        oneAction.setCheckable(True)
+        twoAction.setCheckable(True)
+        oneAction.setChecked(self.isColumnHidden(3))
+        twoAction.setChecked(not self.isColumnHidden(3))
+        action = menu.exec(self.horizontalHeader().mapToGlobal(pos))
+        if action == oneAction:
+            self.setColumnHidden(3, True)
+            # Clear any existing Signals R selections
+            if len(self.yrightSelection):
+                self.yrightSelection = []
+                self.yrightSelectionType = []
+                self._update()
+        elif action == twoAction:
+            self.setColumnHidden(3, False)
+            self.resizeColumnToContents(3)
+
+    def _monitorHeaderContextMenu(self, pos):
+        menu = qt.QMenu(self)
+        singleAction = menu.addAction("Single choice")
+        multipleAction = menu.addAction("Multiple choice")
+        singleAction.setCheckable(True)
+        multipleAction.setCheckable(True)
+        singleAction.setChecked(not self.__monitorMultipleMode)
+        multipleAction.setChecked(self.__monitorMultipleMode)
+        action = menu.exec(self.horizontalHeader().mapToGlobal(pos))
+        if action == singleAction:
+            self.__monitorMultipleMode = False
+            # If multiple monitors were unselected, keep the last selected one
+            if len(self.monSelection) > 1:
+                self.monSelection = self.monSelection[-1:]
+                self.monSelectionType = self.monSelectionType[-1:]
+                self._update()
+        elif action == multipleAction:
+            self.__monitorMultipleMode = True
 
     def set3DEnabled(self, value, emit=True):
         if value:
@@ -370,9 +428,9 @@ class HDF5CounterTable(qt.QTableWidget):
     def _aliasSlot(self, row, col):
         if self.__building:
             return
-        if col != 4:
+        if col != 5:
             return
-        item = self.item(row, 4)
+        item = self.item(row, 5)
         self.aliasList[row] = safe_str(item.text())
 
     def _mySlot(self, ddict):
@@ -404,6 +462,10 @@ class HDF5CounterTable(qt.QTableWidget):
                     self.xSelectionType = self.xSelectionType[-1:]
         if col == 2:
             if ddict["state"]:
+                # Mutual exclusivity of "Signal" and "Signal R"
+                if row in self.yrightSelection:
+                    del self.yrightSelectionType[self.yrightSelection.index(row)]
+                    del self.yrightSelection[self.yrightSelection.index(row)]
                 if row not in self.ySelection:
                     self.ySelection.append(row)
                     self.ySelectionType.append(ddict["type"])
@@ -414,6 +476,39 @@ class HDF5CounterTable(qt.QTableWidget):
                     del self.ySelectionType[self.ySelection.index(row)]
                     del self.ySelection[self.ySelection.index(row)]
         if col == 3:
+            # Signals R column - only for 1D data
+            if ddict["state"]:
+                # Check if the dataset is 1D
+                shape = self.shapeList[row] if self.shapeList else None
+                is1D = (shape is None) or (len(shape) <= 1) or \
+                       (len(shape) == 2 and 1 in shape)
+                if not is1D:
+                    # Not 1D data - show warning and reject
+                    msg = qt.QMessageBox(self)
+                    msg.setIcon(qt.QMessageBox.Warning)
+                    msg.setText("Second Y-axis is available only "
+                                "for a 1D data")
+                    msg.setWindowTitle("Signals R")
+                    msg.exec()
+                    # Uncheck the widget
+                    widget = self.cellWidget(row, col)
+                    if widget is not None:
+                        widget.setChecked(False)
+                    return
+                # Mutual exclusivity of "Signal R" and "Signal"
+                if row in self.ySelection:
+                    del self.ySelectionType[self.ySelection.index(row)]
+                    del self.ySelection[self.ySelection.index(row)]
+                if row not in self.yrightSelection:
+                    self.yrightSelection.append(row)
+                    self.yrightSelectionType.append(ddict["type"])
+                else:
+                    self.yrightSelectionType[self.yrightSelection.index(row)] = ddict["type"]
+            else:
+                if row in self.yrightSelection:
+                    del self.yrightSelectionType[self.yrightSelection.index(row)]
+                    del self.yrightSelection[self.yrightSelection.index(row)]
+        if col == 4:
             if ddict["state"]:
                 if row not in self.monSelection:
                     self.monSelection.append(row)
@@ -424,9 +519,10 @@ class HDF5CounterTable(qt.QTableWidget):
                 if row in self.monSelection:
                     del self.monSelectionType[self.monSelection.index(row)]
                     del self.monSelection[self.monSelection.index(row)]
-            if len(self.monSelection) > 1:
-                self.monSelection = self.monSelection[-1:]
-                self.monSelectionType = self.monSelectionType[-1:]
+            if not self.__monitorMultipleMode:
+                if len(self.monSelection) > 1:
+                    self.monSelection = self.monSelection[-1:]
+                    self.monSelectionType = self.monSelectionType[-1:]
 
         index = ddict.get("type", "")
         if index.lower().startswith("index") and ddict["column"] == 2 and ddict["state"]:
@@ -451,9 +547,15 @@ class HDF5CounterTable(qt.QTableWidget):
                     if widget._index.minimum() == refMin and widget._index.maximum() == refMax:
                         widget._index.setValue(refValue)
                         self.ySelectionType[i] = refIndex
+            for i in range(len(self.yrightSelectionType)):
+                if self.yrightSelectionType[i].lower().startswith("index"):
+                    widget = self.cellWidget(self.yrightSelection[i], 3)
+                    if widget._index.minimum() == refMin and widget._index.maximum() == refMax:
+                        widget._index.setValue(refValue)
+                        self.yrightSelectionType[i] = refIndex
             for i in range(len(self.monSelectionType)):
                 if self.monSelectionType[i].lower().startswith("index"):
-                    widget = self.cellWidget(self.monSelection[i], 3)
+                    widget = self.cellWidget(self.monSelection[i], 4)
                     if widget._index.minimum() == refMin and widget._index.maximum() == refMax:
                         widget._index.setValue(refValue)
                         self.monSelectionType[i] = refIndex
@@ -485,6 +587,15 @@ class HDF5CounterTable(qt.QTableWidget):
                     widget.setChecked(False)
             j = 3
             widget = self.cellWidget(i, j)
+            if i in self.yrightSelection:
+                if not widget.isChecked():
+                    widget.setChecked(True)
+                    widget.setCurrentText(self.yrightSelectionType[self.yrightSelection.index(i)])
+            else:
+                if widget.isChecked():
+                    widget.setChecked(False)
+            j = 4
+            widget = self.cellWidget(i, j)
             if i in self.monSelection:
                 if not widget.isChecked():
                     widget.setChecked(True)
@@ -495,6 +606,7 @@ class HDF5CounterTable(qt.QTableWidget):
         self.resizeColumnToContents(1)
         self.resizeColumnToContents(2)
         self.resizeColumnToContents(3)
+        self.resizeColumnToContents(4)
 
         if emit:
             ddict = {}
@@ -508,9 +620,11 @@ class HDF5CounterTable(qt.QTableWidget):
         ddict['shapelist'] = self.shapeList * 1
         ddict['x'] = self.xSelection * 1
         ddict['y'] = self.ySelection * 1
+        ddict['yright'] = self.yrightSelection * 1
         ddict['m'] = self.monSelection * 1
         ddict['xselectiontype'] = self.xSelectionType * 1
         ddict['yselectiontype'] = self.ySelectionType * 1
+        ddict['yrightselectiontype'] = self.yrightSelectionType * 1
         ddict['monselectiontype'] = self.monSelectionType * 1
         return ddict
 
@@ -541,6 +655,11 @@ class HDF5CounterTable(qt.QTableWidget):
         else:
             y = []
 
+        if 'yright' in keys:
+            yright = ddict['yright']
+        else:
+            yright = []
+
         if 'm' in keys:
             monitor = ddict['m']
         else:
@@ -555,6 +674,11 @@ class HDF5CounterTable(qt.QTableWidget):
             ySelectionType = ddict['yselectiontype']
         else:
             ySelectionType = ['full'] * len(y)
+
+        if 'yrightselectiontype' in keys:
+            yrightSelectionType = ddict['yrightselectiontype']
+        else:
+            yrightSelectionType = ['full'] * len(yright)
 
         if 'monselectiontype' in keys:
             monSelectionType = ddict['monselectiontype']
@@ -588,6 +712,16 @@ class HDF5CounterTable(qt.QTableWidget):
                     self.ySelection.append(self.cntList.index(counter))
                     self.ySelectionType.append(ySelectionType[i])
 
+        self.yrightSelection = []
+        self.yrightSelectionType = []
+        for i in range(len(yright)):
+            item = yright[i]
+            if item < len(cntlist):
+                counter = cntlist[item]
+                if counter in self.cntList:
+                    self.yrightSelection.append(self.cntList.index(counter))
+                    self.yrightSelectionType.append(yrightSelectionType[i])
+
         self.monSelection = []
         self.monSelectionType = []
         for i in range(len(monitor)):
@@ -619,16 +753,53 @@ class CheckBoxItem(qt.QCheckBox):
         ddict["column"] = self.__col * 1
         self.sigCheckBoxItemSignal.emit(ddict)
 
-def main():
+def main(args):
+    from PyMca5.PyMcaGui import PyMcaAppInit
     app = qt.QApplication([])
-    tab = HDF5CounterTable()
-    tab.build(["Cnt1", "Cnt2", "Cnt3", "Cnt 4", "Cnt 5"], shapelist=[None, (10, 10), (10, 20), (10, 10), (20, 10)])
+    PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
+    tab = HDF5CounterTable(
+        signalsRAllowed=args.allow_signals_r,
+        monitorMultipleAllowed=args.allow_monitor_multiple,
+    )
+    tab.build(["Cnt1", "Cnt2", "Cnt3", "Cnt 4", "Cnt 5"],
+              shapelist=[None, (10, 10), (10, 20), (10, 10), (20, 10)])
     tab.show()
     def slot(ddict):
         print("Received = ", ddict)
         print("Selection = ", tab.getCounterSelection())
     tab.sigHDF5CounterTableSignal.connect(slot)
-    app.exec()
+
+    if args.cli_test:
+        qt.QTimer.singleShot(0, app.quit)
+
+    return app.exec()
+
+
+def build_parser():
+    from PyMca5.PyMcaMisc import CliUtils
+    parser = CliUtils.create_parser(
+        description="HDF5 counter table widget.",
+        add_qt_options=True,
+    )
+    parser.add_argument(
+        "--allow-signals-r",
+        action="store_true",
+        default=False,
+        help="Enable the Signals R (right Y-axis) column",
+    )
+    parser.add_argument(
+        "--allow-monitor-multiple",
+        action="store_true",
+        default=False,
+        help="Enable multiple monitor selection",
+    )
+    return parser
+
 
 if __name__ == "__main__":
-    main()
+    import sys
+    from PyMca5.PyMcaGui import PyMcaAppInit
+    from PyMca5.PyMcaMisc import CliUtils
+    PyMcaAppInit.init_before_app_create()
+    exit_code = CliUtils.cli_main(main, build_parser())
+    sys.exit(exit_code)

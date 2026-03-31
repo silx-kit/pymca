@@ -112,7 +112,8 @@ class QNexusWidget(qt.QWidget):
     sigRemoveSelection = qt.pyqtSignal(object)
     sigReplaceSelection = qt.pyqtSignal(object)
     sigOtherSignals = qt.pyqtSignal(object)
-    def __init__(self, parent=None, mca=False, buttons=False):
+    def __init__(self, parent=None, mca=False, buttons=False,
+                 signalsRAllowed=False, monitorMultipleAllowed=False):
         qt.QWidget.__init__(self, parent)
         self.data = None
         self._dataSourceList = []
@@ -134,6 +135,8 @@ class QNexusWidget(qt.QWidget):
         self._lastCntSelection = None
         self._mca = mca
         self._BUTTONS = buttons
+        self._signalsRAllowed = signalsRAllowed
+        self._monitorMultipleAllowed = monitorMultipleAllowed
         self.build()
 
     def sizeHint(self):
@@ -155,8 +158,12 @@ class QNexusWidget(qt.QWidget):
         self.hdf5Widget.setSelectionMode(qt.QAbstractItemView.ExtendedSelection)
         self.tableTab = qt.QTabWidget(self.splitter)
         self.tableTab.setContentsMargins(0, 0, 0, 0)
-        self.cntTable = HDF5CounterTable.HDF5CounterTable(self.tableTab)
-        self.autoTable = HDF5CounterTable.HDF5CounterTable(self.tableTab)
+        self.cntTable = HDF5CounterTable.HDF5CounterTable(self.tableTab,
+                            signalsRAllowed=self._signalsRAllowed,
+                            monitorMultipleAllowed=self._monitorMultipleAllowed)
+        self.autoTable = HDF5CounterTable.HDF5CounterTable(self.tableTab,
+                            signalsRAllowed=self._signalsRAllowed,
+                            monitorMultipleAllowed=self._monitorMultipleAllowed)
         self.tableTabOrder = ["AUTO", "USER", "MCA"]
         self.tableTab.addTab(self.autoTable, "AUTO")
         self.tableTab.addTab(self.cntTable, "USER")
@@ -859,7 +866,7 @@ class QNexusWidget(qt.QWidget):
                             shape = None
                         self._shapeList.append(shape)
                         self.cntTable.build(self._cntList, self._aliasList, shapelist=self._shapeList)
-            elif (ddict.get('color') == qt.QApplication.instance().palette().color(qt.QPalette.BrightText) or ddict.get('color') == qt.Qt.blue) and ("silx" in sys.modules):
+            elif (ddict['color'] == qt.QApplication.instance().palette().color(qt.QPalette.BrightText) or ddict['color'] == qt.Qt.blue) and ("silx" in sys.modules):
                 # there is an action to be applied
                 self.showInfoWidget(ddict["file"], ddict["name"], dset=False)
             elif ddict['type'] in ['NXentry', 'Entry']:
@@ -1015,7 +1022,7 @@ class QNexusWidget(qt.QWidget):
             return
         text = qt.safe_str(self.tableTab.tabText(self.tableTab.currentIndex()))
         mcaSelection = {'mcalist':[], 'selectionindex':[]}
-        cntSelection = {'cntlist':[], 'y':[]}
+        cntSelection = {'cntlist':[], 'y':[], 'yright':[]}
         if text.upper() == "AUTO":
             cntSelection = self.autoTable.getCounterSelection()
             # self._aliasList = cntSelection['aliaslist']
@@ -1025,11 +1032,13 @@ class QNexusWidget(qt.QWidget):
             cntSelection = self.cntTable.getCounterSelection()
             self._aliasList = cntSelection['aliaslist']
         selectionList = []
+        _yrightWarningShown = False
         for entry, filename in entryList:
             if not len(cntSelection['cntlist']) and \
                not len(mcaSelection['mcalist']):
                 continue
             if not len(cntSelection['y']) and \
+               not len(cntSelection['yright']) and \
                not len(mcaSelection['selectionindex']):
                 #nothing to plot
                 continue
@@ -1219,16 +1228,94 @@ class QNexusWidget(qt.QWidget):
                      if sel['selection']['xselectiontype'][0] not in ["", "full", None]:
                          aliases[cntSelection['x'][0]] += " " + sel['selection']['xselectiontype'][0]
 
+                monLegendParts = []
+                for mIdx in cntSelection['m']:
+                    monLegendParts.append(aliases[mIdx])
+                monLegend = "/".join(monLegendParts) if monLegendParts else ""
+
                 if len(cntSelection['x']) and len(cntSelection['m']):
                     addLegend = " (%s/%s) vs %s" % (aliases[yCnt],
-                                                   aliases[cntSelection['m'][0]],
+                                                   monLegend,
                                                    aliases[cntSelection['x'][0]])
                 elif len(cntSelection['x']):
                     addLegend = " %s vs %s" % (aliases[yCnt],
                                                aliases[cntSelection['x'][0]])
                 elif len(cntSelection['m']):
                     addLegend = " (%s/%s)" % (aliases[yCnt],
-                                            aliases[cntSelection['m'][0]])
+                                            monLegend)
+                else:
+                    addLegend = " %s" % aliases[yCnt]
+                sel['legend'] += addLegend
+                selectionList.append(sel)
+
+            # Signals R (right Y-axis) loop
+            yrightList = cntSelection['yright']
+            if yrightList and selectionType.upper() != "SCAN":
+                if not _yrightWarningShown:
+                    msg = qt.QMessageBox(self)
+                    msg.setIcon(qt.QMessageBox.Information)
+                    msg.setText("Signal R will not be used")
+                    msg.exec()
+                    _yrightWarningShown = True
+                yrightList = []
+
+            for yCnt in yrightList:
+                sel = {}
+                sel['SourceName'] = self.data.sourceName * 1
+                sel['SourceType'] = "HDF5"
+                fileIndex = self.data.sourceName.index(filename)
+                phynxFile  = self.data._sourceObjectList[fileIndex]
+                if entry == "/":
+                    entryIndex = 1
+                else:
+                    entryIndex = list(phynxFile["/"].keys()).index(entry[1:])
+                sel['Key']        = "%d.%d" % (fileIndex+1, entryIndex+1)
+                sel['legend']     = os.path.basename(filename)+\
+                                    " " + posixpath.basename(entry)
+                sel['selection'] = {}
+                sel['selection']['sourcename'] = filename
+                if isinstance(phynxFile[entry], h5py.Dataset):
+                    _logger.info("HDF5 dataset at root level")
+                    entry = "/"
+                elif hasattr(phynxFile[entry], "shape"):
+                    _logger.info("HDF5-like dataset at root level")
+                    entry = "/"
+                sel['selection']['entry'] = entry
+                sel['selection']['key'] = "%d.%d" % (fileIndex+1, entryIndex+1)
+                sel['selection']['x'] = cntSelection['x']
+                sel['selection']['xselectiontype'] = cntSelection['xselectiontype']
+                sel['selection']['y'] = [yCnt]
+                sel['selection']['yselectiontype'] = [cntSelection['yrightselectiontype'][cntSelection['yright'].index(yCnt)]]
+                sel['selection']['m'] = cntSelection['m']
+                sel['selection']['mselectiontype'] = cntSelection['monselectiontype']
+                sel['selection']['cntlist'] = cntSelection['cntlist']
+                sel['selection']['LabelNames'] = cntSelection['aliaslist']
+                sel['selection']['selectiontype'] = selectionType
+                sel['selection']['plot_yaxis'] = 'right'
+                if selectionType.upper() == "SCAN":
+                    sel['scanselection'] = True
+                    sel['mcaselection']  = False
+                else:
+                    sel['scanselection'] = False
+                    sel['mcaselection']  = False
+                aliases = cntSelection['aliaslist']
+
+                # Build monitor part of legend
+                monLegendParts = []
+                for mIdx in cntSelection['m']:
+                    monLegendParts.append(aliases[mIdx])
+                monLegend = "/".join(monLegendParts) if monLegendParts else ""
+
+                if len(cntSelection['x']) and len(cntSelection['m']):
+                    addLegend = " (%s/%s) vs %s" % (aliases[yCnt],
+                                                   monLegend,
+                                                   aliases[cntSelection['x'][0]])
+                elif len(cntSelection['x']):
+                    addLegend = " %s vs %s" % (aliases[yCnt],
+                                               aliases[cntSelection['x'][0]])
+                elif len(cntSelection['m']):
+                    addLegend = " (%s/%s)" % (aliases[yCnt],
+                                            monLegend)
                 else:
                     addLegend = " %s" % aliases[yCnt]
                 sel['legend'] += addLegend

@@ -47,7 +47,9 @@ _logger = logging.getLogger(__name__)
 
 class PyMcaNexusWidget(QNexusWidget.QNexusWidget):
     def __init__(self, parent=None, mca=True):
-        QNexusWidget.QNexusWidget.__init__(self, parent=parent, mca=mca)
+        QNexusWidget.QNexusWidget.__init__(self, parent=parent, mca=mca,
+                                              signalsRAllowed=True,
+                                              monitorMultipleAllowed=True)
 
     def itemRightClickedSlot(self, ddict):
         is_numeric_dset = not (ddict['dtype'].startswith('|S') or
