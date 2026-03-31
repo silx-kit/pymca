@@ -758,8 +758,8 @@ def main(args):
     app = qt.QApplication([])
     PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
     tab = HDF5CounterTable(
-        signalsREnabled=args.signals_r,
-        monitorMultipleEnabled=args.monitor_multiple,
+        signalsREnabled=args.allow_signals_r,
+        monitorMultipleEnabled=args.allow_monitor_multiple,
     )
     tab.build(["Cnt1", "Cnt2", "Cnt3", "Cnt 4", "Cnt 5"],
               shapelist=[None, (10, 10), (10, 20), (10, 10), (20, 10)])
@@ -782,13 +782,13 @@ def build_parser():
         add_qt_options=True,
     )
     parser.add_argument(
-        "--signals-r",
+        "--allow-signals-r",
         action="store_true",
         default=False,
         help="Enable the Signals R (right Y-axis) column",
     )
     parser.add_argument(
-        "--monitor-multiple",
+        "--allow-monitor-multiple",
         action="store_true",
         default=False,
         help="Enable multiple monitor selection",

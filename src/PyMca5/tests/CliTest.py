@@ -142,7 +142,7 @@ CLI_SPECS = {
     ],
     "PyMca5.PyMcaGui.io.hdf5.HDF5CounterTable": [
         CliScenario("help", ["--help"]),
-        CliScenario("qt_noargs", ["--cli-test", "--signals-r", "--monitor-multiple"], qt_app=True),
+        CliScenario("qt_noargs", ["--cli-test", "--allow-signals-r", "--allow-monitor-multiple"], qt_app=True),
     ],
     "PyMca5.PyMcaCore.XiaCorrect": [
         CliScenario("help", ["--help"]),
