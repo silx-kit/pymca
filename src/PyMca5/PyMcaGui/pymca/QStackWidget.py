@@ -74,6 +74,8 @@ from PyMca5 import PyMcaDirs
 from PyMca5.PyMcaIO import ArraySave
 from PyMca5.PyMcaMisc import CliUtils
 
+_logger = logging.getLogger(__name__)
+
 HDF5 = ArraySave.HDF5
 
 QTVERSION = qt.qVersion()
