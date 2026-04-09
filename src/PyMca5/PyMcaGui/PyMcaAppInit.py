@@ -73,7 +73,7 @@ from PyMca5.PyMcaMisc.LoggingUtils import parse_log_level
 _logger = logging.getLogger(__name__)
 
 
-def init_before_app_import(qt=True, mp=True, mpl=True, logging=True):
+def init_before_app_import(qt=True, mp=True, mpl=True, logging=True, hdf5=True):
     """
     Call this before importing application dependencies.
     """
@@ -84,6 +84,9 @@ def init_before_app_import(qt=True, mp=True, mpl=True, logging=True):
 
     if logging:
         _init_logging_from_cli(cli_args)
+
+    if hdf5:
+        _init_hdf5()
 
     if qt:
         _init_qt_binding_from_cli(cli_args)
