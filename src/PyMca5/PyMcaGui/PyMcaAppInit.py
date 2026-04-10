@@ -95,12 +95,10 @@ def init_before_app_import(qt=True, mp=True, mpl=True, logging=True, hdf5=True):
         _init_matplotlib()
 
 
-def init_before_app_create(qt=True, hdf5=True):
+def init_before_app_create(qt=True):
     """
     Call this after importing application dependencies and before instantiating the application.
     """
-    if hdf5:
-        _init_hdf5()
 
     if qt:
         _init_qt_before()
