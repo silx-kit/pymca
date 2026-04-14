@@ -164,6 +164,8 @@ class QDispatcher(qt.QWidget):
                                     text += "Source: %s\n" % source.sourceName
                                     text += "Key: %s\n"  % sel['Key']
                                     text += "Error: %s" % error[1]
+                                    if self.sourceSelector.autoRefreshCheckBox.isChecked():
+                                        self.sourceSelector.autoRefreshCheckBox.setChecked(False)
                                     msg = qt.QMessageBox(self)
                                     msg.setWindowTitle('Source Error')
                                     msg.setIcon(qt.QMessageBox.Critical)
@@ -268,8 +270,8 @@ class QDispatcher(qt.QWidget):
                 _logger.debug("connecting source of type %s" % sourceType)
                 source.sigUpdated.connect(self._selectionUpdatedSlot)
 
-        elif (ddict["event"] == "SourceSelected") or \
-             (ddict["event"] == "SourceReloaded"):
+        elif ddict["event"] in ("SourceSelected", "SourceReloaded",
+                                  "SourceAutoRefreshed"):
             found = 0
             for source in self.sourceList:
                 if source.sourceName == ddict["sourcelist"]:
@@ -279,10 +281,44 @@ class QDispatcher(qt.QWidget):
                 _logger.debug("WARNING: source not found")
                 return
             sourceType = source.sourceType
+            selectorWidget = self.selectorWidget[sourceType]
             if ddict["event"] == "SourceReloaded":
-                source.refresh()
-            self.selectorWidget[sourceType].setDataSource(source)
-            self.tabWidget.setCurrentWidget(self.selectorWidget[sourceType])
+                # Full refresh
+                selectorWidget._saveTreeState()
+                try:
+                    source.refresh()
+                except Exception:
+                    _logger.error("source.refresh() failed: %s",
+                                  sys.exc_info()[1])
+                    selectorWidget._savedTreeState = None
+                    self.tabWidget.setCurrentWidget(selectorWidget)
+                    return
+                selectorWidget.setDataSource(source)
+                self.tabWidget.setCurrentWidget(selectorWidget)
+            elif ddict["event"] == "SourceAutoRefreshed":
+                # Refresh without reread
+                try:
+                    selectorWidget._autoRefreshDatasets(source)
+                    self._autoRefreshFailures = 0
+                except Exception:
+                    n = getattr(self, '_autoRefreshFailures', 0) + 1
+                    self._autoRefreshFailures = n
+                    if n >= 3:
+                        _logger.error(
+                            "Auto-refresh failed %d times in a row, stopping: %s",
+                            n, sys.exc_info()[1])
+                        self._autoRefreshFailures = 0
+                        self.sourceSelector.autoRefreshCheckBox.setChecked(
+                            False)
+                    else:
+                        _logger.warning(
+                            "Auto-refresh attempt failed, will retry"
+                            )
+            else:
+                # Just show
+                selectorWidget.setDataSource(source)
+                self.tabWidget.setCurrentWidget(selectorWidget)
+
         elif ddict["event"] == "SourceClosed":
             found = 0
             for source in self.sourceList:

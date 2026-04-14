@@ -406,11 +406,17 @@ class H5FileProxy(H5NodeProxy):
                     return self.file[data_path].keys()
                 else:
                     from PyMca5.PyMcaIO import HDF5Utils
-                    return HDF5Utils.safe_hdf5_group_keys(file_path,
+                    result = HDF5Utils.safe_hdf5_group_keys(file_path,
                                                       data_path=data_path)
+                    # may have failed silently returning empty
+                    # if file locked by a writer on Windows)
+                    if result:
+                        return result
+                    _logger.debug("Subprocess returned empty. "
+                                  "Using standard approach")
             except Exception:
                 _logger.debug("Using standard approach")
-                return self.file[data_path].keys()
+            return self.file[data_path].keys()
         else:
             file_path = self.file.filename
             data_path = self.name

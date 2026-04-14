@@ -483,15 +483,165 @@ class QNexusWidget(qt.QWidget):
         ref = weakref.ref(dataSource, dataSourceDestroyed)
         if ref not in self._dataSourceList:
             self._dataSourceList.append(ref)
-            self._modelDict[ref] = HDF5Widget.FileModel()
-        model = self._modelDict[ref]
-        self.hdf5Widget.setModel(model)
-        for source in self.data._sourceObjectList:
-            self.hdf5Widget.model().appendPhynxFile(source, weakreference=True)
+        # if appendPhynxFile fails the previous model 
+        # stays visible and the tree does not collapse.
+        try:
+            newModel = HDF5Widget.FileModel()
+            for source in self.data._sourceObjectList:
+                newModel.appendPhynxFile(source, weakreference=True)
+            self._modelDict[ref] = newModel
+            self.hdf5Widget.setModel(newModel)
+        except Exception:
+            _logger.warning("Could not rebuild HDF5 tree: %s",
+                             sys.exc_info()[1])
+
+        savedState = getattr(self, '_savedTreeState', None)
+        if savedState is not None:
+            self._savedTreeState = None
+            try:
+                self._restoreTreeState(savedState)
+                return
+            except Exception:
+                _logger.error("Failed to restore tree state: %s",
+                              sys.exc_info()[1])
+        # First load or failed restore: expand depth 0 for single files
         if len(self.data._sourceObjectList) == 1:
-            # only one file, expand by default
             if hasattr(self.hdf5Widget, "expandToDepth"):
                 self.hdf5Widget.expandToDepth(0)
+
+    def _saveTreeState(self):
+        """Save expanded paths and selected entries before a refresh."""
+        expanded = set()
+        selected = []
+        model = self.hdf5Widget.model()
+        if model is not None and model is not self._defaultModel:
+            rootIndex = self.hdf5Widget.rootIndex()
+            self._collectTreeState(model, rootIndex, expanded)
+            for modelIndex in self.hdf5Widget.selectedIndexes():
+                if modelIndex.column() != 0:
+                    continue
+                item = model.getProxyFromIndex(modelIndex)
+                try:
+                    selected.append((item.file.filename, item.name))
+                except Exception:
+                    continue
+        self._savedTreeState = (expanded, selected)
+        # Reset so the counter table is rebuilt after restore
+        self._lastEntry = None
+
+    def _collectTreeState(self, model, parentIndex, expanded):
+        """Recursively collect (filename, path) of expanded nodes."""
+        for row in range(model.rowCount(parentIndex)):
+            if not model.hasIndex(row, 0, parentIndex):
+                continue
+            index = model.index(row, 0, parentIndex)
+            if not self.hdf5Widget.isExpanded(index):
+                continue
+            item = model.getProxyFromIndex(index)
+            try:
+                expanded.add((item.file.filename, item.name))
+            except Exception:
+                continue
+            self._collectTreeState(model, index, expanded)
+
+    def _restoreTreeState(self, state):
+        """Restore expanded nodes, selected entries, and replot."""
+        expandedPaths, selectedPaths = state
+        model = self.hdf5Widget.model()
+        if model is None:
+            return
+        if expandedPaths or selectedPaths:
+            rootIndex = self.hdf5Widget.rootIndex()
+            selModel = self.hdf5Widget.selectionModel()
+            self._restoreTreeNodes(model, rootIndex, expandedPaths,
+                                   set(selectedPaths), selModel)
+        # Replot: the counter table still holds the previous selection
+        # which is valid (same file structure). Just re-trigger REPLACE.
+        if self._lastAction is not None and not self._BUTTONS:
+            self._replaceAction()
+
+    def _restoreTreeNodes(self, model, parentIndex,
+                          expandPaths, selectPaths, selModel):
+        """Single recursive walk to expand and select saved nodes."""
+        for row in range(model.rowCount(parentIndex)):
+            if not model.hasIndex(row, 0, parentIndex):
+                continue
+            index = model.index(row, 0, parentIndex)
+            item = model.getProxyFromIndex(index)
+            try:
+                key = (item.file.filename, item.name)
+            except Exception:
+                continue
+            if key in selectPaths:
+                selModel.select(
+                    index,
+                    qt.QItemSelectionModel.Select |
+                    qt.QItemSelectionModel.Rows)
+            if key in expandPaths:
+                self.hdf5Widget.setExpanded(index, True)
+                # Only recurse into expanded nodes — selected items
+                # are always under expanded ancestors.
+                self._restoreTreeNodes(model, index, expandPaths,
+                                       selectPaths, selModel)
+
+    def _autoRefreshDatasets(self, source=None):
+        """
+        Auto-refresh: refresh dataset metadata in-place and replot.
+        Calls ``dset.id.refresh()``.
+        New datasets/groups are **not** detected.
+        """
+        if self.data is None or self._lastAction is None:
+            return
+        if source is None:
+            source = self.data
+
+        # ---- Collect the counter indices we need to refresh ----
+        entryList = self.getSelectedEntries()
+        if not entryList:
+            return
+
+        text = qt.safe_str(self.tableTab.tabText(
+            self.tableTab.currentIndex()))
+        if text.upper() == "AUTO":
+            cntSelection = self.autoTable.getCounterSelection()
+        elif text.upper() == "MCA":
+            return  # MCA refresh not supported
+        else:
+            cntSelection = self.cntTable.getCounterSelection()
+
+        if not cntSelection.get('cntlist'):
+            return
+
+        indices = set()
+        for key in ('x', 'y', 'm'):
+            if key in cntSelection:
+                indices.update(cntSelection[key])
+
+        # ---- H5Drefresh on each selected dataset ----
+        for entry, filename in entryList:
+            if filename not in source.sourceName:
+                if ("tiled:" + filename) in source.sourceName:
+                    filename = "tiled:" + filename
+                else:
+                    continue
+            fileIndex = source.sourceName.index(filename)
+            h5file = source._sourceObjectList[fileIndex]
+            for idx in indices:
+                cnt = cntSelection['cntlist'][idx]
+                if cnt.startswith("/"):
+                    path = posixpath.join(entry, cnt[1:])
+                else:
+                    path = posixpath.join(entry, cnt)
+                try:
+                    dset = h5file[path]
+                    if hasattr(dset, 'id') and hasattr(dset.id, 'refresh'):
+                        dset.id.refresh()
+                except Exception:
+                    _logger.debug("Could not refresh %s: %s",
+                                  path, sys.exc_info()[1])
+
+        # ---- Re-read counters and replot ----
+        self._replaceAction()
 
     def setFile(self, filename):
         self._data = self.hdf5Widget.model().openFile(filename, weakreference=True)
