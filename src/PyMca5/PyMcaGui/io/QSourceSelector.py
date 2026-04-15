@@ -106,13 +106,28 @@ class QSourceSelector(qt.QWidget):
         else:
             specButton.setToolTip("Open new shared memory source")
 
+        self.autoRefreshCheckBox = qt.QCheckBox("Auto", self.fileWidget)
+        self.autoRefreshCheckBox.setToolTip(
+            "Automatically refresh HDF5 files every second\n"
+            "to see new appended data.\n" \
+            "New datasets will not appear until manual refresh (F5).")
+        
+        self._autoRefreshTimer = qt.QTimer(self)
+        self._autoRefreshTimer.setInterval(1000)
+
         closeButton.setSizePolicy(qt.QSizePolicy(qt.QSizePolicy.Fixed, qt.QSizePolicy.Minimum))
         specButton.setSizePolicy(qt.QSizePolicy(qt.QSizePolicy.Fixed, qt.QSizePolicy.Minimum))
         refreshButton.setSizePolicy(qt.QSizePolicy(qt.QSizePolicy.Fixed, qt.QSizePolicy.Minimum))
+        self.autoRefreshCheckBox.setSizePolicy(qt.QSizePolicy(qt.QSizePolicy.Fixed, qt.QSizePolicy.Minimum))
 
         openButton.clicked.connect(self._openFileSlot)
         closeButton.clicked.connect(self.closeFile)
         refreshButton.clicked.connect(self._reload)
+        self.f5Shortcut = qt.QShortcut(qt.QKeySequence(qt.Qt.Key_F5), self, self._reload)
+        self.autoRefreshCheckBox.toggled.connect(self._autoRefreshToggled)
+        self._autoRefreshTimer.timeout.connect(self._autoRefreshTimeout)
+
+        self.refreshButton = refreshButton # for QDispatcher to disable during refresh
 
         specButton.clicked.connect(self.openBlissOrSpec)
         if hasattr(self.fileCombo, "textActivated"):
@@ -127,22 +142,9 @@ class QSourceSelector(qt.QWidget):
         fileWidgetLayout.addWidget(specButton)
         if sys.platform == "win32":specButton.hide()
         fileWidgetLayout.addWidget(refreshButton)
-
-        # --- Auto-refresh checkbox + 1 s timer; F5 keyboard shortcut ---
-        self.autoRefreshCheckBox = qt.QCheckBox("Auto", self.fileWidget)
-        self.autoRefreshCheckBox.setToolTip(
-            "Automatically refresh selected datasets every second.\n"
-            "Uses HDF5 SWMR to detect new data appended by an\n"
-            "external writer without reopening the file.\n"
-            "New datasets will not be detected; use F5 for that.")
-        self.autoRefreshCheckBox.setSizePolicy(
-            qt.QSizePolicy(qt.QSizePolicy.Fixed, qt.QSizePolicy.Minimum))
         fileWidgetLayout.addWidget(self.autoRefreshCheckBox)
-        self.autoRefreshCheckBox.toggled.connect(self._autoRefreshToggled)
-        self._autoRefreshTimer = qt.QTimer(self)
-        self._autoRefreshTimer.setInterval(1000)
-        self._autoRefreshTimer.timeout.connect(self._autoRefreshTimeout)
-        qt.QShortcut(qt.QKeySequence(qt.Qt.Key_F5), self, self._reload)
+        # if sys.platform == "win32":self.autoRefreshCheckBox.hide()
+        # Needed because Windows handle hdf5 differently and locking system is "broken"
 
         self.specButton = specButton
         if pluginsIcon:

@@ -471,6 +471,8 @@ class QNexusWidget(qt.QWidget):
 
     def setDataSource(self, dataSource):
         self.data = dataSource
+        self._autoRefreshEntries = None
+        self._staleHandles = None
         if self.data is None:
             self.hdf5Widget.collapseAll()
             self.hdf5Widget.setModel(self._defaultModel)
@@ -586,62 +588,62 @@ class QNexusWidget(qt.QWidget):
 
     def _autoRefreshDatasets(self, source=None):
         """
-        Auto-refresh: refresh dataset metadata in-place and replot.
-        Calls ``dset.id.refresh()``.
-        New datasets/groups are **not** detected.
+        Auto-refresh: re-read datasets and replot without rebuilding the tree.
+        The tree remains fully interactive (repaint, click, selection).
+        Call refresh (F5) for a full tree rebuild when/if the file structure changes.
         """
         if self.data is None or self._lastAction is None:
             return
         if source is None:
             source = self.data
 
-        # ---- Collect the counter indices we need to refresh ----
-        entryList = self.getSelectedEntries()
-        if not entryList:
+        # to avoid weakref.proxy destructor - not to touch the tree.
+        if getattr(self, '_staleHandles', None) is None:
+            self._staleHandles = source._sourceObjectList[:]
+
+        live = self.getSelectedEntries()
+        if live:
+            self._autoRefreshEntries = live
+        elif not getattr(self, '_autoRefreshEntries', None):
+            return  # nothing was ever selected / plotted
+
+        source.refresh()
+
+        # Swap file references in all loaded tree-model nodes.
+        self._updateModelFileHandles(source)
+
+        # Replot with the cached entry list — tree untouched.
+        _, selType = self._lastAction.split()
+        ddict = {'action': 'REPLACE %s' % selType}
+        self.buttonsSlot(ddict, emit=True,
+                         entryList=self._autoRefreshEntries)
+
+    def _updateModelFileHandles(self, source):
+        """Swap ``_file`` in loaded tree proxy nodes to fresh handles."""
+        model = self.hdf5Widget.model()
+        if model is None or model is self._defaultModel:
             return
-
-        text = qt.safe_str(self.tableTab.tabText(
-            self.tableTab.currentIndex()))
-        if text.upper() == "AUTO":
-            cntSelection = self.autoTable.getCounterSelection()
-        elif text.upper() == "MCA":
-            return  # MCA refresh not supported
-        else:
-            cntSelection = self.cntTable.getCounterSelection()
-
-        if not cntSelection.get('cntlist'):
+        handleMap = {}
+        for h in source._sourceObjectList:
+            name = getattr(h, '_sourceName', None)
+            if name is not None:
+                handleMap[name] = h
+        if not handleMap:
             return
+        for child in model.rootItem._children:
+            try:
+                oldName = child._file._sourceName
+            except (ReferenceError, AttributeError, ValueError):
+                continue
+            fresh = handleMap.get(oldName)
+            if fresh is not None:
+                self._swapNodeFile(child, fresh)
 
-        indices = set()
-        for key in ('x', 'y', 'm'):
-            if key in cntSelection:
-                indices.update(cntSelection[key])
-
-        # ---- H5Drefresh on each selected dataset ----
-        for entry, filename in entryList:
-            if filename not in source.sourceName:
-                if ("tiled:" + filename) in source.sourceName:
-                    filename = "tiled:" + filename
-                else:
-                    continue
-            fileIndex = source.sourceName.index(filename)
-            h5file = source._sourceObjectList[fileIndex]
-            for idx in indices:
-                cnt = cntSelection['cntlist'][idx]
-                if cnt.startswith("/"):
-                    path = posixpath.join(entry, cnt[1:])
-                else:
-                    path = posixpath.join(entry, cnt)
-                try:
-                    dset = h5file[path]
-                    if hasattr(dset, 'id') and hasattr(dset.id, 'refresh'):
-                        dset.id.refresh()
-                except Exception:
-                    _logger.debug("Could not refresh %s: %s",
-                                  path, sys.exc_info()[1])
-
-        # ---- Re-read counters and replot ----
-        self._replaceAction()
+    def _swapNodeFile(self, node, freshHandle):
+        """Recursively replace ``_file`` on *node* and loaded children."""
+        node._file = freshHandle
+        for child in node._children:
+            self._swapNodeFile(child, freshHandle)
 
     def setFile(self, filename):
         self._data = self.hdf5Widget.model().openFile(filename, weakreference=True)
@@ -1162,12 +1164,13 @@ class QNexusWidget(qt.QWidget):
                 elif actions["auto"] == "REPLACE":
                     self._replaceAction()
 
-    def buttonsSlot(self, ddict, emit=True):
+    def buttonsSlot(self, ddict, emit=True, entryList=None):
         _logger.debug("buttonsSlot(self, %s,emit=%s)", ddict, emit)
         if self.data is None:
             return
         action, selectionType = ddict['action'].split()
-        entryList = self.getSelectedEntries()
+        if entryList is None:
+            entryList = self.getSelectedEntries()
         if not len(entryList):
             return
         text = qt.safe_str(self.tableTab.tabText(self.tableTab.currentIndex()))

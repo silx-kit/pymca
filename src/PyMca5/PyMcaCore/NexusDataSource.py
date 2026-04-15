@@ -198,7 +198,7 @@ class NexusDataSource(object):
             try:
                 phynxInstance = h5open(name)
             except IOError:
-                if 'FAMILY DRIVER' in sys.exc_info()[1].args[0].upper():
+                if 'FAMILY DRIVER' in str(sys.exc_info()[1]).upper():
                     FAMILY = True
                 else:
                     raise
@@ -206,7 +206,7 @@ class NexusDataSource(object):
                 try:
                     phynxInstance = h5open(name)
                 except IOError:
-                    if 'FAMILY DRIVER' in sys.exc_info()[1].args[0].upper():
+                    if 'FAMILY DRIVER' in str(sys.exc_info()[1]).upper():
                         FAMILY = True
                     else:
                         raise

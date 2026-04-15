@@ -283,18 +283,39 @@ class QDispatcher(qt.QWidget):
             sourceType = source.sourceType
             selectorWidget = self.selectorWidget[sourceType]
             if ddict["event"] == "SourceReloaded":
-                # Full refresh
-                selectorWidget._saveTreeState()
+                # Full refresh — guard against re-entrant calls.
+                # The _refreshInProgress flag stops code-level re-entry.
+                # Disabling the button/shortcut stops the event-queue pile-up
+                # that happens when the user rage-clicks while Qt is blocked.
+                if getattr(self, '_refreshInProgress', False):
+                    _logger.debug("Refresh already in progress, ignoring")
+                    return
+                self._refreshInProgress = True
+                refresh_btn = getattr(self.sourceSelector, 'refreshButton', None)
+                f5_sc = getattr(self.sourceSelector, 'f5Shortcut', None)
+                if refresh_btn:
+                    refresh_btn.setEnabled(False)
+                if f5_sc:
+                    f5_sc.setEnabled(False)
+                qt.QApplication.setOverrideCursor(
+                    qt.QCursor(qt.Qt.WaitCursor))
                 try:
+                    selectorWidget._saveTreeState()
                     source.refresh()
+                    selectorWidget.setDataSource(source)
+                    self.tabWidget.setCurrentWidget(selectorWidget)
                 except Exception:
                     _logger.error("source.refresh() failed: %s",
                                   sys.exc_info()[1])
                     selectorWidget._savedTreeState = None
                     self.tabWidget.setCurrentWidget(selectorWidget)
-                    return
-                selectorWidget.setDataSource(source)
-                self.tabWidget.setCurrentWidget(selectorWidget)
+                finally:
+                    self._refreshInProgress = False
+                    if refresh_btn:
+                        refresh_btn.setEnabled(True)
+                    if f5_sc:
+                        f5_sc.setEnabled(True)
+                    qt.QApplication.restoreOverrideCursor()
             elif ddict["event"] == "SourceAutoRefreshed":
                 # Refresh without reread
                 try:
