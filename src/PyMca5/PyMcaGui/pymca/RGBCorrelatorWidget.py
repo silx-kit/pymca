@@ -1787,7 +1787,13 @@ class ImageShapeDialog(qt.QDialog):
                     msg = qt.QMessageBox(self)
                     msg.setIcon(qt.QMessageBox.Critical)
                     msg.setText(
-                        "Shape %d x %d = %d is smaller than data size %d"
+                        "Shape %d x %d = %d is smaller than data size %d.\n\n"
+                        "An incomplete scan can only be padded "
+                        "with NaN to fill missing pixels."
+                        "It cannot be cropped.\n\n"
+                        "If the data was already padded in a "
+                        "previous load, please reload the file "
+                        "and enter the correct shape."
                         % (nrows, ncolumns, product, self._size)
                     )
                     msg.exec()
