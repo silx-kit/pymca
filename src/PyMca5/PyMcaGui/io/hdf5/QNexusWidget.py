@@ -485,7 +485,7 @@ class QNexusWidget(qt.QWidget):
         ref = weakref.ref(dataSource, dataSourceDestroyed)
         if ref not in self._dataSourceList:
             self._dataSourceList.append(ref)
-        # if appendPhynxFile fails the previous model 
+        # if appendPhynxFile fails, the previous model 
         # stays visible and the tree does not collapse.
         try:
             newModel = HDF5Widget.FileModel()
@@ -512,9 +512,8 @@ class QNexusWidget(qt.QWidget):
                 self.hdf5Widget.expandToDepth(0)
 
     def _saveTreeState(self):
-        """Save expanded paths and selected entries before a refresh."""
         expanded = set()
-        selected = []
+        selected = set()
         model = self.hdf5Widget.model()
         if model is not None and model is not self._defaultModel:
             rootIndex = self.hdf5Widget.rootIndex()
@@ -524,7 +523,7 @@ class QNexusWidget(qt.QWidget):
                     continue
                 item = model.getProxyFromIndex(modelIndex)
                 try:
-                    selected.append((item.file.filename, item.name))
+                    selected.add((item.file.filename, item.name))
                 except Exception:
                     continue
         self._savedTreeState = (expanded, selected)
@@ -532,7 +531,7 @@ class QNexusWidget(qt.QWidget):
         self._lastEntry = None
 
     def _collectTreeState(self, model, parentIndex, expanded):
-        """Recursively collect (filename, path) of expanded nodes."""
+        """Recursively collect expanded nodes."""
         for row in range(model.rowCount(parentIndex)):
             if not model.hasIndex(row, 0, parentIndex):
                 continue
@@ -547,7 +546,6 @@ class QNexusWidget(qt.QWidget):
             self._collectTreeState(model, index, expanded)
 
     def _restoreTreeState(self, state):
-        """Restore expanded nodes, selected entries, and replot."""
         expandedPaths, selectedPaths = state
         model = self.hdf5Widget.model()
         if model is None:
@@ -556,15 +554,14 @@ class QNexusWidget(qt.QWidget):
             rootIndex = self.hdf5Widget.rootIndex()
             selModel = self.hdf5Widget.selectionModel()
             self._restoreTreeNodes(model, rootIndex, expandedPaths,
-                                   set(selectedPaths), selModel)
+                                   selectedPaths, selModel)
         # Replot: the counter table still holds the previous selection
-        # which is valid (same file structure). Just re-trigger REPLACE.
+        # which is valid (same file structure).
         if self._lastAction is not None and not self._BUTTONS:
             self._replaceAction()
 
     def _restoreTreeNodes(self, model, parentIndex,
                           expandPaths, selectPaths, selModel):
-        """Single recursive walk to expand and select saved nodes."""
         for row in range(model.rowCount(parentIndex)):
             if not model.hasIndex(row, 0, parentIndex):
                 continue
@@ -581,8 +578,8 @@ class QNexusWidget(qt.QWidget):
                     qt.QItemSelectionModel.Rows)
             if key in expandPaths:
                 self.hdf5Widget.setExpanded(index, True)
-                # Only recurse into expanded nodes — selected items
-                # are always under expanded ancestors.
+                # Only recurse into expanded nodes
+                # selected items are always in expanded nodes.
                 self._restoreTreeNodes(model, index, expandPaths,
                                        selectPaths, selModel)
 
@@ -597,7 +594,8 @@ class QNexusWidget(qt.QWidget):
         if source is None:
             source = self.data
 
-        # to avoid weakref.proxy destructor - not to touch the tree.
+        # To avoid weakref.proxy destructor - not to touch the tree.
+        # Copies references to avoid deletion during refresh.
         if getattr(self, '_staleHandles', None) is None:
             self._staleHandles = source._sourceObjectList[:]
 
@@ -612,7 +610,8 @@ class QNexusWidget(qt.QWidget):
         # Swap file references in all loaded tree-model nodes.
         self._updateModelFileHandles(source)
 
-        # Replot with the cached entry list — tree untouched.
+        # Replot with the cached entry list.
+        # "Auto-refresh" suppose only to "REPLACE".
         _, selType = self._lastAction.split()
         ddict = {'action': 'REPLACE %s' % selType}
         self.buttonsSlot(ddict, emit=True,
@@ -624,10 +623,10 @@ class QNexusWidget(qt.QWidget):
         if model is None or model is self._defaultModel:
             return
         handleMap = {}
-        for h in source._sourceObjectList:
-            name = getattr(h, '_sourceName', None)
+        for obj in source._sourceObjectList:
+            name = getattr(obj, '_sourceName', None)
             if name is not None:
-                handleMap[name] = h
+                handleMap[name] = obj
         if not handleMap:
             return
         for child in model.rootItem._children:
@@ -640,7 +639,7 @@ class QNexusWidget(qt.QWidget):
                 self._swapNodeFile(child, fresh)
 
     def _swapNodeFile(self, node, freshHandle):
-        """Recursively replace ``_file`` on *node* and loaded children."""
+        """Recursively replace ``_file`` on 'node' and its children."""
         node._file = freshHandle
         for child in node._children:
             self._swapNodeFile(child, freshHandle)

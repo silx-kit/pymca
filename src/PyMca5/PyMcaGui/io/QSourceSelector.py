@@ -187,7 +187,6 @@ class QSourceSelector(qt.QWidget):
             self.autoRefreshCheckBox.setChecked(False)
 
     def _autoRefreshToggled(self, checked):
-        """Start or stop the auto-refresh timer."""
         if checked:
             _logger.info("Auto-refresh started")
             self._autoRefreshTimer.start()

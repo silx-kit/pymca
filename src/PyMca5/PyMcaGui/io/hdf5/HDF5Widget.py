@@ -409,7 +409,7 @@ class H5FileProxy(H5NodeProxy):
                     result = HDF5Utils.safe_hdf5_group_keys(file_path,
                                                       data_path=data_path)
                     # may have failed silently returning empty
-                    # if file locked by a writer on Windows)
+                    # if file locked by a writer - happens on Windows at least
                     if result:
                         return result
                     _logger.debug("Subprocess returned empty. "

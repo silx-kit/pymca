@@ -302,14 +302,13 @@ class QDispatcher(qt.QWidget):
                         selectorWidget._saveTreeState()
                     source.refresh()
                     selectorWidget.setDataSource(source)
-                    self.tabWidget.setCurrentWidget(selectorWidget)
                 except Exception:
                     _logger.error("source.refresh() failed: %s",
                                   sys.exc_info()[1])
                     if sourceType == "HDF5":
                         selectorWidget._savedTreeState = None
-                    self.tabWidget.setCurrentWidget(selectorWidget)
                 finally:
+                    self.tabWidget.setCurrentWidget(selectorWidget)
                     self._refreshInProgress = False
                     if refresh_btn:
                         refresh_btn.setEnabled(True)
@@ -319,9 +318,8 @@ class QDispatcher(qt.QWidget):
             elif ddict["event"] == "SourceAutoRefreshed":
                 # Auto-refresh is HDF5-only; silently ignore for others
                 if sourceType != "HDF5":
-                    _logger.debug("Auto-refresh ignored for %s source. " \
-                                  "Should not appear as the Auto-refresh is supposed to be unavailable.",
-                                  sourceType)
+                    _logger.debug("Auto-refresh ignored for source. " \
+                                  "Should not appear as the Auto-refresh is supposed to be unavailable.")
                     return
                 try:
                     selectorWidget._autoRefreshDatasets(source)
@@ -338,10 +336,9 @@ class QDispatcher(qt.QWidget):
                             False)
                     else:
                         _logger.warning(
-                            "Auto-refresh attempt failed, will retry"
+                            "Auto-refresh attempt failed, will retry in one second"
                             )
-            else:
-                # Just show
+            else: # SourceSelected
                 selectorWidget.setDataSource(source)
                 self.tabWidget.setCurrentWidget(selectorWidget)
 
