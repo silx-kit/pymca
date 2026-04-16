@@ -127,7 +127,8 @@ class QSourceSelector(qt.QWidget):
         self.autoRefreshCheckBox.toggled.connect(self._autoRefreshToggled)
         self._autoRefreshTimer.timeout.connect(self._autoRefreshTimeout)
 
-        self.refreshButton = refreshButton # for QDispatcher to disable during refresh
+        # For `QDispatcher` to disable during refresh
+        self.refreshButton = refreshButton 
 
         specButton.clicked.connect(self.openBlissOrSpec)
         if hasattr(self.fileCombo, "textActivated"):
@@ -144,7 +145,9 @@ class QSourceSelector(qt.QWidget):
         fileWidgetLayout.addWidget(refreshButton)
         fileWidgetLayout.addWidget(self.autoRefreshCheckBox)
         # if sys.platform == "win32":self.autoRefreshCheckBox.hide()
-        # Needed because Windows handle hdf5 differently and locking system is "broken"
+        # Needed because on Windows hdf5 locking system is "broken"
+        # Commented for testing on Windows
+        
 
         self.specButton = specButton
         if pluginsIcon:
@@ -169,6 +172,19 @@ class QSourceSelector(qt.QWidget):
         else:
             ddict["event"] = "SourceReloaded"
         self.sigSourceSelectorSignal.emit(ddict)
+
+    def _isSourceHDF5(self, sourcelist):
+        HDF5_EXTENSIONS = (".h5", ".hdf5", ".hdf", ".nxs", ".nx")
+        if not sourcelist:
+            return False
+        return all(source.lower().endswith(HDF5_EXTENSIONS) for source in sourcelist)
+
+    def _updateAutoRefreshVisibility(self, sourcelist):
+        """Auto checkbox is only for HDF5 sources."""
+        isHDF5 = self._isSourceHDF5(sourcelist)
+        self.autoRefreshCheckBox.setEnabled(isHDF5)
+        if not isHDF5 and self.autoRefreshCheckBox.isChecked():
+            self.autoRefreshCheckBox.setChecked(False)
 
     def _autoRefreshToggled(self, checked):
         """Start or stop the auto-refresh timer."""
@@ -308,6 +324,7 @@ class QSourceSelector(qt.QWidget):
             else:
                 nitem = self.fileCombo.findText(key)
             self.fileCombo.setCurrentIndex(nitem)
+        self._updateAutoRefreshVisibility(ddict["sourcelist"])
         self.sigSourceSelectorSignal.emit(ddict)
 
     def closeFile(self):
@@ -382,6 +399,7 @@ class QSourceSelector(qt.QWidget):
         ddict["event"] = "SourceSelected"
         ddict["combokey"] = key
         ddict["sourcelist"] = self.mapCombo[key]
+        self._updateAutoRefreshVisibility(ddict["sourcelist"])
         self.sigSourceSelectorSignal.emit(ddict)
 
 def test():

@@ -283,10 +283,7 @@ class QDispatcher(qt.QWidget):
             sourceType = source.sourceType
             selectorWidget = self.selectorWidget[sourceType]
             if ddict["event"] == "SourceReloaded":
-                # Full refresh — guard against re-entrant calls.
-                # The _refreshInProgress flag stops code-level re-entry.
-                # Disabling the button/shortcut stops the event-queue pile-up
-                # that happens when the user rage-clicks while Qt is blocked.
+                # Protect refresh against rage clicking.
                 if getattr(self, '_refreshInProgress', False):
                     _logger.debug("Refresh already in progress, ignoring")
                     return
@@ -300,14 +297,17 @@ class QDispatcher(qt.QWidget):
                 qt.QApplication.setOverrideCursor(
                     qt.QCursor(qt.Qt.WaitCursor))
                 try:
-                    selectorWidget._saveTreeState()
+                    # Tree-state save/restore is HDF5-only
+                    if sourceType == "HDF5":
+                        selectorWidget._saveTreeState()
                     source.refresh()
                     selectorWidget.setDataSource(source)
                     self.tabWidget.setCurrentWidget(selectorWidget)
                 except Exception:
                     _logger.error("source.refresh() failed: %s",
                                   sys.exc_info()[1])
-                    selectorWidget._savedTreeState = None
+                    if sourceType == "HDF5":
+                        selectorWidget._savedTreeState = None
                     self.tabWidget.setCurrentWidget(selectorWidget)
                 finally:
                     self._refreshInProgress = False
@@ -317,7 +317,12 @@ class QDispatcher(qt.QWidget):
                         f5_sc.setEnabled(True)
                     qt.QApplication.restoreOverrideCursor()
             elif ddict["event"] == "SourceAutoRefreshed":
-                # Refresh without reread
+                # Auto-refresh is HDF5-only; silently ignore for others
+                if sourceType != "HDF5":
+                    _logger.debug("Auto-refresh ignored for %s source. " \
+                                  "Should not appear as the Auto-refresh is supposed to be unavailable.",
+                                  sourceType)
+                    return
                 try:
                     selectorWidget._autoRefreshDatasets(source)
                     self._autoRefreshFailures = 0
