@@ -514,17 +514,18 @@ class PyMcaMain(PyMcaMdi.PyMcaMdi):
             widget.show()
             self._widgetDict[id(widget)] = widget
         else:
+            # `debug` instead of `info` to avoid spam during `auto-refresh`
             if OBJECT3D or isSilxGLAvailable:
                 if ddict['dataobject'].info['selectiontype'] == "1D":
-                    _logger.info("1D selection")
+                    _logger.debug("1D selection")
                     self.mcaWindow._addSelection(dictOrList)
                     self.scanWindow._addSelection(dictOrList)
                 else:
-                    _logger.info("3D selection")
+                    _logger.debug("3D selection")
                     self.mainTabWidget.setCurrentWidget(self.glWindow)
                     self.glWindow._addSelection(dictOrList)
             else:
-                _logger.info("1D selection")
+                _logger.debug("1D selection")
                 self.mcaWindow._addSelection(dictOrList)
                 self.scanWindow._addSelection(dictOrList)
 
