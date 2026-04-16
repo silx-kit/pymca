@@ -409,7 +409,8 @@ class PyMcaMain(PyMcaMdi.PyMcaMdi):
             msg.exec()
 
     def _dispatcherAddSelectionSlot(self, dictOrList):
-        _logger.info("self._dispatcherAddSelectionSlot(ddict), ddict = %s",
+        # `debug` instead of `info` to avoid spam during `auto-refresh`
+        _logger.debug("self._dispatcherAddSelectionSlot(ddict), ddict = %s",
                       dictOrList)
         if type(dictOrList) == type([]):
             ddict = dictOrList[0]

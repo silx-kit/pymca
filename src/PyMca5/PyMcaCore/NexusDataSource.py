@@ -627,7 +627,7 @@ class NexusDataSource(object):
                 if output.m:
                     for mi in range(len(output.m)):
                         mlength = output.m[mi].size
-                        delta = max(delta, ylength - mlength)
+                        delta = max(delta, abs(ylength - mlength))
                         length = min(length, mlength)
                 if delta > 1:
                     _logger.warning("Stripping last %d points" % delta)

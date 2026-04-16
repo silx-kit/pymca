@@ -854,7 +854,8 @@ class HDF5Widget(FileView):
             entry = "/" + path.split("/")[1]
             if (entry, filename) not in entryList:
                 entryList.append((entry, filename))
-        _logger.info("Returned entryList %s" % entryList)
+        # `debug` instead of `info` to avoid spam during `auto-refresh`
+        _logger.debug("Returned entryList %s" % entryList)
         return entryList
 
 
