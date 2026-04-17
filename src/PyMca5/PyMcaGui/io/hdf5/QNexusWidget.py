@@ -137,6 +137,8 @@ class QNexusWidget(qt.QWidget):
         self._BUTTONS = buttons
         self._signalsRAllowed = signalsRAllowed
         self._monitorMultipleAllowed = monitorMultipleAllowed
+        self._staleHandles = None
+        self._autoRefreshEntries = None
         self.build()
 
     def sizeHint(self):
@@ -497,11 +499,12 @@ class QNexusWidget(qt.QWidget):
             _logger.warning("Could not rebuild HDF5 tree: %s",
                              sys.exc_info()[1])
 
-        savedState = getattr(self, '_savedTreeState', None)
-        if savedState is not None:
-            self._savedTreeState = None
+        if self.hdf5Widget.hasSavedTreeState():
+            self._lastEntry = None  # force counter table rebuild
             try:
-                self._restoreTreeState(savedState)
+                self.hdf5Widget.restoreTreeState()  # uses internal state
+                if self._lastAction is not None and not self._BUTTONS:
+                    self._replaceAction()
                 return
             except Exception:
                 _logger.error("Failed to restore tree state: %s",
@@ -510,78 +513,6 @@ class QNexusWidget(qt.QWidget):
         if len(self.data._sourceObjectList) == 1:
             if hasattr(self.hdf5Widget, "expandToDepth"):
                 self.hdf5Widget.expandToDepth(0)
-
-    def _saveTreeState(self):
-        expanded = set()
-        selected = set()
-        model = self.hdf5Widget.model()
-        if model is not None and model is not self._defaultModel:
-            rootIndex = self.hdf5Widget.rootIndex()
-            self._collectTreeState(model, rootIndex, expanded)
-            for modelIndex in self.hdf5Widget.selectedIndexes():
-                if modelIndex.column() != 0:
-                    continue
-                item = model.getProxyFromIndex(modelIndex)
-                try:
-                    selected.add((item.file.filename, item.name))
-                except Exception:
-                    continue
-        self._savedTreeState = (expanded, selected)
-        # Reset so the counter table is rebuilt after restore
-        self._lastEntry = None
-
-    def _collectTreeState(self, model, parentIndex, expanded):
-        """Recursively collect expanded nodes."""
-        for row in range(model.rowCount(parentIndex)):
-            if not model.hasIndex(row, 0, parentIndex):
-                continue
-            index = model.index(row, 0, parentIndex)
-            if not self.hdf5Widget.isExpanded(index):
-                continue
-            item = model.getProxyFromIndex(index)
-            try:
-                expanded.add((item.file.filename, item.name))
-            except Exception:
-                continue
-            self._collectTreeState(model, index, expanded)
-
-    def _restoreTreeState(self, state):
-        expandedPaths, selectedPaths = state
-        model = self.hdf5Widget.model()
-        if model is None:
-            return
-        if expandedPaths or selectedPaths:
-            rootIndex = self.hdf5Widget.rootIndex()
-            selModel = self.hdf5Widget.selectionModel()
-            self._restoreTreeNodes(model, rootIndex, expandedPaths,
-                                   selectedPaths, selModel)
-        # Replot: the counter table still holds the previous selection
-        # which is valid (same file structure).
-        if self._lastAction is not None and not self._BUTTONS:
-            self._replaceAction()
-
-    def _restoreTreeNodes(self, model, parentIndex,
-                          expandPaths, selectPaths, selModel):
-        for row in range(model.rowCount(parentIndex)):
-            if not model.hasIndex(row, 0, parentIndex):
-                continue
-            index = model.index(row, 0, parentIndex)
-            item = model.getProxyFromIndex(index)
-            try:
-                key = (item.file.filename, item.name)
-            except Exception:
-                continue
-            if key in selectPaths:
-                selModel.select(
-                    index,
-                    qt.QItemSelectionModel.Select |
-                    qt.QItemSelectionModel.Rows)
-            if key in expandPaths:
-                self.hdf5Widget.setExpanded(index, True)
-                # Only recurse into expanded nodes
-                # selected items are always in expanded nodes.
-                self._restoreTreeNodes(model, index, expandPaths,
-                                       selectPaths, selModel)
 
     def _autoRefreshDatasets(self, source=None):
         """
@@ -596,53 +527,34 @@ class QNexusWidget(qt.QWidget):
 
         # To avoid weakref.proxy destructor - not to touch the tree.
         # Copies references to avoid deletion during refresh.
-        if getattr(self, '_staleHandles', None) is None:
+        if self._staleHandles is None:
             self._staleHandles = source._sourceObjectList[:]
 
         live = self.getSelectedEntries()
         if live:
             self._autoRefreshEntries = live
-        elif not getattr(self, '_autoRefreshEntries', None):
+        elif not self._autoRefreshEntries:
             return  # nothing was ever selected / plotted
 
         source.refresh()
 
-        # Swap file references in all loaded tree-model nodes.
-        self._updateModelFileHandles(source)
+        # Swap _file in loaded tree proxy nodes to the fresh handles
+        # so that tree items read from the reopened h5py.File objects.
+        model = self.hdf5Widget.model()
+        if model is not None and model is not self._defaultModel:
+            handleMap = {}
+            for obj in source._sourceObjectList:
+                name = getattr(obj, '_sourceName', None)
+                if name is not None:
+                    handleMap[name] = obj
+            if handleMap:
+                model.swapFileHandles(handleMap)
 
-        # Replot with the cached entry list.
-        # "Auto-refresh" suppose only to "REPLACE".
+        # Replot with the cached entry list (always REPLACE).
         _, selType = self._lastAction.split()
         ddict = {'action': 'REPLACE %s' % selType}
         self.buttonsSlot(ddict, emit=True,
                          entryList=self._autoRefreshEntries)
-
-    def _updateModelFileHandles(self, source):
-        """Swap ``_file`` in loaded tree proxy nodes to fresh handles."""
-        model = self.hdf5Widget.model()
-        if model is None or model is self._defaultModel:
-            return
-        handleMap = {}
-        for obj in source._sourceObjectList:
-            name = getattr(obj, '_sourceName', None)
-            if name is not None:
-                handleMap[name] = obj
-        if not handleMap:
-            return
-        for child in model.rootItem._children:
-            try:
-                oldName = child._file._sourceName
-            except (ReferenceError, AttributeError, ValueError):
-                continue
-            fresh = handleMap.get(oldName)
-            if fresh is not None:
-                self._swapNodeFile(child, fresh)
-
-    def _swapNodeFile(self, node, freshHandle):
-        """Recursively replace ``_file`` on 'node' and its children."""
-        node._file = freshHandle
-        for child in node._children:
-            self._swapNodeFile(child, freshHandle)
 
     def setFile(self, filename):
         self._data = self.hdf5Widget.model().openFile(filename, weakreference=True)

@@ -73,6 +73,8 @@ class QDispatcher(qt.QWidget):
         if pluginsIcon:
             self.sourceSelector.pluginsButton.clicked.connect(self._pluginsClicked)
             self.pluginsCallback = None
+        self._refreshInProgress = False
+        self._autoRefreshFailures = 0
         self.selectorWidget = {}
         self.tabWidget = qt.QTabWidget(self)
 
@@ -284,7 +286,7 @@ class QDispatcher(qt.QWidget):
             selectorWidget = self.selectorWidget[sourceType]
             if ddict["event"] == "SourceReloaded":
                 # Protect refresh against rage clicking.
-                if getattr(self, '_refreshInProgress', False):
+                if self._refreshInProgress:
                     _logger.debug("Refresh already in progress, ignoring")
                     return
                 self._refreshInProgress = True
@@ -299,14 +301,14 @@ class QDispatcher(qt.QWidget):
                 try:
                     # Tree-state save/restore is HDF5-only
                     if sourceType == "HDF5":
-                        selectorWidget._saveTreeState()
+                        selectorWidget.hdf5Widget.saveTreeState()
                     source.refresh()
                     selectorWidget.setDataSource(source)
                 except Exception:
                     _logger.error("source.refresh() failed: %s",
                                   sys.exc_info()[1])
                     if sourceType == "HDF5":
-                        selectorWidget._savedTreeState = None
+                        selectorWidget.hdf5Widget.clearSavedTreeState()
                 finally:
                     self.tabWidget.setCurrentWidget(selectorWidget)
                     self._refreshInProgress = False
@@ -325,7 +327,7 @@ class QDispatcher(qt.QWidget):
                     selectorWidget._autoRefreshDatasets(source)
                     self._autoRefreshFailures = 0
                 except Exception:
-                    n = getattr(self, '_autoRefreshFailures', 0) + 1
+                    n = self._autoRefreshFailures + 1
                     self._autoRefreshFailures = n
                     if n >= 3:
                         _logger.error(

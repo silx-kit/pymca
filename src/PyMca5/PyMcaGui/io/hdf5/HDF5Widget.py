@@ -672,6 +672,26 @@ class FileModel(qt.QAbstractItemModel):
             #    rootItem.deleteChild(child)
             rootItem.children.clear()
             self.endResetModel()
+    
+    def swapFileHandles(self, handleMap):
+        """Replace ``_file`` on loaded proxy nodes to point at fresh handles."""
+        if not handleMap:
+            return
+        for child in self.rootItem._children:
+            try:
+                oldName = child._file._sourceName
+            except (ReferenceError, AttributeError, ValueError):
+                continue
+            fresh = handleMap.get(oldName)
+            if fresh is None:
+                continue
+            self._swapNodeFile(child, fresh)
+
+    def _swapNodeFile(self, node, freshHandle):
+        """Replace ``_file`` on *node* and all its loaded children."""
+        node._file = freshHandle
+        for child in node._children:
+            self._swapNodeFile(child, freshHandle)
 
 class FileView(qt.QTreeView):
 
@@ -713,6 +733,7 @@ class FileView(qt.QTreeView):
 class HDF5Widget(FileView):
     def __init__(self, model, parent=None, multi_selection=False):
         FileView.__init__(self, model, parent)
+        self._savedTreeState = None
         self.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
         if multi_selection:
             self.setSelectionMode(qt.QAbstractItemView.ExtendedSelection)
@@ -857,6 +878,91 @@ class HDF5Widget(FileView):
         # `debug` instead of `info` to avoid spam during `auto-refresh`
         _logger.debug("Returned entryList %s" % entryList)
         return entryList
+
+    # ---- tree state save / restore (used by refresh & auto-refresh) ----
+
+    def saveTreeState(self):
+        """Save and return ``(expanded, selected)`` sets of
+        ``(filename, hdf5Path)`` tuples."""
+        expanded = set()
+        selected = set()
+        model = self.model()
+        if model is None:
+            self._savedTreeState = (expanded, selected)
+            return self._savedTreeState
+        rootIndex = self.rootIndex()
+        self._collectExpandedPaths(model, rootIndex, expanded)
+        for modelIndex in self.selectedIndexes():
+            if modelIndex.column() != 0:
+                continue
+            item = model.getProxyFromIndex(modelIndex)
+            try:
+                selected.add((item.file.filename, item.name))
+            except Exception:
+                continue
+        self._savedTreeState = (expanded, selected)
+        return self._savedTreeState
+
+    def _collectExpandedPaths(self, model, parentIndex, expanded):
+        """Recursively collect expanded-node paths."""
+        for row in range(model.rowCount(parentIndex)):
+            if not model.hasIndex(row, 0, parentIndex):
+                continue
+            index = model.index(row, 0, parentIndex)
+            if not self.isExpanded(index):
+                continue
+            item = model.getProxyFromIndex(index)
+            try:
+                expanded.add((item.file.filename, item.name))
+            except Exception:
+                continue
+            self._collectExpandedPaths(model, index, expanded)
+
+    def hasSavedTreeState(self):
+        """Return True if a saved tree state exists."""
+        return self._savedTreeState is not None
+
+    def clearSavedTreeState(self):
+        """Discard any saved tree state."""
+        self._savedTreeState = None
+
+    def restoreTreeState(self, state=None):
+        """Re-expand and re-select nodes from *state* or saved state."""
+        if state is None:
+            state = self._savedTreeState
+            self._savedTreeState = None
+        if state is None:
+            return
+        expandedPaths, selectedPaths = state
+        model = self.model()
+        if model is None:
+            return
+        if expandedPaths or selectedPaths:
+            rootIndex = self.rootIndex()
+            selModel = self.selectionModel()
+            self._restoreTreeNodes(model, rootIndex, expandedPaths,
+                                   selectedPaths, selModel)
+
+    def _restoreTreeNodes(self, model, parentIndex,
+                          expandPaths, selectPaths, selModel):
+        for row in range(model.rowCount(parentIndex)):
+            if not model.hasIndex(row, 0, parentIndex):
+                continue
+            index = model.index(row, 0, parentIndex)
+            item = model.getProxyFromIndex(index)
+            try:
+                key = (item.file.filename, item.name)
+            except Exception:
+                continue
+            if key in selectPaths:
+                selModel.select(
+                    index,
+                    qt.QItemSelectionModel.Select |
+                    qt.QItemSelectionModel.Rows)
+            if key in expandPaths:
+                self.setExpanded(index, True)
+                self._restoreTreeNodes(model, index, expandPaths,
+                                       selectPaths, selModel)
 
 
 class Hdf5SelectionDialog(qt.QDialog):
