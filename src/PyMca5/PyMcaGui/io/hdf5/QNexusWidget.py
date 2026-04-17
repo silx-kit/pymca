@@ -516,8 +516,8 @@ class QNexusWidget(qt.QWidget):
 
     def _autoRefreshDatasets(self, source=None):
         """
-        Auto-refresh: re-read datasets and replot without rebuilding the tree.
-        The tree remains fully interactive (repaint, click, selection).
+        Auto-refresh: re-read datasets and re-plot without re-building the tree.
+        The tree remains fully interactive (click, select, expand).
         Call refresh (F5) for a full tree rebuild when/if the file structure changes.
         """
         if self.data is None or self._lastAction is None:
@@ -539,7 +539,7 @@ class QNexusWidget(qt.QWidget):
         source.refresh()
 
         # Swap _file in loaded tree proxy nodes to the fresh handles
-        # so that tree items read from the reopened h5py.File objects.
+        # so that tree items read from the reopened HDF5.
         model = self.hdf5Widget.model()
         if model is not None and model is not self._defaultModel:
             handleMap = {}

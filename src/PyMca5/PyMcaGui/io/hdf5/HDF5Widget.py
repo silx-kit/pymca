@@ -408,14 +408,14 @@ class H5FileProxy(H5NodeProxy):
                     from PyMca5.PyMcaIO import HDF5Utils
                     result = HDF5Utils.safe_hdf5_group_keys(file_path,
                                                       data_path=data_path)
-                    # may have failed silently returning empty
-                    # if file locked by a writer - happens on Windows at least
                     if result:
                         return result
-                    _logger.debug("Subprocess returned empty. "
-                                  "Using standard approach")
+                    _logger.debug("Subprocess returned empty.")
+                    # It could be a really empty or a silent failure (file locked by writer).
+                    # becasue `safe_hdf5_group_keys (..., default=list())`.
+                    # If it is empty standard approach will also return empty.
             except Exception:
-                _logger.debug("Using standard approach")
+                _logger.debug("Trying standard approach")
             return self.file[data_path].keys()
         else:
             file_path = self.file.filename
@@ -688,7 +688,7 @@ class FileModel(qt.QAbstractItemModel):
             self._swapNodeFile(child, fresh)
 
     def _swapNodeFile(self, node, freshHandle):
-        """Replace ``_file`` on *node* and all its loaded children."""
+        """Replace ``_file`` on node and its children."""
         node._file = freshHandle
         for child in node._children:
             self._swapNodeFile(child, freshHandle)
@@ -879,11 +879,8 @@ class HDF5Widget(FileView):
         _logger.debug("Returned entryList %s" % entryList)
         return entryList
 
-    # ---- tree state save / restore (used by refresh & auto-refresh) ----
-
     def saveTreeState(self):
-        """Save and return ``(expanded, selected)`` sets of
-        ``(filename, hdf5Path)`` tuples."""
+        """Save and return expanded and selected sets in HDF5 tree."""
         expanded = set()
         selected = set()
         model = self.model()
@@ -904,7 +901,7 @@ class HDF5Widget(FileView):
         return self._savedTreeState
 
     def _collectExpandedPaths(self, model, parentIndex, expanded):
-        """Recursively collect expanded-node paths."""
+        """Recursively collect expanded-node."""
         for row in range(model.rowCount(parentIndex)):
             if not model.hasIndex(row, 0, parentIndex):
                 continue
@@ -919,15 +916,13 @@ class HDF5Widget(FileView):
             self._collectExpandedPaths(model, index, expanded)
 
     def hasSavedTreeState(self):
-        """Return True if a saved tree state exists."""
         return self._savedTreeState is not None
 
     def clearSavedTreeState(self):
-        """Discard any saved tree state."""
         self._savedTreeState = None
 
     def restoreTreeState(self, state=None):
-        """Re-expand and re-select nodes from *state* or saved state."""
+        """Re-expand and re-select nodes from (saved) state."""
         if state is None:
             state = self._savedTreeState
             self._savedTreeState = None
