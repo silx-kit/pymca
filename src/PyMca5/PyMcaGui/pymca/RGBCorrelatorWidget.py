@@ -326,6 +326,7 @@ class RGBCorrelatorWidget(qt.QWidget):
             self.__imageShape = None
         self.__imageLengthOriginal = self.__imageLength
         self.__imageShapeOriginal = self.__imageShape
+        self.__prePadLength = None
         self.__redLabel = None
         self.__greenLabel = None
         self.__blueLabel = None
@@ -738,6 +739,11 @@ class RGBCorrelatorWidget(qt.QWidget):
                 image = numpy.resize(
                     image, (self.__imageShape[0], self.__imageShape[1])
                 )
+            elif self.__prePadLength is not None and length == self.__prePadLength:
+                flat = image.ravel()
+                padded = numpy.full(self.__imageLength, numpy.nan, dtype=numpy.float64)
+                padded[:length] = flat
+                image = padded.reshape(self.__imageShape)
             else:
                 raise ValueError(
                     "Image cannot be reshaped to %d x %d"
@@ -836,33 +842,47 @@ class RGBCorrelatorWidget(qt.QWidget):
         ret = dialog.exec()
         if ret:
             shape = dialog.getImageShape()
+            pad_with_nan = dialog.isIncompleteScan()
             dialog.close()
             del dialog
             try:
                 if (shape[0] * shape[1]) <= 0:
                     self.reset()
                 else:
-                    self.setImageShape(shape)
+                    self.setImageShape(shape, pad_with_nan=pad_with_nan)
             except Exception:
                 msg = qt.QMessageBox(self)
                 msg.setIcon(qt.QMessageBox.Critical)
                 msg.setText("Error reshaping: %s" % sys.exc_info()[1])
                 msg.exec()
 
-    def setImageShape(self, shape):
+    def setImageShape(self, shape, pad_with_nan=False):
         length = numpy.prod(shape, dtype=int)
         if self.__imageLength is None:
             self.__imageLength = length
         elif length != self.__imageLength:
-            raise ValueError(
-                "New length %d different of old length %d"
-                % (length, self.__imageLength)
-            )
+            if pad_with_nan and length > self.__imageLength:
+                self._padImagesWithNaN(length)
+            else:
+                raise ValueError(
+                    "New length %d different of old length %d"
+                    % (length, self.__imageLength)
+                )
         self.__imageShape = shape
         self._updateSizeLabel()
         for key in self._imageDict.keys():
             self._imageDict[key]["image"] = self._imageDict[key]["image"].reshape(*shape)
         self.tableWidget._update()
+
+    def _padImagesWithNaN(self, new_length):
+        old_length = self.__imageLength
+        for key in self._imageDict.keys():
+            flat = self._imageDict[key]["image"].ravel()
+            padded = numpy.full(new_length, numpy.nan, dtype=numpy.float64)
+            padded[:old_length] = flat
+            self._imageDict[key]["image"] = padded
+        self.__prePadLength = old_length
+        self.__imageLength = new_length
 
     def transposeImages(self):
         if self.__imageLength is None:
@@ -904,6 +924,7 @@ class RGBCorrelatorWidget(qt.QWidget):
         self._imageDict = {}
         self.__imageLength = self.__imageLengthOriginal
         self.__imageShape = self.__imageShapeOriginal
+        self.__prePadLength = None
         self.__redLabel = None
         self.__greenLabel = None
         self.__blueLabel = None
@@ -1690,6 +1711,11 @@ class ImageShapeDialog(qt.QDialog):
             self.setWindowTitle("Reshape %d x %d image" % (shape[0], shape[1]))
         label2 = MyQLabel(self, bold=False, color=qt.QApplication.instance().palette().color(qt.QPalette.Text))
         label2.setText("Number of columns = ")
+        self.incompleteScanCheckBox = qt.QCheckBox("Incomplete scan (pad with NaN)", self)
+        self.incompleteScanCheckBox.setToolTip(
+            "Explicit values for both rows and columns.\n"
+            "Missing pixels will be filled with NaN."
+        )
         self.cancelButton = qt.QPushButton(self)
         self.cancelButton.setText("Dismiss")
         self.okButton = qt.QPushButton(self)
@@ -1704,13 +1730,19 @@ class ImageShapeDialog(qt.QDialog):
         self.mainLayout.addWidget(self.rows, 0, 1)
         self.mainLayout.addWidget(label2, 1, 0)
         self.mainLayout.addWidget(self.columns, 1, 1)
-        self.mainLayout.addWidget(self.cancelButton, 2, 0)
-        self.mainLayout.addWidget(self.okButton, 2, 1)
+        self.mainLayout.addWidget(self.incompleteScanCheckBox, 2, 0, 1, 2)
+        self.mainLayout.addWidget(self.cancelButton, 3, 0)
+        self.mainLayout.addWidget(self.okButton, 3, 1)
         self.cancelButton.clicked.connect(self.reject)
         self.okButton.clicked.connect(self.accept)
 
+    def isIncompleteScan(self):
+        return self.incompleteScanCheckBox.isChecked()
+
     def _rowsChanged(self):
         if not self._size:
+            return
+        if self.incompleteScanCheckBox.isChecked():
             return
         nrows, ncolumns = self.getImageShape()
         size = nrows * ncolumns
@@ -1719,6 +1751,8 @@ class ImageShapeDialog(qt.QDialog):
 
     def _columnsChanged(self):
         if not self._size:
+            return
+        if self.incompleteScanCheckBox.isChecked():
             return
         nrows, ncolumns = self.getImageShape()
         size = nrows * ncolumns
@@ -1743,8 +1777,26 @@ class ImageShapeDialog(qt.QDialog):
             return qt.QDialog.accept(self)
         nrows, ncolumns = self.getImageShape()
         try:
-            if (nrows * ncolumns) == self._size:
+            product = nrows * ncolumns
+            if product == self._size:
                 return qt.QDialog.accept(self)
+            elif self.incompleteScanCheckBox.isChecked():
+                if product >= self._size and product > 0:
+                    return qt.QDialog.accept(self)
+                else:
+                    msg = qt.QMessageBox(self)
+                    msg.setIcon(qt.QMessageBox.Critical)
+                    msg.setText(
+                        "Shape %d x %d = %d is smaller than data size %d.\n\n"
+                        "An incomplete scan can only be padded "
+                        "with NaN to fill missing pixels.\n"
+                        "It cannot be cropped.\n\n"
+                        "If the data was already padded in a "
+                        "previous load, please reload the file "
+                        "and enter the correct shape."
+                        % (nrows, ncolumns, product, self._size)
+                    )
+                    msg.exec()
             else:
                 self.rows.setText("%g" % self._shape[0])
                 self.columns.setText("%g" % self._shape[1])

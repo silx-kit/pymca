@@ -251,9 +251,17 @@ class QStackWidget(StackBase.StackBase,
             ret = dialog.exec()
             if ret:
                 shape = dialog.getImageShape()
+                pad_with_nan = dialog.isIncompleteScan()
                 dialog.close()
                 del dialog
-                self._stack.data = self._stack.data.reshape(shape[0], shape[1], oldshape[2])
+                new_npixels = shape[0] * shape[1]
+                old_npixels = oldshape[0] * oldshape[1]
+                if pad_with_nan and new_npixels > old_npixels:
+                    self._padIncompleteStack(old_npixels, new_npixels,
+                                             shape, oldshape[2])
+                else:
+                    self._stack.data = self._stack.data.reshape(
+                        shape[0], shape[1], oldshape[2])
                 self.stackWidget.setImageData(None)
                 self.roiWidget.setImageData(None)
                 # make sure old ROI images are not used
@@ -287,6 +295,41 @@ class QStackWidget(StackBase.StackBase,
 
     def normalizeIconChecked(self):
         pass
+
+    def _padIncompleteStack(self, old_npixels, new_npixels, shape, nchannels):
+        """
+        Pad an incomplete scan stack to the full grid size. 
+        Data and positioner values are padded with NaN,
+        other per-pixel metadata is padded with zeros.
+        """
+        # Pad spectrum
+        padded = numpy.full((new_npixels, nchannels),
+                            numpy.nan, dtype=numpy.float64)
+        padded[:old_npixels, :] = self._stack.data.reshape(
+            old_npixels, nchannels)
+        self._stack.data = padded.reshape(shape[0], shape[1], nchannels)
+
+        # Pad positioners
+        info = self._stack.info
+        if "positioners" in info and hasattr(info["positioners"], "items"):
+            for motor_name, motor_values in info["positioners"].items():
+                if hasattr(motor_values, "size") and \
+                        motor_values.size == old_npixels:
+                    padded_pos = numpy.full(new_npixels,
+                                            numpy.nan,
+                                            dtype=numpy.float64)
+                    padded_pos[:old_npixels] = numpy.asarray(
+                        motor_values).ravel()
+                    info["positioners"][motor_name] = padded_pos
+
+        # Pad other arrays (e.g. McaLiveTime) with zeros
+        for key, value in info.items():
+            if hasattr(value, "size"):
+                arr = numpy.asarray(value)
+                if arr.size == old_npixels:
+                    padded_arr = numpy.zeros(new_npixels, dtype=arr.dtype)
+                    padded_arr[:old_npixels] = arr.ravel()
+                    info[key] = padded_arr
 
     def _roiSubtractBackgroundClicked(self):
         if not len(self._ROIImageList):
