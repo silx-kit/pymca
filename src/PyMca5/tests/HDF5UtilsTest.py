@@ -22,11 +22,6 @@ def _cause_segfault(*args, **kwargs):
         j[c] = b"a"
         c += 1
 
-
-def _safe_cause_segfault(*args, **kwargs):
-    return HDF5Utils.run_in_subprocess(_cause_segfault, *args, **kwargs)
-
-
 class testHDF5Utils(unittest.TestCase):
     def setUp(self):
         self.path = tempfile.mkdtemp(prefix="pymca")
@@ -43,7 +38,7 @@ class testHDF5Utils(unittest.TestCase):
 
         names = list(map(str, range(5)))
         self.assertEqual(HDF5Utils.get_hdf5_group_keys(filename), names)
-        self.assertEqual(HDF5Utils.safe_hdf5_group_keys(filename), names)
+        self.assertEqual(HDF5Utils._hdf5_group_keys(filename), names)
 
     def testSegFault(self):
         # Verify that run_in_subprocess can be used
