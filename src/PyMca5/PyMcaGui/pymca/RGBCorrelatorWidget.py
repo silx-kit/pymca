@@ -1789,7 +1789,7 @@ class ImageShapeDialog(qt.QDialog):
                     msg.setText(
                         "Shape %d x %d = %d is smaller than data size %d.\n\n"
                         "An incomplete scan can only be padded "
-                        "with NaN to fill missing pixels."
+                        "with NaN to fill missing pixels.\n"
                         "It cannot be cropped.\n\n"
                         "If the data was already padded in a "
                         "previous load, please reload the file "
