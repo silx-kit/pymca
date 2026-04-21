@@ -580,6 +580,7 @@ class ScanWindow(PlotWindow.PlotWindow):
                                   'Y:%s '
                                   % (curs_xText, curs_yText, xText, yText))
                         qt.QToolTip.showText(self.cursor().pos(), xy_tip)
+                    _defaultColor = qt.QApplication.instance().palette().color(qt.QPalette.Text).name()
                     if xText == '----':
                         if self.getGraphCursor():
                             self._xPos.setStyleSheet("color: rgb(255, 0, 0);")
@@ -587,16 +588,17 @@ class ScanWindow(PlotWindow.PlotWindow):
                             xText = curs_xText
                             yText = curs_yText
                         else:
-                            self._xPos.setStyleSheet("color: rgb(0, 0, 0);")
-                            self._yPos.setStyleSheet("color: rgb(0, 0, 0);")
+                            self._xPos.setStyleSheet("color: %s;" % _defaultColor)
+                            self._yPos.setStyleSheet("color: %s;" % _defaultColor)
                     else:
-                        self._xPos.setStyleSheet("color: rgb(0, 0, 0);")
-                        self._yPos.setStyleSheet("color: rgb(0, 0, 0);")
+                        self._xPos.setStyleSheet("color: %s;" % _defaultColor)
+                        self._yPos.setStyleSheet("color: %s;" % _defaultColor)
                     self._xPos.setText(xText)
                     self._yPos.setText(yText)
             else:
-                self._xPos.setStyleSheet("color: rgb(0, 0, 0);")
-                self._yPos.setStyleSheet("color: rgb(0, 0, 0);")
+                _defaultColor = qt.QApplication.instance().palette().color(qt.QPalette.Text).name()
+                self._xPos.setStyleSheet("color: %s;" % _defaultColor)
+                self._yPos.setStyleSheet("color: %s;" % _defaultColor)
                 self._handleMouseMovedEvent(ddict)
         elif ddict['event'] in ["curveClicked", "legendClicked"]:
             legend = ddict["label"]
