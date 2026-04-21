@@ -38,7 +38,7 @@ class testHDF5Utils(unittest.TestCase):
 
         names = list(map(str, range(5)))
         self.assertEqual(HDF5Utils.get_hdf5_group_keys(filename), names)
-        self.assertEqual(HDF5Utils._hdf5_group_keys(filename), names)
+        self.assertEqual(HDF5Utils.safe_hdf5_group_keys(filename), names)
 
     def testSegFault(self):
         # Verify that run_in_subprocess can be used
