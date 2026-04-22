@@ -6,13 +6,11 @@ import unittest
 import datetime
 import h5py
 import sys
-try:
-    import multiprocessing
-except Exception:
-    pass
 
 from PyMca5.PyMcaIO import HDF5Utils
 
+def _pass_through():
+    return 0
 
 def _cause_segfault(*args, **kwargs):
     import ctypes
@@ -23,11 +21,6 @@ def _cause_segfault(*args, **kwargs):
     while True:
         j[c] = b"a"
         c += 1
-
-
-def _safe_cause_segfault(*args, **kwargs):
-    return HDF5Utils.run_in_subprocess(_cause_segfault, *args, **kwargs)
-
 
 class testHDF5Utils(unittest.TestCase):
     def setUp(self):
@@ -47,9 +40,19 @@ class testHDF5Utils(unittest.TestCase):
         self.assertEqual(HDF5Utils.get_hdf5_group_keys(filename), names)
         self.assertEqual(HDF5Utils.safe_hdf5_group_keys(filename), names)
 
-    @unittest.skipIf("multiprocessing" not in sys.modules, "skipped multiprocessing missing")
     def testSegFault(self):
-        self.assertEqual(_safe_cause_segfault(default=123), 123)
+        # Verify that run_in_subprocess can be used
+        try:
+            result = HDF5Utils.run_in_subprocess(_pass_through, default=123)
+        except Exception:
+            if not getattr(sys, "frozen", False):
+                raise
+            self.skipTest("multiprocessing does not work for the current frozen binary")
+        self.assertEqual(result, 0)
+
+        # Check that run_in_subprocess works as intended when the function segfaults
+        result = HDF5Utils.run_in_subprocess(_cause_segfault, default=123)
+        self.assertEqual(result, 123)
 
     def testHdf5GroupSortByName(self):
         filename = os.path.join(self.path, "test.h5")
