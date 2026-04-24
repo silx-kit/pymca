@@ -147,7 +147,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install cython
           python -m pip install numpy
-          python -m pip install silx
+          python -m pip install silx==2.2.2
 
       - name: Install Qt
         run: |
@@ -233,7 +233,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install cython
           python -m pip install numpy
-          python -m pip install silx
+          python -m pip install silx==2.2.2
 
       - name: Install Qt
         run: |
@@ -301,7 +301,7 @@ jobs:
           chmod +x venv-x86/bin/python
           source venv-x86/bin/activate
           arch -x86_64 python -m pip install Pyside6
-          arch -x86_64 python -m pip install silx
+          arch -x86_64 python -m pip install silx==2.2.2
           arch -x86_64 python -m pip install --pre ${{ steps.install_wheel.outputs.wheel-path }}
           cd ..
           arch -x86_64 python -m PyMca5.tests.TestAll
