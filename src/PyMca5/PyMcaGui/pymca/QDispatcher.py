@@ -73,6 +73,8 @@ class QDispatcher(qt.QWidget):
         if pluginsIcon:
             self.sourceSelector.pluginsButton.clicked.connect(self._pluginsClicked)
             self.pluginsCallback = None
+        self._refreshInProgress = False
+        self._autoRefreshFailures = 0
         self.selectorWidget = {}
         self.tabWidget = qt.QTabWidget(self)
 
@@ -164,6 +166,8 @@ class QDispatcher(qt.QWidget):
                                     text += "Source: %s\n" % source.sourceName
                                     text += "Key: %s\n"  % sel['Key']
                                     text += "Error: %s" % error[1]
+                                    if self.sourceSelector.autoRefreshCheckBox.isChecked():
+                                        self.sourceSelector.autoRefreshCheckBox.setChecked(False)
                                     msg = qt.QMessageBox(self)
                                     msg.setWindowTitle('Source Error')
                                     msg.setIcon(qt.QMessageBox.Critical)
@@ -268,8 +272,8 @@ class QDispatcher(qt.QWidget):
                 _logger.debug("connecting source of type %s" % sourceType)
                 source.sigUpdated.connect(self._selectionUpdatedSlot)
 
-        elif (ddict["event"] == "SourceSelected") or \
-             (ddict["event"] == "SourceReloaded"):
+        elif ddict["event"] in ("SourceSelected", "SourceReloaded",
+                                  "SourceAutoRefreshed"):
             found = 0
             for source in self.sourceList:
                 if source.sourceName == ddict["sourcelist"]:
@@ -279,10 +283,67 @@ class QDispatcher(qt.QWidget):
                 _logger.debug("WARNING: source not found")
                 return
             sourceType = source.sourceType
+            selectorWidget = self.selectorWidget[sourceType]
             if ddict["event"] == "SourceReloaded":
-                source.refresh()
-            self.selectorWidget[sourceType].setDataSource(source)
-            self.tabWidget.setCurrentWidget(self.selectorWidget[sourceType])
+                # Protect refresh against rage clicking.
+                if self._refreshInProgress:
+                    _logger.debug("Refresh already in progress, ignoring")
+                    return
+                self._refreshInProgress = True
+                refresh_btn = getattr(self.sourceSelector, 'refreshButton', None)
+                f5_sc = getattr(self.sourceSelector, 'f5Shortcut', None)
+                if refresh_btn:
+                    refresh_btn.setEnabled(False)
+                if f5_sc:
+                    f5_sc.setEnabled(False)
+                qt.QApplication.setOverrideCursor(
+                    qt.QCursor(qt.Qt.WaitCursor))
+                try:
+                    # Tree-state save/restore is HDF5-only
+                    if sourceType == "HDF5":
+                        selectorWidget.hdf5Widget.saveTreeState()
+                    source.refresh()
+                    selectorWidget.setDataSource(source)
+                except Exception:
+                    _logger.error("source.refresh() failed: %s",
+                                  sys.exc_info()[1])
+                    if sourceType == "HDF5":
+                        selectorWidget.hdf5Widget.clearSavedTreeState()
+                finally:
+                    self.tabWidget.setCurrentWidget(selectorWidget)
+                    self._refreshInProgress = False
+                    if refresh_btn:
+                        refresh_btn.setEnabled(True)
+                    if f5_sc:
+                        f5_sc.setEnabled(True)
+                    qt.QApplication.restoreOverrideCursor()
+            elif ddict["event"] == "SourceAutoRefreshed":
+                # Auto-refresh is HDF5-only; silently ignore for others
+                if sourceType != "HDF5":
+                    _logger.debug("Auto-refresh ignored for source. " \
+                                  "Should not appear as the Auto-refresh is supposed to be unavailable.")
+                    return
+                try:
+                    selectorWidget._autoRefreshDatasets(source)
+                    self._autoRefreshFailures = 0
+                except Exception:
+                    n = self._autoRefreshFailures + 1
+                    self._autoRefreshFailures = n
+                    if n >= 3:
+                        _logger.error(
+                            "Auto-refresh failed %d times in a row, stopping: %s",
+                            n, sys.exc_info()[1])
+                        self._autoRefreshFailures = 0
+                        self.sourceSelector.autoRefreshCheckBox.setChecked(
+                            False)
+                    else:
+                        _logger.warning(
+                            "Auto-refresh attempt failed, will retry in one second"
+                            )
+            else: # SourceSelected
+                selectorWidget.setDataSource(source)
+                self.tabWidget.setCurrentWidget(selectorWidget)
+
         elif ddict["event"] == "SourceClosed":
             found = 0
             for source in self.sourceList:

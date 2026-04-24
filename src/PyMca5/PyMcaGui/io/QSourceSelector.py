@@ -97,7 +97,7 @@ class QSourceSelector(qt.QWidget):
 
         refreshButton= qt.QPushButton(self.fileWidget)
         refreshButton.setIcon(self.reloadIcon)
-        refreshButton.setToolTip("Refresh data source")
+        refreshButton.setToolTip("Refresh data source (F5)")
 
         specButton= qt.QPushButton(self.fileWidget)
         specButton.setIcon(self.specIcon)
@@ -106,13 +106,29 @@ class QSourceSelector(qt.QWidget):
         else:
             specButton.setToolTip("Open new shared memory source")
 
+        self.autoRefreshCheckBox = qt.QCheckBox("Auto", self.fileWidget)
+        self.autoRefreshCheckBox.setToolTip(
+            "Automatically refresh HDF5 files every second\n"
+            "to see new appended data.\n" \
+            "New datasets will not appear until manual refresh (F5).")
+        
+        self._autoRefreshTimer = qt.QTimer(self)
+        self._autoRefreshTimer.setInterval(1000)
+
         closeButton.setSizePolicy(qt.QSizePolicy(qt.QSizePolicy.Fixed, qt.QSizePolicy.Minimum))
         specButton.setSizePolicy(qt.QSizePolicy(qt.QSizePolicy.Fixed, qt.QSizePolicy.Minimum))
         refreshButton.setSizePolicy(qt.QSizePolicy(qt.QSizePolicy.Fixed, qt.QSizePolicy.Minimum))
+        self.autoRefreshCheckBox.setSizePolicy(qt.QSizePolicy(qt.QSizePolicy.Fixed, qt.QSizePolicy.Minimum))
 
         openButton.clicked.connect(self._openFileSlot)
         closeButton.clicked.connect(self.closeFile)
         refreshButton.clicked.connect(self._reload)
+        self.f5Shortcut = qt.QShortcut(qt.QKeySequence(qt.Qt.Key_F5), self, self._reload)
+        self.autoRefreshCheckBox.toggled.connect(self._autoRefreshToggled)
+        self._autoRefreshTimer.timeout.connect(self._autoRefreshTimeout)
+
+        # For `QDispatcher` to disable during refresh
+        self.refreshButton = refreshButton 
 
         specButton.clicked.connect(self.openBlissOrSpec)
         if hasattr(self.fileCombo, "textActivated"):
@@ -127,6 +143,12 @@ class QSourceSelector(qt.QWidget):
         fileWidgetLayout.addWidget(specButton)
         if sys.platform == "win32":specButton.hide()
         fileWidgetLayout.addWidget(refreshButton)
+        fileWidgetLayout.addWidget(self.autoRefreshCheckBox)
+        # if sys.platform == "win32":self.autoRefreshCheckBox.hide()
+        # Needed because on Windows hdf5 locking system is "broken"
+        # Commented for testing on Windows
+        
+
         self.specButton = specButton
         if pluginsIcon:
             self.pluginsButton = qt.QPushButton(self.fileWidget)
@@ -136,18 +158,48 @@ class QSourceSelector(qt.QWidget):
             fileWidgetLayout.addWidget(self.pluginsButton)
         self.mainLayout.addWidget(self.fileWidget)
 
-    def _reload(self):
+    def _reload(self, autorefresh=False):
         _logger.debug("_reload called")
         qstring = self.fileCombo.currentText()
         if not len(qstring):
             return
-
         key = qt.safe_str(qstring)
         ddict = {}
-        ddict["event"] = "SourceReloaded"
         ddict["combokey"] = key
         ddict["sourcelist"] = self.mapCombo[key] * 1
+        if autorefresh:
+            ddict["event"] = "SourceAutoRefreshed"
+        else:
+            ddict["event"] = "SourceReloaded"
         self.sigSourceSelectorSignal.emit(ddict)
+
+    def _isSourceHDF5(self, sourcelist):
+        HDF5_EXTENSIONS = (".h5", ".hdf5", ".hdf", ".nxs", ".nx")
+        if not sourcelist:
+            return False
+        return all(source.lower().endswith(HDF5_EXTENSIONS) for source in sourcelist)
+
+    def _updateAutoRefreshVisibility(self, sourcelist):
+        """Auto checkbox is only for HDF5 sources."""
+        isHDF5 = self._isSourceHDF5(sourcelist)
+        self.autoRefreshCheckBox.setEnabled(isHDF5)
+        if not isHDF5 and self.autoRefreshCheckBox.isChecked():
+            self.autoRefreshCheckBox.setChecked(False)
+
+    def _autoRefreshToggled(self, checked):
+        if checked:
+            _logger.info("Auto-refresh started")
+            self._autoRefreshTimer.start()
+        else:
+            _logger.info("Auto-refresh stopped")
+            self._autoRefreshTimer.stop()
+
+    def _autoRefreshTimeout(self):
+        """Pause the timer to prevent queuing."""
+        self._autoRefreshTimer.stop()
+        self._reload(autorefresh=True)
+        if self.autoRefreshCheckBox.isChecked():
+            self._autoRefreshTimer.start()
 
     def _openFileSlot(self):
         self.openFile(None, None)
@@ -271,6 +323,7 @@ class QSourceSelector(qt.QWidget):
             else:
                 nitem = self.fileCombo.findText(key)
             self.fileCombo.setCurrentIndex(nitem)
+        self._updateAutoRefreshVisibility(ddict["sourcelist"])
         self.sigSourceSelectorSignal.emit(ddict)
 
     def closeFile(self):
@@ -345,6 +398,7 @@ class QSourceSelector(qt.QWidget):
         ddict["event"] = "SourceSelected"
         ddict["combokey"] = key
         ddict["sourcelist"] = self.mapCombo[key]
+        self._updateAutoRefreshVisibility(ddict["sourcelist"])
         self.sigSourceSelectorSignal.emit(ddict)
 
 def test():

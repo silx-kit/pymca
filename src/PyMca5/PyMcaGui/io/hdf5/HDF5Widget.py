@@ -406,11 +406,17 @@ class H5FileProxy(H5NodeProxy):
                     return self.file[data_path].keys()
                 else:
                     from PyMca5.PyMcaIO import HDF5Utils
-                    return HDF5Utils.safe_hdf5_group_keys(file_path,
+                    result = HDF5Utils.safe_hdf5_group_keys(file_path,
                                                       data_path=data_path)
+                    if result:
+                        return result
+                    _logger.debug("Subprocess returned empty.")
+                    # It could be a really empty or a silent failure (file locked by writer).
+                    # becasue `safe_hdf5_group_keys (..., default=list())`.
+                    # If it is empty standard approach will also return empty.
             except Exception:
-                _logger.debug("Using standard approach")
-                return self.file[data_path].keys()
+                _logger.debug("Trying standard approach")
+            return self.file[data_path].keys()
         else:
             file_path = self.file.filename
             data_path = self.name
@@ -666,6 +672,26 @@ class FileModel(qt.QAbstractItemModel):
             #    rootItem.deleteChild(child)
             rootItem.children.clear()
             self.endResetModel()
+    
+    def swapFileHandles(self, handleMap):
+        """Replace ``_file`` on loaded proxy nodes to point at fresh handles."""
+        if not handleMap:
+            return
+        for child in self.rootItem._children:
+            try:
+                oldName = child._file._sourceName
+            except (ReferenceError, AttributeError, ValueError):
+                continue
+            fresh = handleMap.get(oldName)
+            if fresh is None:
+                continue
+            self._swapNodeFile(child, fresh)
+
+    def _swapNodeFile(self, node, freshHandle):
+        """Replace ``_file`` on node and its children."""
+        node._file = freshHandle
+        for child in node._children:
+            self._swapNodeFile(child, freshHandle)
 
 class FileView(qt.QTreeView):
 
@@ -707,6 +733,7 @@ class FileView(qt.QTreeView):
 class HDF5Widget(FileView):
     def __init__(self, model, parent=None, multi_selection=False):
         FileView.__init__(self, model, parent)
+        self._savedTreeState = None
         self.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
         if multi_selection:
             self.setSelectionMode(qt.QAbstractItemView.ExtendedSelection)
@@ -848,8 +875,89 @@ class HDF5Widget(FileView):
             entry = "/" + path.split("/")[1]
             if (entry, filename) not in entryList:
                 entryList.append((entry, filename))
-        _logger.info("Returned entryList %s" % entryList)
+        # `debug` instead of `info` to avoid spam during `auto-refresh`
+        _logger.debug("Returned entryList %s" % entryList)
         return entryList
+
+    def saveTreeState(self):
+        """Save and return expanded and selected sets in HDF5 tree."""
+        expanded = set()
+        selected = set()
+        model = self.model()
+        if model is None:
+            self._savedTreeState = (expanded, selected)
+            return self._savedTreeState
+        rootIndex = self.rootIndex()
+        self._collectExpandedPaths(model, rootIndex, expanded)
+        for modelIndex in self.selectedIndexes():
+            if modelIndex.column() != 0:
+                continue
+            item = model.getProxyFromIndex(modelIndex)
+            try:
+                selected.add((item.file.filename, item.name))
+            except Exception:
+                continue
+        self._savedTreeState = (expanded, selected)
+        return self._savedTreeState
+
+    def _collectExpandedPaths(self, model, parentIndex, expanded):
+        """Recursively collect expanded-node."""
+        for row in range(model.rowCount(parentIndex)):
+            if not model.hasIndex(row, 0, parentIndex):
+                continue
+            index = model.index(row, 0, parentIndex)
+            if not self.isExpanded(index):
+                continue
+            item = model.getProxyFromIndex(index)
+            try:
+                expanded.add((item.file.filename, item.name))
+            except Exception:
+                continue
+            self._collectExpandedPaths(model, index, expanded)
+
+    def hasSavedTreeState(self):
+        return self._savedTreeState is not None
+
+    def clearSavedTreeState(self):
+        self._savedTreeState = None
+
+    def restoreTreeState(self, state=None):
+        """Re-expand and re-select nodes from (saved) state."""
+        if state is None:
+            state = self._savedTreeState
+            self._savedTreeState = None
+        if state is None:
+            return
+        expandedPaths, selectedPaths = state
+        model = self.model()
+        if model is None:
+            return
+        if expandedPaths or selectedPaths:
+            rootIndex = self.rootIndex()
+            selModel = self.selectionModel()
+            self._restoreTreeNodes(model, rootIndex, expandedPaths,
+                                   selectedPaths, selModel)
+
+    def _restoreTreeNodes(self, model, parentIndex,
+                          expandPaths, selectPaths, selModel):
+        for row in range(model.rowCount(parentIndex)):
+            if not model.hasIndex(row, 0, parentIndex):
+                continue
+            index = model.index(row, 0, parentIndex)
+            item = model.getProxyFromIndex(index)
+            try:
+                key = (item.file.filename, item.name)
+            except Exception:
+                continue
+            if key in selectPaths:
+                selModel.select(
+                    index,
+                    qt.QItemSelectionModel.Select |
+                    qt.QItemSelectionModel.Rows)
+            if key in expandPaths:
+                self.setExpanded(index, True)
+                self._restoreTreeNodes(model, index, expandPaths,
+                                       selectPaths, selModel)
 
 
 class Hdf5SelectionDialog(qt.QDialog):

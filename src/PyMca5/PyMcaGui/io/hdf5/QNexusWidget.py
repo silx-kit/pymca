@@ -137,6 +137,8 @@ class QNexusWidget(qt.QWidget):
         self._BUTTONS = buttons
         self._signalsRAllowed = signalsRAllowed
         self._monitorMultipleAllowed = monitorMultipleAllowed
+        self._staleHandles = None
+        self._autoRefreshEntries = None
         self.build()
 
     def sizeHint(self):
@@ -471,6 +473,8 @@ class QNexusWidget(qt.QWidget):
 
     def setDataSource(self, dataSource):
         self.data = dataSource
+        self._autoRefreshEntries = None
+        self._staleHandles = None
         if self.data is None:
             self.hdf5Widget.collapseAll()
             self.hdf5Widget.setModel(self._defaultModel)
@@ -483,15 +487,74 @@ class QNexusWidget(qt.QWidget):
         ref = weakref.ref(dataSource, dataSourceDestroyed)
         if ref not in self._dataSourceList:
             self._dataSourceList.append(ref)
-            self._modelDict[ref] = HDF5Widget.FileModel()
-        model = self._modelDict[ref]
-        self.hdf5Widget.setModel(model)
-        for source in self.data._sourceObjectList:
-            self.hdf5Widget.model().appendPhynxFile(source, weakreference=True)
+        # if appendPhynxFile fails, the previous model 
+        # stays visible and the tree does not collapse.
+        try:
+            newModel = HDF5Widget.FileModel()
+            for source in self.data._sourceObjectList:
+                newModel.appendPhynxFile(source, weakreference=True)
+            self._modelDict[ref] = newModel
+            self.hdf5Widget.setModel(newModel)
+        except Exception:
+            _logger.warning("Could not rebuild HDF5 tree: %s",
+                             sys.exc_info()[1])
+
+        if self.hdf5Widget.hasSavedTreeState():
+            self._lastEntry = None  # force counter table rebuild
+            try:
+                self.hdf5Widget.restoreTreeState()  # uses internal state
+                if self._lastAction is not None and not self._BUTTONS:
+                    self._replaceAction()
+                return
+            except Exception:
+                _logger.error("Failed to restore tree state: %s",
+                              sys.exc_info()[1])
+        # First load or failed restore: expand depth 0 for single files
         if len(self.data._sourceObjectList) == 1:
-            # only one file, expand by default
             if hasattr(self.hdf5Widget, "expandToDepth"):
                 self.hdf5Widget.expandToDepth(0)
+
+    def _autoRefreshDatasets(self, source=None):
+        """
+        Auto-refresh: re-read datasets and re-plot without re-building the tree.
+        The tree remains fully interactive (click, select, expand).
+        Call refresh (F5) for a full tree rebuild when/if the file structure changes.
+        """
+        if self.data is None or self._lastAction is None:
+            return
+        if source is None:
+            source = self.data
+
+        # To avoid weakref.proxy destructor - not to touch the tree.
+        # Copies references to avoid deletion during refresh.
+        if self._staleHandles is None:
+            self._staleHandles = source._sourceObjectList[:]
+
+        live = self.getSelectedEntries()
+        if live:
+            self._autoRefreshEntries = live
+        elif not self._autoRefreshEntries:
+            return  # nothing was ever selected / plotted
+
+        source.refresh()
+
+        # Swap _file in loaded tree proxy nodes to the fresh handles
+        # so that tree items read from the reopened HDF5.
+        model = self.hdf5Widget.model()
+        if model is not None and model is not self._defaultModel:
+            handleMap = {}
+            for obj in source._sourceObjectList:
+                name = getattr(obj, '_sourceName', None)
+                if name is not None:
+                    handleMap[name] = obj
+            if handleMap:
+                model.swapFileHandles(handleMap)
+
+        # Replot with the cached entry list (always REPLACE).
+        _, selType = self._lastAction.split()
+        ddict = {'action': 'REPLACE %s' % selType}
+        self.buttonsSlot(ddict, emit=True,
+                         entryList=self._autoRefreshEntries)
 
     def setFile(self, filename):
         self._data = self.hdf5Widget.model().openFile(filename, weakreference=True)
@@ -1012,12 +1075,13 @@ class QNexusWidget(qt.QWidget):
                 elif actions["auto"] == "REPLACE":
                     self._replaceAction()
 
-    def buttonsSlot(self, ddict, emit=True):
+    def buttonsSlot(self, ddict, emit=True, entryList=None):
         _logger.debug("buttonsSlot(self, %s,emit=%s)", ddict, emit)
         if self.data is None:
             return
         action, selectionType = ddict['action'].split()
-        entryList = self.getSelectedEntries()
+        if entryList is None:
+            entryList = self.getSelectedEntries()
         if not len(entryList):
             return
         text = qt.safe_str(self.tableTab.tabText(self.tableTab.currentIndex()))
