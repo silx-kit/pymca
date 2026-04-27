@@ -929,6 +929,7 @@ class QNexusWidget(qt.QWidget):
                             shape = None
                         self._shapeList.append(shape)
                         self.cntTable.build(self._cntList, self._aliasList, shapelist=self._shapeList)
+            # qt.QPalette.Link is used to indicate action possibility (it is not actual link). BrightText and HighlightedText are not good.
             elif (ddict['color'] == qt.QApplication.instance().palette().color(qt.QPalette.Link) or ddict['color'] == qt.Qt.blue) and ("silx" in sys.modules):
                 # there is an action to be applied
                 self.showInfoWidget(ddict["file"], ddict["name"], dset=False)
