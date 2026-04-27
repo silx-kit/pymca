@@ -118,7 +118,7 @@ try:
     from .. import PlotBackend
 except ImportError:
     from PyMca5.PyMca import PlotBackend
-from matplotlib import cm
+from matplotlib import colormaps as mpl_colormaps
 from matplotlib.font_manager import FontProperties
 try:
     from matplotlib.widgets import Cursor
@@ -2694,7 +2694,7 @@ class MatplotlibBackend(PlotBackend.PlotBackend):
 
     def getSupportedColormaps(self):
         default = ['gray', 'reversed gray', 'temperature', 'red', 'green', 'blue']
-        maps = [m for m in cm.datad]
+        maps = [m for m in mpl_colormaps]
         maps.sort()
         return default + maps
 
@@ -2764,7 +2764,7 @@ class MatplotlibBackend(PlotBackend.PlotBackend):
             return self.__blueCmap
         else:
             # built in
-            return cm.get_cmap(name)
+            return mpl_colormaps[name]
 
     def dataToPixel(self, x=None, y=None, axis="left"):
         """

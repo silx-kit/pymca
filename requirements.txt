@@ -10,7 +10,7 @@ numpy >= 1.8
 fisx >= 1.1.6
 PyOpenGL                  # For PyMca5.Object3D module 
 h5py                      # For HDF5 file format support
-matplotlib > 1.0          # For visualization
+matplotlib >= 3.5         # For visualization
 qtconsole                 # For interactive console plugin
 
 # PyQt5 or PySide2 or PySide6  # For PyMca5.PyMcaGui

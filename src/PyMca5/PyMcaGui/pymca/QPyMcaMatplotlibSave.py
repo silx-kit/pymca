@@ -42,7 +42,7 @@ from PyMca5.PyMcaGui.plotting.PyMca_Icons import IconDict
 from PyMca5.PyMcaGui.plotting import PyMcaPrintPreview
 from PyMca5 import PyMcaDirs
 
-from matplotlib import cm
+from matplotlib import colormaps as mpl_colormaps
 from matplotlib.font_manager import FontProperties
 from PyMca5.PyMcaGraph.backends.MatplotlibBackend import FigureCanvas
 from matplotlib.figure import Figure
@@ -278,7 +278,7 @@ class SimpleComboBox(qt.QComboBox):
     def setOptions(self,options=['1','2','3']):
         self.clear()
         for item in options:
-    	    self.addItem(item)
+            self.addItem(item)
 
     def setCurrentText(self, text):
         for i in range(self.count()):
@@ -335,12 +335,12 @@ class RightWidget(qt.QWidget):
                 options = ['Temperature','Grey', 'Yerg',\
                            'Red', 'Green', 'Blue',\
                            'Rainbow', 'Jet','Hot', 'Cool', 'Copper']
-                for candidate in ['spectral', 'Paired', 'Paired_r',
+                for candidate in ['Spectral', 'Paired', 'Paired_r',
                                   'PuBu', 'PuBu_r', 'RdBu', 'RdBu_r',
                                   'gist_earth', 'gist_earth_r',
                                   'Blues', 'Blues_r',
                                   'YlGnBu', 'YlGnBu_r']:
-                    if hasattr(cm, candidate):
+                    if candidate in mpl_colormaps:
                         options.append(candidate)
             elif self.labelList[i] in ['Lin/Log Colormap']:
                 options = ['Linear','Logarithmic']
@@ -653,27 +653,27 @@ class QPyMcaMatplotlibImage(FigureCanvas):
         origin = self.config['origin']
 
         cmap = self.__temperatureCmap
-        ccmap = cm.gray
+        ccmap = mpl_colormaps['gray']
         if self.config['colormap'] in ['grey','gray']:
-            cmap  = cm.gray
+            cmap  = mpl_colormaps['gray']
             ccmap = self.__temperatureCmap
         elif self.config['colormap'] in ['yarg','yerg']:
             cmap  = self.__reversedGrayCmap
             ccmap = self.__temperatureCmap
         elif self.config['colormap']=='jet':
-            cmap = cm.jet
+            cmap = mpl_colormaps['jet']
         elif self.config['colormap']=='hot':
-            cmap = cm.hot
+            cmap = mpl_colormaps['hot']
         elif self.config['colormap']=='cool':
-            cmap = cm.cool
+            cmap = mpl_colormaps['cool']
         elif self.config['colormap']=='copper':
-            cmap = cm.copper
+            cmap = mpl_colormaps['copper']
         elif self.config['colormap']=='spectral':
-            cmap = cm.spectral
+            cmap = mpl_colormaps['Spectral']
         elif self.config['colormap']=='hsv':
-            cmap = cm.hsv
+            cmap = mpl_colormaps['hsv']
         elif self.config['colormap']=='rainbow':
-            cmap = cm.gist_rainbow
+            cmap = mpl_colormaps['gist_rainbow']
         elif self.config['colormap']=='red':
             cmap = self.__redCmap
         elif self.config['colormap']=='green':
@@ -683,29 +683,29 @@ class QPyMcaMatplotlibImage(FigureCanvas):
         elif self.config['colormap']=='temperature':
             cmap = self.__temperatureCmap
         elif self.config['colormap'] == 'paired':
-            cmap = cm.Paired
+            cmap = mpl_colormaps['Paired']
         elif self.config['colormap'] == 'paired_r':
-            cmap = cm.Paired_r
+            cmap = mpl_colormaps['Paired_r']
         elif self.config['colormap'] == 'pubu':
-            cmap = cm.PuBu
+            cmap = mpl_colormaps['PuBu']
         elif self.config['colormap'] == 'pubu_r':
-            cmap = cm.PuBu_r
+            cmap = mpl_colormaps['PuBu_r']
         elif self.config['colormap'] == 'rdbu':
-            cmap = cm.RdBu
+            cmap = mpl_colormaps['RdBu']
         elif self.config['colormap'] == 'rdbu_r':
-            cmap = cm.RdBu_r
+            cmap = mpl_colormaps['RdBu_r']
         elif self.config['colormap'] == 'gist_earth':
-            cmap = cm.gist_earth
+            cmap = mpl_colormaps['gist_earth']
         elif self.config['colormap'] == 'gist_earth_r':
-            cmap = cm.gist_earth_r
+            cmap = mpl_colormaps['gist_earth_r']
         elif self.config['colormap'] == 'blues':
-            cmap = cm.Blues
+            cmap = mpl_colormaps['Blues']
         elif self.config['colormap'] == 'blues_r':
-            cmap = cm.Blues_r
+            cmap = mpl_colormaps['Blues_r']
         elif self.config['colormap'] == 'ylgnbu':
-            cmap = cm.YlGnBu
+            cmap = mpl_colormaps['YlGnBu']
         elif self.config['colormap'] == 'ylgnbu_r':
-            cmap = cm.YlGnBu_r
+            cmap = mpl_colormaps['YlGnBu_r']
         else:
             _logger.warning("Unsupported colormap %s", self.config['colormap'])
 

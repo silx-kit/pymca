@@ -909,7 +909,7 @@ classifiers = ["Development Status :: 5 - Production/Stable",
 
 # install requires for non-GUI usage
 install_requires = ["numpy",
-                    "matplotlib>1.0",
+                    "matplotlib>=3.5",
                     "fisx>=1.1.6",
                     "h5py"]
 if use_gui():
