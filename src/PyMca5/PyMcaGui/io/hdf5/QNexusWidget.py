@@ -514,7 +514,7 @@ class QNexusWidget(qt.QWidget):
             if hasattr(self.hdf5Widget, "expandToDepth"):
                 self.hdf5Widget.expandToDepth(0)
 
-    def _autoRefreshDatasets(self, source=None):
+    def _autoRefreshDatasets(self, source=None, moveToLastSlice=True):
         """
         Auto-refresh: re-read datasets and re-plot without re-building the tree.
         The tree remains fully interactive (click, select, expand).
@@ -552,7 +552,10 @@ class QNexusWidget(qt.QWidget):
 
         # Replot with the cached entry list (always REPLACE).
         _, selType = self._lastAction.split()
-        ddict = {'action': 'REPLACE %s' % selType}
+        ddict = {
+            'action': 'REPLACE %s' % selType,
+            'refreshtolastslice': moveToLastSlice,
+        }
         self.buttonsSlot(ddict, emit=True,
                          entryList=self._autoRefreshEntries)
 
@@ -1176,6 +1179,7 @@ class QNexusWidget(qt.QWidget):
                 sel['selection']['LabelNames'] = cntSelection['aliaslist']
                 #sel['selection']['aliaslist'] = cntSelection['aliaslist']
                 sel['selection']['selectiontype'] = selectionType
+                sel['refreshtolastslice'] = ddict.get('refreshtolastslice', False)
                 if selectionType.upper() == "SCAN":
                     if cntSelection['cntlist'][yCnt].startswith("/"):
                         actualDatasetPath = posixpath.join(entry,
@@ -1355,6 +1359,7 @@ class QNexusWidget(qt.QWidget):
                 sel['selection']['cntlist'] = cntSelection['cntlist']
                 sel['selection']['LabelNames'] = cntSelection['aliaslist']
                 sel['selection']['selectiontype'] = selectionType
+                sel['refreshtolastslice'] = ddict.get('refreshtolastslice', False)
                 sel['selection']['plot_yaxis'] = 'right'
                 if selectionType.upper() == "SCAN":
                     sel['scanselection'] = True

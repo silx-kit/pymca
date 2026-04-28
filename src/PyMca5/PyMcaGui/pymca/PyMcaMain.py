@@ -446,7 +446,7 @@ class PyMcaMain(PyMcaMdi.PyMcaMdi):
                 self.imageWindowDict[legend]._addSelection(ddict)
             return
         elif self._is2DSelection(ddict):
-            _logger.info("2D selection")
+            _logger.debug("2D selection")
             if self.imageWindowCorrelator is None:
                 self.imageWindowCorrelator = RGBCorrelator.RGBCorrelator()
                 #toadd = True

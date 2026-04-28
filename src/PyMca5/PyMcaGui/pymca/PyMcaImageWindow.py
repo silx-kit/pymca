@@ -251,8 +251,18 @@ class PyMcaImageWindow(RGBImageCalculator.RGBImageCalculator):
                 self.slider.setValue(0)
                 self.slider.show()
                 self.setName(legend+" 0")
+                if sel.get("refreshtolastslice", False) and self._nImages > 1:
+                    self._showLastImageSlice()
             if self._plotEnabled:
                 self.plotImage(True)
+
+    def _showLastImageSlice(self):
+        if USE_BROWSER:
+            # Reuse the existing method from FrameBrowser.
+            self.slider._browser._lastClicked()
+        else:
+            # simply set slider to last number possible.
+            self.slider.setValue(self._nImages - 1)
 
     def _getAxesLabelsFromSelection(self, selection):
         labels = []
