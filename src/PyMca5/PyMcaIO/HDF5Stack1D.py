@@ -340,12 +340,10 @@ class HDF5Stack1D(DataObject.DataObject):
                 and (len(yDataset.shape) > 1):
                 #keep the original arrangement but in memory
                 self.data = numpy.zeros(yDataset.shape, self.__dtype)
-                print("setting", self.data)
                 considerAsImages = True
             else:
                 # force arrangement as spectra
                 self.data = numpy.zeros((dim0, dim1, mcaDim), self.__dtype)
-                print("else setting", self.data)
             DONE = False
         except (MemoryError, ValueError):
             # some versions report ValueError instead of MemoryError
@@ -354,7 +352,6 @@ class HDF5Stack1D(DataObject.DataObject):
                 if mSelection is not None:
                     _logger.warning("Ignoring monitor")
                 self.data = yDataset
-                print("except setting", self.data)
                 if mSelection is not None:
                     mdtype = tmpHdf[mpath].dtype
                     if mdtype not in [numpy.float64, numpy.float32]:
@@ -692,7 +689,6 @@ class HDF5Stack1D(DataObject.DataObject):
                                         n += 1
                                 else:
                                     n += tmp.shape[1] * tmp.shape[2]
-                        print('size of datsaet before cleaning', yDataset.shape)
                         yDataset = None
                         if dim0 == 1:
                             self.onProgress(j)
@@ -818,16 +814,16 @@ class HDF5Stack1D(DataObject.DataObject):
                 # assuming providing spatial coordinates 
                 origin_x, origin_y = self.shortenScales(xDatasetList[0], xDatasetList[1])
                 if origin_x.size > 1:
-                    delta = numpy.mean(origin_x[1:] - origin_x[:-1], dtype=numpy.float32)
+                    delta_x = numpy.mean(origin_x[1:] - origin_x[:-1], dtype=numpy.float32)
                 else:
-                    delta = 1.0
-                xScale = [origin_x, delta]
+                    delta_x = 1.0
+                xScale = [origin_x[0], delta_x]
 
                 if origin_y.size > 1:
-                    delta = numpy.mean(origin_y[1:] - origin_y[:-1], dtype=numpy.float32)
+                    delta_y = numpy.mean(origin_y[1:] - origin_y[:-1], dtype=numpy.float32)
                 else:
-                    delta = 1.0
-                yScale = [origin_y, delta]
+                    delta_y = 1.0
+                yScale = [origin_y[0], delta_y]
 
                 scaleList = [xScale, yScale]
                 
@@ -935,7 +931,7 @@ class HDF5Stack1D(DataObject.DataObject):
             if len(dims) == len(self.data.shape):
                 scaleList = []
                 for i in range(len(self.data.shape)):
-                    if i == mcaIndex:
+                    if i == self.info['McaIndex']:
                         continue
                     dataset = dims[i]
                     origin = dataset[0]
