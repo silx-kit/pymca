@@ -340,10 +340,12 @@ class HDF5Stack1D(DataObject.DataObject):
                 and (len(yDataset.shape) > 1):
                 #keep the original arrangement but in memory
                 self.data = numpy.zeros(yDataset.shape, self.__dtype)
+                print("setting", self.data)
                 considerAsImages = True
             else:
                 # force arrangement as spectra
                 self.data = numpy.zeros((dim0, dim1, mcaDim), self.__dtype)
+                print("else setting", self.data)
             DONE = False
         except (MemoryError, ValueError):
             # some versions report ValueError instead of MemoryError
@@ -352,6 +354,7 @@ class HDF5Stack1D(DataObject.DataObject):
                 if mSelection is not None:
                     _logger.warning("Ignoring monitor")
                 self.data = yDataset
+                print("except setting", self.data)
                 if mSelection is not None:
                     mdtype = tmpHdf[mpath].dtype
                     if mdtype not in [numpy.float64, numpy.float32]:
@@ -428,7 +431,7 @@ class HDF5Stack1D(DataObject.DataObject):
                         else:
                             del mcaObjectPaths["elapsed_time"]
                     else:
-                        # we have to have as many elpased times as MCA spectra
+                        # we have to have as many elapsed times as MCA spectra
                         _time = numpy.zeros((self.data.shape[0] * self.data.shape[1]),
                                                 numpy.float32)
                 if "calibration" in mcaObjectPaths:
@@ -689,6 +692,7 @@ class HDF5Stack1D(DataObject.DataObject):
                                         n += 1
                                 else:
                                     n += tmp.shape[1] * tmp.shape[2]
+                        print('size of datsaet before cleaning', yDataset.shape)
                         yDataset = None
                         if dim0 == 1:
                             self.onProgress(j)
@@ -800,6 +804,8 @@ class HDF5Stack1D(DataObject.DataObject):
         # try to get scales
         scaleList = []
         if xSelectionList is not None:
+            # McaIndex not always eqaul mcaIndex
+            stackMcaIndex = self.info.get("McaIndex", mcaIndex)
             if len(xDatasetList) == 1:
                 xDataset = xDatasetList[0]
                 if xDataset.size == shape[self.info['McaIndex']]:
@@ -807,6 +813,34 @@ class HDF5Stack1D(DataObject.DataObject):
                     self.x = [xDataset.reshape(-1)]
                 else:
                     _logger.warning("Ignoring channels selection %s" % xSelectionList)
+            elif len(xDatasetList) in (2, 3) and len(xDatasetList[0]) == len(xDatasetList[1]) == self.data.shape[1]:
+                # assuming flatten positioners
+                # assuming providing spatial coordinates 
+                origin_x, origin_y = self.shortenScales(xDatasetList[0], xDatasetList[1])
+                if origin_x.size > 1:
+                    delta = numpy.mean(origin_x[1:] - origin_x[:-1], dtype=numpy.float32)
+                else:
+                    delta = 1.0
+                xScale = [origin_x, delta]
+
+                if origin_y.size > 1:
+                    delta = numpy.mean(origin_y[1:] - origin_y[:-1], dtype=numpy.float32)
+                else:
+                    delta = 1.0
+                yScale = [origin_y, delta]
+
+                scaleList = [xScale, yScale]
+                
+                if len(xDatasetList) == 2:
+                    pass 
+                elif len(xDatasetList) == 3 and xDatasetList[2].size == shape[self.info['McaIndex']]:
+                    # assuming providing spatial coordinates and channels
+                    self.x = [xDatasetList[2].reshape(-1)]  
+                else:
+                    _logger.warning("Coordinates were applied, but channels could not be")
+                    _logger.warning("Ignoring channels selection %s" % xSelectionList)
+
+
             elif len(xDatasetList) == len(self.data.shape):
                 # assuming providing spatial coordinates and channels
                 goodScale = 0
@@ -823,7 +857,7 @@ class HDF5Stack1D(DataObject.DataObject):
                     for i in range(len(self.data.shape)):
                         dataset = xDatasetList[i].reshape(-1)
                         datasize = self.data.shape[i]
-                        if i == mcaIndex:
+                        if i == stackMcaIndex:
                             self.x = [dataset]
                         else:
                             origin = dataset[0]
@@ -842,8 +876,8 @@ class HDF5Stack1D(DataObject.DataObject):
                     _logger.warning("Ignoring dimension selections %s" % xSelectionList)
             elif len(xDatasetList) == (len(self.data.shape) - 1):
                 scaleList = []
-                for i in range(len(self.data.shape)):
-                    if i == mcaIndex:
+                for i in range(len(xDatasetList)):
+                    if i == stackMcaIndex:
                         continue
                     dataset = xDatasetList[i].reshape(-1)
                     datasize = self.data.shape[i]
@@ -920,6 +954,37 @@ class HDF5Stack1D(DataObject.DataObject):
             if len(scaleList) == 2:
                 self.info["xScale"] = xScale
                 self.info["yScale"] = yScale
+
+    def shortenScales(self, A, B):
+        A = numpy.asarray(A)
+        B = numpy.asarray(B)
+
+        # Detect which array is the fast-changing one
+        if abs(A[1] - A[0]) > abs(B[1] - B[0]):
+            fast = A
+            slow = B
+            fast_is_A = True
+        else:
+            fast = B
+            slow = A
+            fast_is_A = False
+
+        # Find repetition length n in the slow array
+        first = slow[0]
+        n = numpy.where(slow != first)[0][0]
+
+        # Shorten coordinates
+        short_fast = fast[:n]
+        short_slow = slow[::n]
+
+        if fast_is_A:
+            X_sh = short_fast
+            Y_sh = short_slow
+        else:
+            X_sh = short_slow
+            Y_sh = short_fast
+
+        return X_sh, Y_sh
 
     def getDimensions(self, nFiles, nScans, shape, index=None):
         #somebody may want to overwrite this
