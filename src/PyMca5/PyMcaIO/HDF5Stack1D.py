@@ -330,7 +330,7 @@ class HDF5Stack1D(DataObject.DataObject):
                 if self.__dtype0 is None:
                     if (bytefactor == 8) and (neededMegaBytes < (2*physicalMemory)):
                         # try reading as float32
-                        print("Forcing the use of float32 data")
+                        _logger.info("Forcing the use of float32 data")
                         self.__dtype = numpy.float32
                     else:
                         raise MemoryError("Force dynamic loading")
@@ -808,10 +808,13 @@ class HDF5Stack1D(DataObject.DataObject):
                     # assuming providing channels
                     self.x = [xDataset.reshape(-1)]
                 else:
+                    # user could not set coordiantes for one axis only
                     _logger.warning("Ignoring channels selection %s" % xSelectionList)
+
+            # for dataset of N*M self.data.shape = (1, N, M)
+            # if positions are flatten then both X, Y, coordinates should be of size N.
             elif len(xDatasetList) in (2, 3) and len(xDatasetList[0]) == len(xDatasetList[1]) == self.data.shape[1]:
-                # assuming flatten positioners
-                # assuming providing spatial coordinates 
+                # assuming providing spatial coordinates (and maybe channels)
                 origin_x, origin_y = self.shortenScales(xDatasetList[0], xDatasetList[1])
                 if origin_x.size > 1:
                     delta_x = numpy.mean(origin_x[1:] - origin_x[:-1], dtype=numpy.float32)
@@ -826,7 +829,8 @@ class HDF5Stack1D(DataObject.DataObject):
                 yScale = [origin_y[0], delta_y]
 
                 scaleList = [xScale, yScale]
-                
+                self.info["SuggestedImageShape"] = (len(origin_y), len(origin_x))
+
                 if len(xDatasetList) == 2:
                     pass 
                 elif len(xDatasetList) == 3 and xDatasetList[2].size == shape[self.info['McaIndex']]:
@@ -955,8 +959,11 @@ class HDF5Stack1D(DataObject.DataObject):
         A = numpy.asarray(A)
         B = numpy.asarray(B)
 
-        # Detect which array is the fast-changing one
-        if abs(A[1] - A[0]) > abs(B[1] - B[0]):
+        if len(A) == 0 or len(B) == 0:
+            raise ValueError("Arrays must not be empty")
+
+        # Detect which array is related to the slow motor
+        if len(B) == 1 or (len(A)>1 and abs(A[1] - A[0]) > abs(B[1] - B[0])):
             fast = A
             slow = B
             fast_is_A = True
@@ -966,10 +973,13 @@ class HDF5Stack1D(DataObject.DataObject):
             fast_is_A = False
 
         # Find repetition length n in the slow array
-        first = slow[0]
-        n = numpy.where(slow != first)[0][0]
+        diff_idx = numpy.where(slow != slow[0])[0]
+        # Protection if one motor did not move at all
+        if len(diff_idx) == 0:
+            n = len(slow)
+        else:
+            n = diff_idx[0]
 
-        # Shorten coordinates
         short_fast = fast[:n]
         short_slow = slow[::n]
 

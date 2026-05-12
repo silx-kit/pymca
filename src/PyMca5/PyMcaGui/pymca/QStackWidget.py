@@ -246,7 +246,8 @@ class QStackWidget(StackBase.StackBase,
         if (1 in self._stack.data.shape) and\
            isinstance(self._stack.data, numpy.ndarray):
             oldshape = self._stack.data.shape
-            dialog = ImageShapeDialog(self, shape=oldshape[0:2])
+            suggested = self._stack.info.get("SuggestedImageShape", oldshape[0:2])
+            dialog = ImageShapeDialog(self, shape=suggested)
             dialog.setModal(True)
             ret = dialog.exec()
             if ret:
