@@ -800,7 +800,7 @@ class HDF5Stack1D(DataObject.DataObject):
         # try to get scales
         scaleList = []
         if xSelectionList is not None:
-            # McaIndex not always eqaul mcaIndex
+            # McaIndex not always equal to mcaIndex
             stackMcaIndex = self.info.get("McaIndex", mcaIndex)
             if len(xDatasetList) == 1:
                 xDataset = xDatasetList[0]
@@ -815,21 +815,20 @@ class HDF5Stack1D(DataObject.DataObject):
             # if positions are flatten then both X, Y, coordinates should be of size N.
             elif len(xDatasetList) in (2, 3) and len(xDatasetList[0]) == len(xDatasetList[1]) == self.data.shape[1]:
                 # assuming providing spatial coordinates (and maybe channels)
-                origin_x, origin_y = self.shortenScales(xDatasetList[0], xDatasetList[1])
-                if origin_x.size > 1:
-                    delta_x = numpy.mean(origin_x[1:] - origin_x[:-1], dtype=numpy.float32)
+                grid_x, grid_y = self.shortenScales(xDatasetList[0], xDatasetList[1])
+                if grid_x.size > 1:
+                    delta_x = numpy.mean(grid_x[1:] - grid_x[:-1], dtype=numpy.float32)
                 else:
                     delta_x = 1.0
-                xScale = [origin_x[0], delta_x]
+                xScale = [grid_x[0], delta_x]
 
-                if origin_y.size > 1:
-                    delta_y = numpy.mean(origin_y[1:] - origin_y[:-1], dtype=numpy.float32)
+                if grid_y.size > 1:
+                    delta_y = numpy.mean(grid_y[1:] - grid_y[:-1], dtype=numpy.float32)
                 else:
                     delta_y = 1.0
-                yScale = [origin_y[0], delta_y]
-
+                yScale = [grid_y[0], delta_y]
                 scaleList = [xScale, yScale]
-                self.info["SuggestedImageShape"] = (len(origin_y), len(origin_x))
+                self.info["SuggestedImageShape"] = (len(grid_y), len(grid_x))
 
                 if len(xDatasetList) == 2:
                     pass 
