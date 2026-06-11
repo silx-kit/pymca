@@ -87,51 +87,47 @@ def sort_h5items(h5_items, sorting_list=None):
     if posixpath.dirname(posixNames[0]) != "/":
         return h5_items
 
-    sorting_key = None
-    first_h5_item = h5_items[0][1]
-    if hasattr(first_h5_item, "items"):
-        names = [k for k, _ in first_h5_item.items()]
-        for name in sorting_list:
-            if name in names:
-                sorting_key = name
-                break
 
-    if sorting_key:
-        try:
-            if sorting_key == 'title':
-                list_to_sort = [(_extract_h5title(item[1]), item) for item in h5_items]
-            else:
-                list_to_sort = [(item[1][sorting_key][()], item) for item in h5_items]
-        except Exception as ex:
-            list_to_sort = []
-            _logger.warning("WARNING: Sorting by '%s' failed (%s)", sorting_key, ex)
+    keys = list(sorting_list)
+    if "title" in keys:
+        # move "title" to be priority
+        # add standard keys to sort if "title" is the only key
+        keys.remove("title")
+        if not keys:
+            keys = ["start_time", "end_time"]
+        keys.insert(0, "title")
 
-        if _list_of_tuples_has_unique_first_item(list_to_sort):
-            sorted_list = sorted(list_to_sort, key=itemgetter(0))
-            return [item for _, item in sorted_list]
+    ordered = sorted(h5_items, key=sort_name)
+    # sorts by reversed order of keys
+    # e.g. sort by key_n then by key_n-1
+    # if key_n-1 do not exist in somne item 
+    # they still remain sorted by key_n and so on
+    for key in reversed(keys):
+        ordered = _stable_sort_by_key(ordered, key)
+    return ordered
 
-        sorting_list = [key for key in sorting_list if key != sorting_key]
-        if sorting_list:
-            return sort_h5items(h5_items, sorting_list=sorting_list)
 
+def _stable_sort_by_key(h5_items, key):
+    if key == "title":
+        # title is never missing
+        to_be_sorted = [(False, _natural_sort_key(_extract_h5title(item[1])), item)
+                     for item in h5_items]
+    else:
+        to_be_sorted = []
+        for item in h5_items:
+            try:
+                missing, value = False, item[1][key][()]
+            except Exception:
+                missing, value = True, None
+            to_be_sorted.append((missing, value, item))
     try:
-        list_to_sort = [(_extract_sort_key_from_name(item[1].name), item) for item in h5_items]
-    except Exception as ex:
-        list_to_sort = []
-        _logger.warning("WARNING: Sorting by name failed ('%s')", sorting_key, ex)
-
-    if _list_of_tuples_has_unique_first_item(list_to_sort):
-        sorted_list = sorted(list_to_sort, key=itemgetter(0))
-        return [item for _, item in sorted_list]
-
-    return h5_items
-
-
-def _list_of_tuples_has_unique_first_item(list_of_tuples):
-    if not list_of_tuples:
-        return False
-    first_items = [tpl[0] for tpl in list_of_tuples]
-    return len(set(first_items)) == len(first_items)
+        sorted_by_key = sorted(to_be_sorted, key=itemgetter(0, 1))
+    except (TypeError, ValueError) as ex:
+        # should not appear
+        # but potentialy can if same key in different groups have different types
+        _logger.debug("Skipping sort by '%s' (%s)", key, ex)
+        return h5_items
+    return [item for _, _, item in sorted_by_key]
 
 
 def _extract_h5title(h5item):
@@ -149,10 +145,19 @@ def _extract_h5title(h5item):
     return title
 
 
-def _extract_sort_key_from_name(name):
-    key = tuple(int(w) for w in _NON_NUMERIC_CHARS.split(name) if w)
-    if key:
-        return key
-    return name
+def sort_name(item):
+    return _natural_sort_key(item[1].name)
 
-_NON_NUMERIC_CHARS = re.compile('[^0-9]')
+
+def _natural_sort_key(name):
+    if not isinstance(name, str):
+        name = str(name)
+    key = []
+    for chunk in _NUMERIC_CHARS.split(name):
+        if chunk.isdigit():
+            key.append(int(chunk))
+        else:
+            key.append(chunk)
+    return tuple(key)
+
+_NUMERIC_CHARS = re.compile('([0-9]+)')
