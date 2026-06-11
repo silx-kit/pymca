@@ -97,7 +97,7 @@ def sort_h5items(h5_items, sorting_list=None):
             keys = ["start_time", "end_time"]
         keys.insert(0, "title")
 
-    ordered = sorted(h5_items, key=sort_name)
+    ordered = sorted(h5_items, key=_sort_name)
     # sorts by reversed order of keys
     # e.g. sort by key_n then by key_n-1
     # if key_n-1 do not exist in somne item 
@@ -145,7 +145,7 @@ def _extract_h5title(h5item):
     return title
 
 
-def sort_name(item):
+def _sort_name(item):
     return _natural_sort_key(item[1].name)
 
 
