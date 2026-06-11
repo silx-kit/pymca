@@ -318,6 +318,12 @@ class ScanWindow(PlotWindow.PlotWindow):
                             mdata = numpy.take(dataObject.m[0], index)
                             #A priori the graph only knows about plots
                             ydata = ydata/mdata
+                        elif len(dataObject.m[0]) == 1:
+                            mvalue = dataObject.m[0][0]
+                            if mvalue == 0:
+                                raise ValueError("Do not divide by zero")
+                            mdata = numpy.array([mvalue])
+                            ydata = ydata / mdata
                         else:
                             raise ValueError("Monitor data length different than counter data")
                     else:
@@ -374,7 +380,7 @@ class ScanWindow(PlotWindow.PlotWindow):
                                              numpy.array([dataObject.m[imon]])
                     if dataObject.m is None:
                         mdata = numpy.ones(len(ydata)).astype(numpy.float64)
-                    elif len(dataObject.m[0]) > 0:
+                    elif all(len(m) > 0 for m in dataObject.m):
                         # Combine all monitors: divide by each one
                         combinedMdata = numpy.ones(len(ydata)).astype(numpy.float64)
                         for imon in range(len(dataObject.m)):
@@ -1486,12 +1492,8 @@ class ScanWindow(PlotWindow.PlotWindow):
         if printer is None:
             # printer was not selected
             # return a renderer without adjusting the viewbox
-            if sys.version < '3.0':
-                import cStringIO as StringIO
-                imgData = StringIO.StringIO()
-            else:
-                from io import StringIO
-                imgData = StringIO()
+            from io import StringIO
+            imgData = StringIO()
             self.saveGraph(imgData, fileFormat='svg')
             imgData.flush()
             imgData.seek(0)
