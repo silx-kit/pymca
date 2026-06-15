@@ -29,6 +29,7 @@ __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 import sys
 from PyMca5.PyMcaGui import PyMcaQt as qt
+# if not, we miss profile fitting ...
 from PyMca5.PyMcaGui.pymca.ScanWindow import ScanWindow as Window
 DEBUG = 0
 
