@@ -98,35 +98,49 @@ def sort_h5items(h5_items, sorting_list=None):
         keys.insert(0, "title")
 
     ordered = sorted(h5_items, key=_sort_name)
-    # sorts by reversed order of keys
-    # e.g. sort by key_n then by key_n-1
-    # if key_n-1 do not exist in somne item 
-    # they still remain sorted by key_n and so on
+    # Sort by all keys from lowest priority (last) to highest priority (first)
     for key in reversed(keys):
         ordered = _stable_sort_by_key(ordered, key)
     return ordered
 
 
 def _stable_sort_by_key(h5_items, key):
+    """
+    Sorts items by a given HDF5 key, placing items with missing values last
+    while preserving the existing order of ties.
+    """
     if key == "title":
         # title is never missing
         to_be_sorted = [(False, _natural_sort_key(_extract_h5title(item[1])), item)
-                     for item in h5_items]
+                        for item in h5_items]
     else:
         to_be_sorted = []
         for item in h5_items:
             try:
-                missing, value = False, item[1][key][()]
+                # natural order like titles ("1.2" is before "1.12")
+                # remove `_natural_sort_key` to have regular order
+                # it do not affect the time stamps
+                missing, value = False, _natural_sort_key(item[1][key][()])
             except Exception:
                 missing, value = True, None
             to_be_sorted.append((missing, value, item))
+
+    n_total = len(to_be_sorted)
+    n_missing = sum(missing for missing, _, _ in to_be_sorted)
+    if n_missing == n_total:
+        _logger.debug("Sort by '%s' skipped: not present in any entry", key)
+        return h5_items
     try:
         sorted_by_key = sorted(to_be_sorted, key=itemgetter(0, 1))
     except (TypeError, ValueError) as ex:
         # should not appear
         # but potentialy can if same key in different groups have different types
-        _logger.debug("Skipping sort by '%s' (%s)", key, ex)
+        _logger.debug("Sort by '%s' skipped: values not comparable (%s)", key, ex)
         return h5_items
+    if n_missing:
+        _logger.debug("Sorted by '%s' (%d of %d entries miss it)", key, n_missing, n_total)
+    else:
+        _logger.debug("Sorted by '%s'", key)
     return [item for _, _, item in sorted_by_key]
 
 
@@ -140,8 +154,6 @@ def _extract_h5title(h5item):
         if hasattr(title, "__len__"):
             if len(title) == 1:
                 title = title[0]
-    if hasattr(title, "decode"):
-        title = title.decode("utf-8")
     return title
 
 
@@ -150,6 +162,8 @@ def _sort_name(item):
 
 
 def _natural_sort_key(name):
+    if isinstance(name, bytes):
+        name = name.decode("utf-8", "ignore")
     if not isinstance(name, str):
         name = str(name)
     key = []
