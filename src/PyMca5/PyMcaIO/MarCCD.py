@@ -153,10 +153,7 @@ class MccdHeader(object):
         self.__unpack_dataset()
 
     def __unpack_format(self):
-        if 0:
-            self.__format = struct.unpack("256I", self.raw[0:256*4])
-        else:
-            self.__format = numpy.array(numpy.frombuffer(self.raw[0:256*4], numpy.uint32))
+        self.__format = numpy.array(numpy.frombuffer(self.raw[0:256*4], numpy.uint32))
 
     def __unpack_gonio(self):
         idx= 640

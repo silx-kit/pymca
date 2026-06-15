@@ -172,73 +172,68 @@ class H5NodeProxy(object):
         if self.__sorting or not self._children:
             # obtaining the lock here is necessary, otherwise application can
             # freeze if navigating tree while data is processing
-            if 1: #with self.file.plock:
-                if 1:
-                    try:
-                        # this returns (str, str) in case of dealing with a broken link
-                        items = list(self.raw_items())
-                    except Exception:
-                        items = []
-                        _logger.warning("Cannot obtain items list. Ignoring")
-                else:
-                    # this returns (str, None) in case of dealing with a broken link
-                    items = list(self.getNode(self.name).items())
-                try:
-                    # better handling of external links
-                    finalList = sort_h5items(items, sorting_list=self.__sorting_list)
-                    for i in range(len(finalList)):
-                        # avoid an error at silx level with the linechecking "if finalList[i][1] and "
-                        dataset = finalList[i][1]
-                        if dataset is None:
-                            finalListIsTrue = False
-                        else:
-                            finalListIsTrue = True
-                        if hasattr(dataset, "shape"):
-                            if not len(dataset.shape):
-                                # it can still be a string or a scalar
-                                if hasattr(dataset, "dtype"):
-                                    dataset_dtype_print = safe_str(dataset.dtype)
-                                    if dataset_dtype_print.startswith("|S"):
-                                        pass
-                                    elif dataset_dtype_print.startswith("float"):
-                                        pass
-                                    elif dataset_dtype_print.startswith("int"):
-                                        pass
-                                    elif dataset_dtype_print.startswith("uint"):
-                                        pass
-                                    elif dataset_dtype_print.startswith("bool"):
-                                        pass
-                                    elif dataset_dtype_print.startswith("complex"):
-                                        pass
-                                    elif safe_str(dataset.dtype) == "object":
-                                        # issue 1059
-                                        pass
-                                    else:
-                                        finalListIsTrue = False
+            try:
+                # this returns (str, str) in case of dealing with a broken link
+                items = list(self.raw_items())
+            except Exception:
+                items = []
+                _logger.warning("Cannot obtain items list. Ignoring")
+            try:
+                # better handling of external links
+                finalList = sort_h5items(items, sorting_list=self.__sorting_list)
+                for i in range(len(finalList)):
+                    # avoid an error at silx level with the linechecking "if finalList[i][1] and "
+                    dataset = finalList[i][1]
+                    if dataset is None:
+                        finalListIsTrue = False
+                    else:
+                        finalListIsTrue = True
+                    if hasattr(dataset, "shape"):
+                        if not len(dataset.shape):
+                            # it can still be a string or a scalar
+                            if hasattr(dataset, "dtype"):
+                                dataset_dtype_print = safe_str(dataset.dtype)
+                                if dataset_dtype_print.startswith("|S"):
+                                    pass
+                                elif dataset_dtype_print.startswith("float"):
+                                    pass
+                                elif dataset_dtype_print.startswith("int"):
+                                    pass
+                                elif dataset_dtype_print.startswith("uint"):
+                                    pass
+                                elif dataset_dtype_print.startswith("bool"):
+                                    pass
+                                elif dataset_dtype_print.startswith("complex"):
+                                    pass
+                                elif safe_str(dataset.dtype) == "object":
+                                    # issue 1059
+                                    pass
                                 else:
                                     finalListIsTrue = False
-                        if finalListIsTrue and not isinstance(finalList[i][1], str):
-                            finalList[i][1]._posixPath = posixpath.join(self.name,
-                                                               finalList[i][0])
-                        else:
-                            finalList[i] = [x for x in finalList[i]]
-                            finalList[i][1] = BrokenLink()
-                            finalList[i][1]._posixPath = posixpath.join(self.name,
-                                                               finalList[i][0])
-                    self._children = [H5NodeProxy(self.file, i[1], self)
-                                      for i in finalList]
-                except Exception:
-                    # one cannot afford any error, so I revert to the old
-                    # method where values where used instead of items
-                    if 1 or _logger.getEffectiveLevel() == logging.DEBUG:
-                        raise
-                    tmpList = list(self.raw_values())
-                    finalList = tmpList
-                    for i in range(len(finalList)):
-                        finalList[i]._posixPath = posixpath.join(self.name,
-                                                               items[i][0])
-                    self._children = [H5NodeProxy(self.file, i, self)
-                                      for i in finalList]
+                            else:
+                                finalListIsTrue = False
+                    if finalListIsTrue and not isinstance(finalList[i][1], str):
+                        finalList[i][1]._posixPath = posixpath.join(self.name,
+                                                           finalList[i][0])
+                    else:
+                        finalList[i] = [x for x in finalList[i]]
+                        finalList[i][1] = BrokenLink()
+                        finalList[i][1]._posixPath = posixpath.join(self.name,
+                                                           finalList[i][0])
+                self._children = [H5NodeProxy(self.file, i[1], self)
+                                  for i in finalList]
+            except Exception:
+                # one cannot afford any error, so I revert to the old
+                # method where values where used instead of items
+                if 1 or _logger.getEffectiveLevel() == logging.DEBUG:
+                    raise
+                tmpList = list(self.raw_values())
+                finalList = tmpList
+                for i in range(len(finalList)):
+                    finalList[i]._posixPath = posixpath.join(self.name,
+                                                           items[i][0])
+                self._children = [H5NodeProxy(self.file, i, self)
+                                  for i in finalList]
         self.__sorting = False
         return self._children
 
@@ -256,11 +251,10 @@ class H5NodeProxy(object):
 
     @property
     def row(self):
-        if 1:#with self.file.plock:
-            try:
-                return self.parent.children.index(self)
-            except ValueError:
-                return
+        try:
+            return self.parent.children.index(self)
+        except ValueError:
+            return
     @property
     def type(self):
         return self._type
@@ -301,59 +295,53 @@ class H5NodeProxy(object):
         self.__sorting = False
         self.__sorting_list = None
         self.__sorting_order = qt.Qt.AscendingOrder
-        if 1:#with ffile.plock:
-            self._file = ffile
-            self._parent = parent
-            if hasattr(node, '_posixPath'):
-                self._name = node._posixPath
-            else:
-                self._name = node.name
-            """
-            if hasattr(node, "_sourceName"):
-                self._name = node._sourceName
-            else:
-                self._name = posixpath.basename(node.name)
-            """
-            self._type = type(node).__name__
+        self._file = ffile
+        self._parent = parent
+        if hasattr(node, '_posixPath'):
+            self._name = node._posixPath
+        else:
+            self._name = node.name
+        """
+        if hasattr(node, "_sourceName"):
+            self._name = node._sourceName
+        else:
+            self._name = posixpath.basename(node.name)
+        """
+        self._type = type(node).__name__
 
-            self._hasChildren = is_group(node)
-            #self._attrs = []
-            # get the default text foreground color
-            foregroundTextColor = qt.QApplication.instance().palette().color(qt.QPalette.Text)
-            # qt.QPalette.Link is used to indicate action possibility (it is not actual link). BrightText and HighlightedText are not good.
-            NXdataColor = qt.QApplication.instance().palette().color(qt.QPalette.Link)
-            self._color = qt.QColor(foregroundTextColor)
-            if hasattr(node, 'attrs'):
-                attrs = list(node.attrs)
-                for cname in ['class', 'NX_class']:
-                    if cname in attrs:
-                        nodeattr = node.attrs[cname]
-                        if sys.version <'3.0':
-                            _type = "%s" % nodeattr
-                        elif hasattr(nodeattr, "decode"):
-                            _type = nodeattr.decode('utf=8')
-                        else:
-                            _type = "%s" % nodeattr
-                        self._type = _type
-                        if _type in ["NXdata"]:
-                            self._color = NXdataColor
-                        elif ("default" in attrs):
-                            self._color = NXdataColor
-                        #self._attrs = attrs
-                        break
-                        #self._type = _type[2].upper() + _type[3:]
-            self._children = []
-            if hasattr(node, 'dtype'):
-                self._dtype = safe_str(node.dtype)
-            else:
-                self._dtype = ""
-            if hasattr(node, 'shape'):
-                if 0:
-                    self._shape = safe_str(node.shape)
-                else:
-                    self._shape = node.shape
-            else:
-                self._shape = ""
+        self._hasChildren = is_group(node)
+        #self._attrs = []
+        # get the default text foreground color
+        foregroundTextColor = qt.QApplication.instance().palette().color(qt.QPalette.Text)
+        # qt.QPalette.Link is used to indicate action possibility (it is not actual link). BrightText and HighlightedText are not good.
+        NXdataColor = qt.QApplication.instance().palette().color(qt.QPalette.Link)
+        self._color = qt.QColor(foregroundTextColor)
+        if hasattr(node, 'attrs'):
+            attrs = list(node.attrs)
+            for cname in ['class', 'NX_class']:
+                if cname in attrs:
+                    nodeattr = node.attrs[cname]
+                    if hasattr(nodeattr, "decode"):
+                        _type = nodeattr.decode('utf=8')
+                    else:
+                        _type = "%s" % nodeattr
+                    self._type = _type
+                    if _type in ["NXdata"]:
+                        self._color = NXdataColor
+                    elif ("default" in attrs):
+                        self._color = NXdataColor
+                    #self._attrs = attrs
+                    break
+                    #self._type = _type[2].upper() + _type[3:]
+        self._children = []
+        if hasattr(node, 'dtype'):
+            self._dtype = safe_str(node.dtype)
+        else:
+            self._dtype = ""
+        if hasattr(node, 'shape'):
+            self._shape = node.shape
+        else:
+            self._shape = ""
 
     def clearChildren(self):
         self._children = []
@@ -742,8 +730,6 @@ class HDF5Widget(FileView):
         self.setAutoScroll(False)
 
         self._adjust()
-        if 0:
-            self.activated[qt.QModelIndex].connect(self.itemActivated)
 
         self.clicked[qt.QModelIndex].connect(self.itemClicked)
         self.doubleClicked[qt.QModelIndex].connect(self.itemDoubleClicked)

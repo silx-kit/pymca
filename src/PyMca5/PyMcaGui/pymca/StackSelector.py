@@ -104,14 +104,11 @@ class StackSelector(object):
             if not filefilter.upper().startswith('HDF5'):
                 f = open(filelist[0], 'rb')
                 #read 10 characters
-                if sys.version < '3.0':
-                    line = f.read(10)
-                else:
-                    try:
-                        line = str(f.read(10).decode())
-                    except UnicodeDecodeError:
-                        #give a dummy value
-                        line = "          "
+                try:
+                    line = str(f.read(10).decode())
+                except UnicodeDecodeError:
+                    #give a dummy value
+                    line = "          "
                 f.close()
             omnicfile = False
             if filefilter.upper().startswith('HDF5'):
@@ -448,10 +445,6 @@ class StackSelector(object):
                     fileList.append(pattern % (j, k))
         elif len(begin) == 3:
             raise ValueError("Cannot handle three indices yet.")
-            for j in range(begin[0], end[0] + increment[0], increment[0]):
-                for k in range(begin[1], end[1] + increment[1], increment[1]):
-                    for l in range(begin[2], end[2] + increment[2], increment[2]):
-                        fileList.append(pattern % (j, k, l))
         else:
             raise ValueError("Cannot handle more than three indices.")
         return fileList

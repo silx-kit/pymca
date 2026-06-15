@@ -1316,17 +1316,12 @@ class Plot(PlotBase.PlotBase):
 
     def setMarkerFollowMouse(self, marker, boolean):
         raise NotImplemented("Not necessary?")
-        if marker not in self._markerList:
-            raise ValueError("Marker %s not defined" % marker)
-        pass
 
     def enableMarkerMode(self, flag):
         raise NotImplemented("Not necessary?")
-        pass
 
     def isMarkerModeEnabled(self, flag):
         raise NotImplemented("Not necessary?")
-        pass
 
     def showGrid(self, flag=True):
         if DEBUG:

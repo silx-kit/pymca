@@ -39,10 +39,7 @@ import re
 import time
 from PyMca5.PyMcaIO import JcampReader
 from PyMca5.PyMcaIO import SpecFileAbstractClass
-if sys.version < "3":
-    from StringIO import StringIO
-else:
-    from io import StringIO
+from io import StringIO
 _logger = logging.getLogger(__name__)
 
 

@@ -47,13 +47,8 @@ class OpusDPTMap(DataObject.DataObject):
         nMca = nMca - 1
         xValues = data[0, :] * 1
         xValues = numpy.ravel(xValues)
-        if 0:
-            self.data = numpy.zeros((nMca, nchannels), numpy.float32)
-            self.data[:, :] = data[1:, :]
-            self.data = self.data.reshape(1, nMca, nchannels)
-        else:
-            self.data = data[1:, :]
-            self.data = self.data.reshape(1, nMca, nchannels)
+        self.data = data[1:, :]
+        self.data = self.data.reshape(1, nMca, nchannels)
         data = None
 
         #perform a least squares adjustment to a line

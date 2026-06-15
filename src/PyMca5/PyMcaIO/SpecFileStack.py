@@ -222,9 +222,7 @@ class SpecFileStack(DataObject.DataObject):
                     filecounter += 1
             except MemoryError:
                 qtflag = False
-                if ('PyQt4.QtCore' in sys.modules) or \
-                   ('PySide' in sys.modules) or \
-                   ('PyMca5.PyMcaGui.PyMcaQt' in sys.modules):
+                if 'PyMca5.PyMcaGui.PyMcaQt' in sys.modules:
                     qtflag = True
                 hdf5done = False
                 if HDF5 and qtflag:

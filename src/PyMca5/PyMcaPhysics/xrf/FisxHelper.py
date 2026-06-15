@@ -81,10 +81,9 @@ def getElementsInstance(dataDir=None, bindingEnergies=None, xcomFile=None):
     # the files should be taken from PyMca to make sure the same data are used
     for key in ["K", "L", "M"]:
         fname = instance.getShellConstantsFile(key)
-        if sys.version > '3.0':
-            # we have to make sure we have got a string
-            if hasattr(fname, "decode"):
-                fname = fname.decode("latin-1")
+        # we have to make sure we have got a string
+        if hasattr(fname, "decode"):
+            fname = fname.decode("latin-1")
         _logger.debug("Before %s", fname)
         if pymcaDataDir is not None:
             fname = getDataFile(key + "ShellConstants.dat")
@@ -97,10 +96,9 @@ def getElementsInstance(dataDir=None, bindingEnergies=None, xcomFile=None):
 
     for key in ["K", "L", "M"]:
         fname = instance.getShellRadiativeTransitionsFile(key)
-        if sys.version > '3.0':
-            # we have to make sure we have got a string ...
-            if hasattr(fname, "decode"):
-                fname = fname.decode("latin-1")
+        # we have to make sure we have got a string ...
+        if hasattr(fname, "decode"):
+            fname = fname.decode("latin-1")
         _logger.debug("Before %s", fname)
         if pymcaDataDir is not None:
             fname = getDataFile(key + "ShellRates.dat")
@@ -529,17 +527,6 @@ def getMultilayerFluorescence(multilayerSample,
                             useGeometricEfficiency=useGeometricEfficiency,
                             useMassFractions=elementsFromMatrix,
                             secondaryCalculationLimit=secondaryCalculationLimit)
-        if 0:
-            # This whould be equivalent
-            overwritingBeam = Beam()
-            overwritingBeam.setBeam(energyList, weights=weightList)
-            expectedFluorescence = xrf.getMultilayerFluorescence(actualElementsList,
-                                    xcom,
-                                    secondary=secondary,
-                                    useGeometricEfficiency=useGeometricEfficiency,
-                                    useMassFractions=elementsFromMatrix,
-                                    secondaryCalculationLimit=secondaryCalculationLimit,
-                                    overwritingBeam=overwritingBeam)
         print("C++ elapsed TWO = %s", time.time() - t0)
     # check if the two dictionnaries are idential
     # print("Are they equal ? = ", _compareResults(fluorescence, expectedFluorescence))

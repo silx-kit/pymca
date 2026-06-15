@@ -87,7 +87,6 @@ class AlignmentScanPlugin(Plugin1DBase.Plugin1DBase):
         nCurves = len(curves)
         if nCurves < 2:
             raise ValueError("At least 2 curves needed")
-            return
 
         # get legend of active curve
         try:

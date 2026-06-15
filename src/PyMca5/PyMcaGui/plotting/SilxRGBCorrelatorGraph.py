@@ -39,11 +39,7 @@ from .PyMca_Icons import IconDict
 from PyMca5.PyMcaCore import PyMcaDirs
 from silx.gui import icons as silx_icons
 
-if sys.version_info[0] == 3:
-    from io import BytesIO
-else:
-    import cStringIO as _StringIO
-    BytesIO = _StringIO.StringIO
+from io import BytesIO
 
 QTVERSION = qt.qVersion()
 _logger = logging.getLogger(__name__)

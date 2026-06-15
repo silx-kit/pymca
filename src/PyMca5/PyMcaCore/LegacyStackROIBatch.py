@@ -272,10 +272,6 @@ def getFileListFromPattern(pattern, begin, end, increment=None):
                 fileList.append(pattern % (j, k))
     elif len(begin) == 3:
         raise ValueError("Cannot handle three indices yet.")
-        for j in range(begin[0], end[0] + increment[0], increment[0]):
-            for k in range(begin[1], end[1] + increment[1], increment[1]):
-                for l in range(begin[2], end[2] + increment[2], increment[2]):
-                    fileList.append(pattern % (j, k, l))
     else:
         raise ValueError("Cannot handle more than three indices.")
     return fileList

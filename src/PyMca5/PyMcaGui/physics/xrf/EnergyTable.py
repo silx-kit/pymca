@@ -132,10 +132,7 @@ class EnergyTab(qt.QWidget):
                     msg.exec()
 
     def loadEnergyTableParameters(self, filename):
-        if sys.platform == "win32" and (sys.version < "3.0.0"):
-            ffile = open(filename, "rb")
-        else:
-            ffile = open(filename, "r")
+        ffile = open(filename, "r")
         lines = ffile.read()
         ffile.close()
         lines = lines.replace("\r","\n")
@@ -231,10 +228,7 @@ class EnergyTab(qt.QWidget):
         if os.path.exists(outputFile):
             os.remove(outputFile)
         try:
-            if sys.version < "3.0.0":
-                ffile=open(outputFile,'wb')
-            else:
-                ffile=open(outputFile,'w')
+            ffile=open(outputFile,'w')
         except IOError:
             msg = qt.QMessageBox(self)
             msg.setIcon(qt.QMessageBox.Critical)

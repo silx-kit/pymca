@@ -387,112 +387,111 @@ class McaAdvancedFitBatch(object):
     def __processOneFile(self):
         ffile=self.filehandle
         fileinfo = ffile.GetSourceInfo()
-        if 1:
-            i = 0
-            for scankey in  fileinfo['KeyList']:
-                if self.pleaseBreak: break
-                self.onImage(scankey, fileinfo['KeyList'])
-                scan,order = scankey.split(".")
-                info,data  = ffile.LoadSource(scankey)
-                if info['SourceType'] == "EdfFile":
-                    nrows = int(info['Dim_1'])
-                    ncols = int(info['Dim_2'])
-                    numberofmca  = ncols
-                    self.__ncols = len(range(0+self.mcaOffset,numberofmca,self.mcaStep))
-                    self.__col  = -1
-                    for mca_index in range(self.__ncols):
-                        mca = 0 + self.mcaOffset + mca_index * self.mcaStep
-                        if self.pleaseBreak: break
-                        self.__col += 1
-                        mcadata = data[mca,:]
-                        if 'MCA start ch' in info:
-                            xmin = float(info['MCA start ch'])
+        i = 0
+        for scankey in  fileinfo['KeyList']:
+            if self.pleaseBreak: break
+            self.onImage(scankey, fileinfo['KeyList'])
+            scan,order = scankey.split(".")
+            info,data  = ffile.LoadSource(scankey)
+            if info['SourceType'] == "EdfFile":
+                nrows = int(info['Dim_1'])
+                ncols = int(info['Dim_2'])
+                numberofmca  = ncols
+                self.__ncols = len(range(0+self.mcaOffset,numberofmca,self.mcaStep))
+                self.__col  = -1
+                for mca_index in range(self.__ncols):
+                    mca = 0 + self.mcaOffset + mca_index * self.mcaStep
+                    if self.pleaseBreak: break
+                    self.__col += 1
+                    mcadata = data[mca,:]
+                    if 'MCA start ch' in info:
+                        xmin = float(info['MCA start ch'])
+                    else:
+                        xmin = 0.0
+                    key = "%s.%s.%04d" % (scan,order,mca)
+                    y0  = numpy.array(mcadata)
+                    x = numpy.arange(len(y0))*1.0 + xmin
+                    filename = os.path.basename(info['SourceName'])
+                    infoDict = {}
+                    infoDict['SourceName'] = info['SourceName']
+                    infoDict['Key']        = key
+                    infoDict['McaLiveTime'] = info.get('McaLiveTime', None)
+                    self.__processOneMca(x,y0,filename,key,info=infoDict)
+                    self.onMca(mca, numberofmca, filename=filename,
+                                                key=key,
+                                                info=infoDict)
+            else:
+                if info['NbMca'] > 0:
+                    self.fitImages = True
+                    numberofmca = info['NbMca'] * 1
+                    self.__ncols = len(range(0+self.mcaOffset,
+                                         numberofmca,self.mcaStep))
+                    numberOfMcaToTakeFromScan = self.__ncols * 1
+                    self.__col   = -1
+                    scan_key = "%s.%s" % (scan,order)
+                    scan_obj= ffile.Source.select(scan_key)
+                    #I assume always same number of detectors and
+                    #same offset for each detector otherways I would
+                    #slow down everything to deal with not very common
+                    #situations
+                    #if self.__row == 0:
+                    if self.counter == 0:
+                        self.__chann0List = numpy.zeros(info['NbMcaDet'])
+                        chan0list = scan_obj.header('@CHANN')
+                        if len(chan0list):
+                            for i in range(info['NbMcaDet']):
+                                self.__chann0List[i] = int(chan0list[i].split()[2])
+                        # The calculation of self.__ncols is wrong if there are
+                        # several scans containing MCAs. One needs to multiply by
+                        # the number of scans assuming all of them contain MCAs.
+                        # We have to assume the same structure in all files.
+                        # Only in the case of "pseudo" two scan files where only
+                        # the second scan contains MCAs we do not multiply.
+                        if (len(fileinfo['KeyList']) == 2) and (fileinfo['KeyList'].index(scan_key) == 1):
+                            # leave self.__ncols untouched
+                            self.__ncolsModified = False
                         else:
-                            xmin = 0.0
-                        key = "%s.%s.%04d" % (scan,order,mca)
+                            # multiply by the number of scans
+                            self.__ncols *= len(fileinfo['KeyList'])
+                            self.__ncolsModified = True
+
+                    #import time
+                    for mca_index in range(numberOfMcaToTakeFromScan):
+                        i = 0 + self.mcaOffset + mca_index * self.mcaStep
+                        #e0 = time.time()
+                        if self.pleaseBreak: break
+                        if self.__ncolsModified:
+                            self.__col = i + \
+                                  fileinfo['KeyList'].index(scan_key) * \
+                                  numberofmca
+                        else:
+                            self.__col += 1
+                        point = int(i/info['NbMcaDet']) + 1
+                        mca   = (i % info['NbMcaDet'])  + 1
+                        key = "%s.%s.%05d.%d" % (scan,order,point,mca)
+                        autotime = self.mcafit.config["concentrations"].get(\
+                                    "useautotime", False)
+                        if autotime:
+                            #slow info reading methods needed to access time
+                            mcainfo,mcadata = ffile.LoadSource(key)
+                            info['McaLiveTime'] = mcainfo.get('McaLiveTime',
+                                                          None)
+                        else:
+                            mcadata = scan_obj.mca(i+1)
                         y0  = numpy.array(mcadata)
-                        x = numpy.arange(len(y0))*1.0 + xmin
+                        x = numpy.arange(len(y0))*1.0 + \
+                            self.__chann0List[mca-1]
                         filename = os.path.basename(info['SourceName'])
+
                         infoDict = {}
                         infoDict['SourceName'] = info['SourceName']
                         infoDict['Key']        = key
-                        infoDict['McaLiveTime'] = info.get('McaLiveTime', None)
+                        infoDict['McaLiveTime'] = info.get('McaLiveTime',
+                                                           None)
                         self.__processOneMca(x,y0,filename,key,info=infoDict)
-                        self.onMca(mca, numberofmca, filename=filename,
-                                                    key=key,
-                                                    info=infoDict)
-                else:
-                    if info['NbMca'] > 0:
-                        self.fitImages = True
-                        numberofmca = info['NbMca'] * 1
-                        self.__ncols = len(range(0+self.mcaOffset,
-                                             numberofmca,self.mcaStep))
-                        numberOfMcaToTakeFromScan = self.__ncols * 1
-                        self.__col   = -1
-                        scan_key = "%s.%s" % (scan,order)
-                        scan_obj= ffile.Source.select(scan_key)
-                        #I assume always same number of detectors and
-                        #same offset for each detector otherways I would
-                        #slow down everything to deal with not very common
-                        #situations
-                        #if self.__row == 0:
-                        if self.counter == 0:
-                            self.__chann0List = numpy.zeros(info['NbMcaDet'])
-                            chan0list = scan_obj.header('@CHANN')
-                            if len(chan0list):
-                                for i in range(info['NbMcaDet']):
-                                    self.__chann0List[i] = int(chan0list[i].split()[2])
-                            # The calculation of self.__ncols is wrong if there are
-                            # several scans containing MCAs. One needs to multiply by
-                            # the number of scans assuming all of them contain MCAs.
-                            # We have to assume the same structure in all files.
-                            # Only in the case of "pseudo" two scan files where only
-                            # the second scan contains MCAs we do not multiply.
-                            if (len(fileinfo['KeyList']) == 2) and (fileinfo['KeyList'].index(scan_key) == 1):
-                                # leave self.__ncols untouched
-                                self.__ncolsModified = False
-                            else:
-                                # multiply by the number of scans
-                                self.__ncols *= len(fileinfo['KeyList'])
-                                self.__ncolsModified = True
-
-                        #import time
-                        for mca_index in range(numberOfMcaToTakeFromScan):
-                            i = 0 + self.mcaOffset + mca_index * self.mcaStep
-                            #e0 = time.time()
-                            if self.pleaseBreak: break
-                            if self.__ncolsModified:
-                                self.__col = i + \
-                                      fileinfo['KeyList'].index(scan_key) * \
-                                      numberofmca
-                            else:
-                                self.__col += 1
-                            point = int(i/info['NbMcaDet']) + 1
-                            mca   = (i % info['NbMcaDet'])  + 1
-                            key = "%s.%s.%05d.%d" % (scan,order,point,mca)
-                            autotime = self.mcafit.config["concentrations"].get(\
-                                        "useautotime", False)
-                            if autotime:
-                                #slow info reading methods needed to access time
-                                mcainfo,mcadata = ffile.LoadSource(key)
-                                info['McaLiveTime'] = mcainfo.get('McaLiveTime',
-                                                              None)
-                            else:
-                                mcadata = scan_obj.mca(i+1)
-                            y0  = numpy.array(mcadata)
-                            x = numpy.arange(len(y0))*1.0 + \
-                                self.__chann0List[mca-1]
-                            filename = os.path.basename(info['SourceName'])
-
-                            infoDict = {}
-                            infoDict['SourceName'] = info['SourceName']
-                            infoDict['Key']        = key
-                            infoDict['McaLiveTime'] = info.get('McaLiveTime',
-                                                               None)
-                            self.__processOneMca(x,y0,filename,key,info=infoDict)
-                            self.onMca(i, info['NbMca'],filename=filename,
-                                                    key=key,
-                                                    info=infoDict)
+                        self.onMca(i, info['NbMca'],filename=filename,
+                                                key=key,
+                                                info=infoDict)
                             #print "remaining = ",(time.time()-e0) * (info['NbMca'] - i)
 
     def __getFitFile(self, filename, key):
@@ -709,13 +708,8 @@ class McaAdvancedFitBatch(object):
                     self.listfile.write(',\n'+outfile)
             else:
                 if not useExistingResult:
-                    if 0:
-                        #this is very slow and not needed just for imaging
-                        if result is None:
-                            result = self.mcafit.digestresult()
-                    else:
-                        if result is None:
-                            result = self.mcafit.imagingDigestResult()
+                    if result is None:
+                        result = self.mcafit.imagingDigestResult()
 
             #IMAGES
             if self.fitImages:

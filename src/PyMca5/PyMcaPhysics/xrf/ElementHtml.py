@@ -59,74 +59,65 @@ class ElementHtml(object):
         #text+="<center>
         text+="<br><b><font color=#009999 size=4>Element Info</font></b>"
         #text+="</center>"
-        if 0:
-            text+="<br><b><font size=3>Name = %s</font></b>"        % Elements.Element[ele]['name']
-            text+="<br><b><font size=3>Symbol = %s</font></b>"      % symbol
-            text+="<br><b><font size=3>At. Number = %d</font></b>"  % Elements.Element[ele]['Z']
-            text+="<br><b><font size=3>At. Weight = %.5f</font></b>"  % Elements.Element[ele]['mass']
-            text+="<br><b><font size=3>Density = %.5f</font></b>"     % Elements.Element[ele]['density']
-        else:
-
-
-            text+="<nobr><table>"
-            #symbol
-            text+="<tr>"
-            text+='<td align="left">'
-            text+="<b><font size=3>Symbol</font></b>"
-            text+="</td>"
-            text+='<td align="center">'
-            text+="<b><font size=3>=</font></b>"
-            text+="</td>"
-            text+='<td align="left">'
-            text+="<b><font size=3>%s </font></b>"  % symbol
-            text+="</td>"
-            #Z
-            text+="<tr>"
-            text+='<td align="left">'
-            text+="<b><font size=3>At. Number</font></b>"
-            text+="</td>"
-            text+='<td align="center">'
-            text+="<b><font size=3>=</font></b>"
-            text+="</td>"
-            text+='<td align="left">'
-            text+="<b><font size=3>%d </font></b>"  % Elements.Element[ele]['Z']
-            text+="</td>"
-            #name
-            text+="<tr>"
-            text+='<td align="left">'
-            text+="<b><font size=3>Name</font></b>"
-            text+="</td>"
-            text+='<td align="center">'
-            text+="<b><font size=3>=</font></b>"
-            text+="</td>"
-            text+='<td align="left">'
-            name = Elements.Element[ele]['name'][0].upper()+Elements.Element[ele]['name'][1:]
-            text+="<b><font size=3>%s </font></b>"  % name
-            text+="</td>"
-            #mass
-            text+="<tr>"
-            text+='<td align="left">'
-            text+="<b><font size=3>At. Weight</font></b>"
-            text+="</td>"
-            text+='<td align="center">'
-            text+="<b><font size=3>=</font></b>"
-            text+="</td>"
-            text+='<td align="left">'
-            text+="<b><font size=3>%.5f </font></b>"  % Elements.Element[ele]['mass']
-            text+="</td>"
-            #density
-            text+="<tr>"
-            text+='<td align="left">'
-            text+="<b><font size=3>Density</font></b>"
-            text+="</td>"
-            text+='<td align="center">'
-            text+="<b><font size=3>=</font></b>"
-            text+="</td>"
-            text+='<td align="left">'
-            text+="<b><font size=3>%.5f g/cm3</font></b>"  % Elements.Element[ele]['density']
-            text+="</td>"
-            text+="</tr>"
-            text+="</table>"
+        text+="<nobr><table>"
+        #symbol
+        text+="<tr>"
+        text+='<td align="left">'
+        text+="<b><font size=3>Symbol</font></b>"
+        text+="</td>"
+        text+='<td align="center">'
+        text+="<b><font size=3>=</font></b>"
+        text+="</td>"
+        text+='<td align="left">'
+        text+="<b><font size=3>%s </font></b>"  % symbol
+        text+="</td>"
+        #Z
+        text+="<tr>"
+        text+='<td align="left">'
+        text+="<b><font size=3>At. Number</font></b>"
+        text+="</td>"
+        text+='<td align="center">'
+        text+="<b><font size=3>=</font></b>"
+        text+="</td>"
+        text+='<td align="left">'
+        text+="<b><font size=3>%d </font></b>"  % Elements.Element[ele]['Z']
+        text+="</td>"
+        #name
+        text+="<tr>"
+        text+='<td align="left">'
+        text+="<b><font size=3>Name</font></b>"
+        text+="</td>"
+        text+='<td align="center">'
+        text+="<b><font size=3>=</font></b>"
+        text+="</td>"
+        text+='<td align="left">'
+        name = Elements.Element[ele]['name'][0].upper()+Elements.Element[ele]['name'][1:]
+        text+="<b><font size=3>%s </font></b>"  % name
+        text+="</td>"
+        #mass
+        text+="<tr>"
+        text+='<td align="left">'
+        text+="<b><font size=3>At. Weight</font></b>"
+        text+="</td>"
+        text+='<td align="center">'
+        text+="<b><font size=3>=</font></b>"
+        text+="</td>"
+        text+='<td align="left">'
+        text+="<b><font size=3>%.5f </font></b>"  % Elements.Element[ele]['mass']
+        text+="</td>"
+        #density
+        text+="<tr>"
+        text+='<td align="left">'
+        text+="<b><font size=3>Density</font></b>"
+        text+="</td>"
+        text+='<td align="center">'
+        text+="<b><font size=3>=</font></b>"
+        text+="</td>"
+        text+='<td align="left">'
+        text+="<b><font size=3>%.5f g/cm3</font></b>"  % Elements.Element[ele]['density']
+        text+="</td>"
+        text+="</tr>"
+        text+="</table>"
 
 
         # Shell propierties
@@ -224,37 +215,31 @@ class ElementHtml(object):
             #text+="<center>"
             text+="<br><b><font color=#009999 size=4>%s Emission Energies</font></b>" % rays[0:-1]
             #text+="</center>"
-            if 0:
-                for transition in Elements.Element[ele][rays]:
-                    text+="<br><b><font size=3>%s energy = %.5f  rate = %.5f</font></b>"  % (transition,Elements.Element[ele][transition]['energy'],
-                                                                            Elements.Element[ele][transition]['rate'])
-
-            else:
-                text+="<nobr><table><tr>"
-                text+='<td align="left"><b>'
-                text+='Line'
-                text+="</b></td>"
-                text+='<td align="right"><b>'
-                text+='Energy (keV)'
-                text+="</b></td>"
-                text+='<td align="right"><b>'
-                text+='Rate'
-                text+="</b></td>"
-                text+="</tr>"
-                for transition in Elements.Element[ele][rays]:
-                    transitiontext = transition.replace('*','')
-                    text+="<tr>"
-                    text+='<td align="left">'
-                    text+="<b><font size=3>%s </font></b>"  % transitiontext
-                    text+="</td>"
-                    text+='<td align="right">'
-                    text+="<b><font size=3>%.5f</font></b>"  % Elements.Element[ele][transition]['energy']
-                    text+="</td>"
-                    text+='<td align="right">'
-                    text+="<b><font size=3>%.5f </font></b>"  % Elements.Element[ele][transition]['rate']
-                    text+="</td>"
-                text+="</tr>"
-                text+="</table>"
+            text+="<nobr><table><tr>"
+            text+='<td align="left"><b>'
+            text+='Line'
+            text+="</b></td>"
+            text+='<td align="right"><b>'
+            text+='Energy (keV)'
+            text+="</b></td>"
+            text+='<td align="right"><b>'
+            text+='Rate'
+            text+="</b></td>"
+            text+="</tr>"
+            for transition in Elements.Element[ele][rays]:
+                transitiontext = transition.replace('*','')
+                text+="<tr>"
+                text+='<td align="left">'
+                text+="<b><font size=3>%s </font></b>"  % transitiontext
+                text+="</td>"
+                text+='<td align="right">'
+                text+="<b><font size=3>%.5f</font></b>"  % Elements.Element[ele][transition]['energy']
+                text+="</td>"
+                text+='<td align="right">'
+                text+="<b><font size=3>%.5f </font></b>"  % Elements.Element[ele][transition]['rate']
+                text+="</td>"
+            text+="</tr>"
+            text+="</table>"
 
         #text+="<center>"
         text+="<br><b><font color=#009999 size=4>%s Binding Energies</font></b>" % "Electron"

@@ -476,40 +476,25 @@ class SpecfitFunctions(object):
                         largest_index = j
                 j = j + 1
             xw = numpy.resize(xx,(npoints,1))
-            if (0):
-                sy = numpy.sqrt(abs(yy))
-                yw = numpy.resize(yy-zz,(npoints,1))
-                sy = numpy.resize(sy,(npoints,1))
-                datawork = numpy.concatenate((xw,yw,sy),1)
-            else:
-                yw = numpy.resize(yy-zz,(npoints,1))
-                datawork = numpy.concatenate((xw,yw),1)
+            yw = numpy.resize(yy-zz,(npoints,1))
+            datawork = numpy.concatenate((xw,yw),1)
             cons = numpy.zeros((3,len(param)),numpy.float64)
             cons [0] [0:len(param):3] = CPOSITIVE
             #force peaks to stay around their position
-            if (1):
-                cons [0] [1:len(param):3] = CQUOTED
-                #This does not work!!!!
-                #FWHM should be given in terms of X not of points!
-                #cons [1] [1:len(param):3] = param[1:len(param):3]-0.5*search_fwhm
-                #cons [2] [1:len(param):3] = param[1:len(param):3]+0.5*search_fwhm
-                if len(xw) > search_fwhm:
-                    fwhmx = numpy.fabs(xw[int(search_fwhm)]-xw[0])
-                    cons [1] [1:len(param):3] = param[1:len(param):3]-0.5*fwhmx
-                    cons [2] [1:len(param):3] = param[1:len(param):3]+0.5*fwhmx
-                else:
-                    cons [1] [1:len(param):3] = numpy.ones(numpy.shape(param[1:len(param):3]),numpy.float64)*min(xw)
-                    cons [2] [1:len(param):3] = numpy.ones(numpy.shape(param[1:len(param):3]),numpy.float64)*max(xw)
-
-            if 0:
-                cons [0] [2:len(param):3] = CFACTOR
-                cons [1] [2:len(param):3] = 2
-                cons [2] [2:len(param):3] = 1.0
-                cons [0] [2] = CPOSITIVE
-                cons [1] [2] = 0
-                cons [2] [2] = 0
+            cons [0] [1:len(param):3] = CQUOTED
+            #This does not work!!!!
+            #FWHM should be given in terms of X not of points!
+            #cons [1] [1:len(param):3] = param[1:len(param):3]-0.5*search_fwhm
+            #cons [2] [1:len(param):3] = param[1:len(param):3]+0.5*search_fwhm
+            if len(xw) > search_fwhm:
+                fwhmx = numpy.fabs(xw[int(search_fwhm)]-xw[0])
+                cons [1] [1:len(param):3] = param[1:len(param):3]-0.5*fwhmx
+                cons [2] [1:len(param):3] = param[1:len(param):3]+0.5*fwhmx
             else:
-                cons [0] [2:len(param):3] = CPOSITIVE
+                cons [1] [1:len(param):3] = numpy.ones(numpy.shape(param[1:len(param):3]),numpy.float64)*min(xw)
+                cons [2] [1:len(param):3] = numpy.ones(numpy.shape(param[1:len(param):3]),numpy.float64)*max(xw)
+
+            cons [0] [2:len(param):3] = CPOSITIVE
             fittedpar, chisq, sigmapar = LeastSquaresFit(SpecfitFuns.gauss,param,
                                             datawork,
                                             weightflag=self.config['WeightFlag'],

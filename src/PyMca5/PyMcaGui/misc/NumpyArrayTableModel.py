@@ -29,11 +29,8 @@ __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 import numpy
 from PyMca5.PyMcaGui import PyMcaQt as qt
-if hasattr(qt, 'QStringList'):
-    MyQVariant = qt.QVariant
-else:
-    def MyQVariant(x=None):
-        return x
+def MyQVariant(x=None):
+    return x
 
 class NumpyArrayTableModel(qt.QAbstractTableModel):
     def __init__(self, parent=None, narray=None, fmt="%g", perspective=0):
@@ -288,12 +285,14 @@ class NumpyArrayTableModel(qt.QAbstractTableModel):
             # Only N-dimensional arrays of images supported
             print("NOT SUPPORTED YET")
             return
-            for i in range(len(index)):
-                idx = index[i]
-                if (idx < 0) or (idx >= shape[i]):
-                    raise ValueError("Index %d must be positive integer lower than %d" % \
-                                     (idx, shape[i]))
-            self._index = index
+            THOUGHTS = """
+                for i in range(len(index)):
+                    idx = index[i]
+                    if (idx < 0) or (idx >= shape[i]):
+                        raise ValueError("Index %d must be positive integer lower than %d" % \
+                                        (idx, shape[i]))
+                self._index = index
+                """
 
     def setFormat(self, fmt):
         self._format = fmt

@@ -130,13 +130,10 @@ def isEdf(filename):
     # return sourceType.startswith("EDFFILE")
     with open(filename, "rb") as f:
         twoBytes = f.read(2)
-    if sys.version < "3.0":
-        twoChar = twoBytes
-    else:
-        try:
-            twoChar = twoBytes.decode("utf-8")
-        except Exception:
-            twoChar = "__dummy__"
+    try:
+        twoChar = twoBytes.decode("utf-8")
+    except Exception:
+        twoChar = "__dummy__"
     filename = filename.lower()
     return (
         twoChar in ["II", "MM", "\n{"]
@@ -1282,7 +1279,7 @@ class RGBCorrelatorWidget(qt.QWidget):
             f = open(filename, "r")
         lines = f.read()
         f.close()
-        if (sys.version_info > (3, 0)) and hasattr(lines, "decode"):
+        if hasattr(lines, "decode"):
             lines = lines.decode()
         lines = lines.replace("\r", "\n")
         lines = lines.replace("\n\n", "\n")

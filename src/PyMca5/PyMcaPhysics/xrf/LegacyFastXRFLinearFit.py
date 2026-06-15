@@ -453,17 +453,16 @@ class FastXRFLinearFit(object):
             badParameters = []
             badParameters.append(zeroList[0][1])
             badMask = zeroList[0][2]
-            if 1:
-                # prevent and endless loop if two or more parameters have common pixels where they are
-                # negative and one of them remains negative when forcing other one to zero
-                for i, item in enumerate(zeroList):
-                    if item[1] not in badParameters:
-                        if item[0] > 0:
-                            #check if they have common negative pixels
-                            t = badMask * item[-1]
-                            if t.sum() > 0:
-                                badParameters.append(item[1])
-                                badMask = t
+            # prevent and endless loop if two or more parameters have common pixels where they are
+            # negative and one of them remains negative when forcing other one to zero
+            for i, item in enumerate(zeroList):
+                if item[1] not in badParameters:
+                    if item[0] > 0:
+                        #check if they have common negative pixels
+                        t = badMask * item[-1]
+                        if t.sum() > 0:
+                            badParameters.append(item[1])
+                            badMask = t
             if badMask.sum() < (0.0025 * nPixels):
                 # fit not worth
                 for i in badParameters:
@@ -711,10 +710,6 @@ def getFileListFromPattern(pattern, begin, end, increment=None):
                 fileList.append(pattern % (j, k))
     elif len(begin) == 3:
         raise ValueError("Cannot handle three indices yet.")
-        for j in range(begin[0], end[0] + increment[0], increment[0]):
-            for k in range(begin[1], end[1] + increment[1], increment[1]):
-                for l in range(begin[2], end[2] + increment[2], increment[2]):
-                    fileList.append(pattern % (j, k, l))
     else:
         raise ValueError("Cannot handle more than three indices.")
     return fileList

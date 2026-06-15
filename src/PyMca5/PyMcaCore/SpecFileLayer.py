@@ -332,7 +332,6 @@ class SpecFileLayer(object):
                     raise IOError("SF_SCAN+SF_NMCA read failed")
             elif scan_type==SF_MESH+SF_NMCA:
                     raise IOError("SF_MESH+SF_NMCA not yet implemented")
-                    scan_data= None
 
         elif len(key_split)==3:
                 if scan_type&SF_NMCA or scan_type&SF_MCA:

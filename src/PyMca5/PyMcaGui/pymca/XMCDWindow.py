@@ -570,7 +570,6 @@ class XMCDScanWindow(ScanWindow.ScanWindow):
                 xmax = x.max()
         if xmin >= xmax:
             raise ValueError("No overlap between curves")
-            pass
 
         if equidistant:
             for x in xRangeList:
@@ -1087,20 +1086,12 @@ class XMCDScanWindow(ScanWindow.ScanWindow):
 
         for fh in [filehandle, separateFile]:
             if fh is not None:
-                if sys.version < "3.0":
-                    fh.write(bytes(NEWLINE))
-                    fh.write(bytes(header))
-                    for line in outArray:
-                        tmp = delim.join(["%f" % num for num in line])
-                        fh.write(bytes(tmp + NEWLINE))
-                    fh.write(bytes(NEWLINE))
-                else:
-                    fh.write(bytes(NEWLINE, "ascii"))
-                    fh.write(bytes(header, "ascii"))
-                    for line in outArray:
-                        tmp = delim.join(["%f" % num for num in line])
-                        fh.write(bytes(tmp + NEWLINE, "ascii"))
-                    fh.write(bytes(NEWLINE, "ascii"))
+                fh.write(bytes(NEWLINE, "ascii"))
+                fh.write(bytes(header, "ascii"))
+                for line in outArray:
+                    tmp = delim.join(["%f" % num for num in line])
+                    fh.write(bytes(tmp + NEWLINE, "ascii"))
+                fh.write(bytes(NEWLINE, "ascii"))
                 fh.close()
 
         # Emit saveOptionsSignal to save config file

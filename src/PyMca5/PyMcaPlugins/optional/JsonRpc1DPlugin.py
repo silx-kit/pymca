@@ -57,17 +57,12 @@ that can be interpreted by the plugin.
 # import ######################################################################
 
 import json
+import sys
 import numpy as np
 
-import sys
-if sys.version_info.major == 2:
-    from urllib2 import urlopen
-    from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
-    from SocketServer import StreamRequestHandler, TCPServer
-else:
-    from urllib.request import urlopen
-    from http.server import BaseHTTPRequestHandler, HTTPServer
-    from socketserver import StreamRequestHandler, TCPServer
+from urllib.request import urlopen
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from socketserver import StreamRequestHandler, TCPServer
 
 from PyMca5.PyMcaCore import Plugin1DBase
 from PyMca5.PyMcaGui import PyMcaQt as qt

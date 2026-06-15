@@ -134,7 +134,7 @@ class SNIP2DParametersWidget(qt.QWidget):
                 spinBox.valueChanged[int].connect(self._updateParameters)
                 self.mainLayout.addWidget(spinBox, i, 2)
                 self.widgetDict[key] = spinBox
-            elif 1:
+            else:
                 lineEdit = qt.QLineEdit(self)
                 validator = qt.QIntValidator(lineEdit)
                 lineEdit.setValidator(validator)
@@ -152,21 +152,6 @@ class SNIP2DParametersWidget(qt.QWidget):
                 lineEdit.editingFinished.connect(self._updateParameters)
                 self.mainLayout.addWidget(lineEdit, i, 2)
                 self.widgetDict[key].append(lineEdit)
-            else:
-                spinBox = qt.QSpinBox(self)
-                spinBox.setMinimum(0)
-                spinBox.setMaximum(self.parametersDict['roi_max'][0])
-                spinBox.setValue(self.parametersDict[key][0])
-                spinBox.valueChanged[int].connect(self._updateParameters)
-                self.mainLayout.addWidget(spinBox, i, 1)
-                self.widgetDict[key] = [spinBox]
-                spinBox = qt.QSpinBox(self)
-                spinBox.setMinimum(0)
-                spinBox.setMaximum(self.parametersDict['roi_max'][1])
-                spinBox.setValue(self.parametersDict[key][1])
-                spinBox.valueChanged[int].connect(self._updateParameters)
-                self.mainLayout.addWidget(spinBox, i, 2)
-                self.widgetDict[key].append(spinBox)
             i += 1
         self.widgetDict['smoothing'].setMaximum(100)
 
@@ -387,11 +372,7 @@ class SNIPDialog(qt.QDialog):
 if __name__ == "__main__":
     import numpy
     app = qt.QApplication([])
-    if 0:
-        noise = numpy.random.randn(1000).astype(numpy.float64)
-        y = numpy.arange(1000.)
-        w = SNIPDialog(None, y+numpy.sqrt(y)* noise)
-    elif len(sys.argv) > 1:
+    if len(sys.argv) > 1:
         from PyMca5.PyMcaIO import EdfFile
         edf = EdfFile.EdfFile(sys.argv[1])
         data = edf.GetData(0)

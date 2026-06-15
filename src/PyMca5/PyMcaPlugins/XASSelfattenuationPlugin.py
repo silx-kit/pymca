@@ -113,7 +113,6 @@ class XASSelfattenuationPlugin(Plugin1DBase.Plugin1DBase):
         activeCurve = self.getActiveCurve()
         if activeCurve is None:
             raise ValueError("Please select an active curve")
-            return
 
         energy, spectrum, legend, info = activeCurve[0:4]
         spectrum = self.instance.correctNormalizedSpectrum(energy, spectrum)
@@ -128,7 +127,6 @@ class XASSelfattenuationPlugin(Plugin1DBase.Plugin1DBase):
         nCurves = len(curves)
         if nCurves < 1:
             raise ValueError("At least one curve needed")
-            return
 
         #get active curve
         activeCurve = self.getActiveCurve()

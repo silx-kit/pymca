@@ -222,12 +222,8 @@ class GLProgram(object):
 
 if __name__ == "__main__":
     import sys
-    try:
-        from PyQt4.QtGui import QApplication
-        from PyQt4.QtOpenGL import QGLWidget
-    except ImportError:
-        from PyQt5.QtWidgets import QApplication
-        from PyQt5.QtOpenGL import QGLWidget
+    from PyQt5.QtWidgets import QApplication
+    from PyQt5.QtOpenGL import QGLWidget
 
     # TODO a better test example
     class Test(QGLWidget):

@@ -32,7 +32,6 @@ __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 from . import DataObject
 from PyMca5.PyMcaIO import EdfFile
-import types
 import sys
 import os
 import numpy
@@ -49,10 +48,7 @@ class EdfFileDataSource(object):
             nameList = nameInput
         else:
             nameList = [nameInput]
-        if sys.version < '3.0':
-            stringTypes = [types.StringType, types.UnicodeType]
-        else:
-            stringTypes = [type("a"), type(eval('b"a"'))]
+        stringTypes = [str, bytes]
         for name in nameList:
             if type(name) not in stringTypes:
                 raise TypeError("Constructor needs string as first argument")
@@ -182,20 +178,14 @@ class EdfFileDataSource(object):
         if len(key_split) == 4:
             _logger.debug("mca like selection")
             #print data.info
-            if 1:
-                MCAIMP = 1
-                if key_split[2].upper() == 'R':
-                    pos  = (0, int(key_split[3]))
-                    size = (int(data.info['Dim_1']), 1)
-                elif key_split[2].upper() == 'C':
-                    pos  = (int(key_split[3]), 0)
-                    size = (1,int(data.info['Dim_2']))
-                data.info['selectiontype'] = "1D"
-            else:
-                _logger.debug("mca like selection not yet implemented")
-                pos = None
-                size = None
-                data.info['selectiontype'] = "1D"
+            MCAIMP = 1
+            if key_split[2].upper() == 'R':
+                pos  = (0, int(key_split[3]))
+                size = (int(data.info['Dim_1']), 1)
+            elif key_split[2].upper() == 'C':
+                pos  = (int(key_split[3]), 0)
+                size = (1,int(data.info['Dim_2']))
+            data.info['selectiontype'] = "1D"
 
         elif selection is None:
             pos = None

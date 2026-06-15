@@ -486,8 +486,7 @@ def getInfo(hdf5File, node):
         ddict['attributes']['names'] = data.attrs.listnames()
     else:
         ddict['attributes']['names'] = []
-    if sys.version >= '3.0.0':
-        ddict['attributes']['names'] = list(ddict['attributes']['names'])
+    ddict['attributes']['names'] = list(ddict['attributes']['names'])
     ddict['attributes']['names'].sort()
     for key in ddict['attributes']['names']:
         ddict['attributes'][key] = {}

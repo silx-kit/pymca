@@ -54,9 +54,7 @@ def patch_backend_qt():
     def _create_qApp():
         if QApplication.instance() is None:
             raise ValueError("A QApplication must be created before")
-
-            # this piece of code will never be reached
-            # it is left for documentation
+            THOUGHTS = """
             if 'PyQt5.QtCore' in sys.modules:
                 # Matplotlib is doing this but it only makes sense prior
                 # to create the QApplication
@@ -67,6 +65,7 @@ def patch_backend_qt():
                                 QtCore.Qt.AA_EnableHighDpiScaling)
                 except AttributeError:
                     pass
+            """
         matplotlib.backends.backend_qt5.qApp = weakref.proxy(\
                                         QApplication.instance())
     matplotlib.backends.backend_qt5._create_qApp = _create_qApp

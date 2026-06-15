@@ -30,15 +30,9 @@ __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 import sys
 import logging
 from PyMca5.PyMcaGui import PyMcaQt as qt
-if not hasattr(qt, "QString"):
-    QString = str
-else:
-    QString = qt.QString
+QString = str
 
-if not hasattr(qt, "QStringList"):
-    QStringList = list
-else:
-    QStringList = qt.QStringList
+QStringList = list
 
 QTVERSION = qt.qVersion()
 QTable = qt.QTableWidget

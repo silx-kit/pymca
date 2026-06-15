@@ -422,8 +422,8 @@ if __name__ == "__main__":
         print("N Mca devices = ", len(channels["spectra"]))
         print(top_master)
         print(channels)
-        sys.exit(0)
-        counters = get_data_channels(scan)
+        #counters = get_data_channels(scan)
         #for counter in counters:
         #    print(counter.name, counter.short_name, counter.dtype, counter.type, counter.info, counter.get_as_array(0, -1))
-        print(get_scan_data(scan))
+        #print(get_scan_data(scan))
+        sys.exit(0)

@@ -152,8 +152,7 @@ class PilatusCBF(object):
             @return list of NParrays
             """
             listnpa = []
-            if sys.version < '3.0' or\
-               isinstance(stream, str):
+            if isinstance(stream, str):
                 key16 = "\x80"
                 key32 = "\x00\x80"
                 key64 = "\x00\x00\x00\x80"
@@ -197,8 +196,7 @@ class PilatusCBF(object):
                 stream = stream[idx + shift:]
             return  listnpa
 
-        if sys.version < '3.0' or\
-            isinstance(inStream, str):
+        if isinstance(inStream, str):
             starter = "\x0c\x1a\x04\xd5"
         else:
             # I avoid the b"..." syntax to try to keep python 2.5 compatibility
@@ -250,20 +248,14 @@ class CIF(dict):
     """
     This is the CIF class, it represents the CIF dictionary as a a python dictionary thus inherits from the dict built in class.
     """
-    if sys.version < '3.0':
-        EOL = ["\r", "\n", "\r\n", "\n\r"]
-        BLANK = [" ", "\t"] + EOL
-        START_COMMENT = ["\"", "\'"]
-        BINARY_MARKER = "--CIF-BINARY-FORMAT-SECTION--"
-    else:
-        EOL = ["\r", "\n", "\r\n", "\n\r",
-               "\r".encode('utf-8'),
-               "\n".encode('utf-8'),
-               "\r\n".encode('utf-8'),
-               "\n\r".encode('utf-8')]
-        BLANK = [" ", "\t", " ".encode('utf-8'), "\t".encode('utf-8')] + EOL
-        START_COMMENT = ["\"", "\'", "\"".encode('utf-8'), "\'".encode('utf-8')]
-        bBINARY_MARKER = "--CIF-BINARY-FORMAT-SECTION--".encode('utf-8')
+    EOL = ["\r", "\n", "\r\n", "\n\r",
+           "\r".encode('utf-8'),
+           "\n".encode('utf-8'),
+           "\r\n".encode('utf-8'),
+           "\n\r".encode('utf-8')]
+    BLANK = [" ", "\t", " ".encode('utf-8'), "\t".encode('utf-8')] + EOL
+    START_COMMENT = ["\"", "\'", "\"".encode('utf-8'), "\'".encode('utf-8')]
+    bBINARY_MARKER = "--CIF-BINARY-FORMAT-SECTION--".encode('utf-8')
 
     def __init__(self, _strFilename=None):
         """
@@ -392,8 +384,7 @@ class CIF(dict):
                 lFields[i + 1] = "?"
             if lFields[i][0:1] in ["_", "_".encode('utf-8')] and \
                lFields[i + 1][0:1] not in ["_", "_".encode('utf-8')]:
-                if sys.version < '3.0' or\
-                   isinstance(lFields[i], str):
+                if isinstance(lFields[i], str):
                     self[lFields[i]] = lFields[i + 1]
                 else:
                     self[lFields[i].decode('utf-8')] = lFields[i + 1]

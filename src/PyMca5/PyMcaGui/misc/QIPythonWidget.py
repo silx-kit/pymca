@@ -41,16 +41,11 @@ from PyMca5.PyMcaGui.PyMcaQt import QApplication, QWidget, \
                                     BINDING
 
 QTCONSOLE = True
-if sys.version_info < (3,):
+try:
+    import qtconsole
+except ImportError:
+    QTCONSOLE = False
     import IPython
-    if IPython.__version__.startswith("2"):
-        QTCONSOLE = False
-else:
-    try:
-        import qtconsole
-    except ImportError:
-        QTCONSOLE = False
-        import IPython
 
 if QTCONSOLE:
     try:

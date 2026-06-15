@@ -189,12 +189,6 @@ class StackPluginResultsWindow(MaskImageWidget.MaskImageWidget):
             self.imageList = [0] * nimages
             for i in range(nimages):
                 self.imageList[i] = images[i, :]
-                if 0:
-                    # leave the data as they originally come
-                    if self.imageList[i].max() < 0:
-                        self.imageList[i] *= -1
-                        if self.spectrumList is not None:
-                            self.spectrumList[i] *= -1
             if image_names is None:
                 self.imageNames = []
                 for i in range(nimages):

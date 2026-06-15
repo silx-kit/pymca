@@ -40,7 +40,8 @@ This module loads PyOpenGL
 import numpy as np
 
 import OpenGL
-if 0:  # Debug
+debug_on = False
+if debug_on:
     OpenGL.ERROR_ON_COPY = True
 else:
     OpenGL.ERROR_LOGGING = False

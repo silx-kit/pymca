@@ -31,10 +31,7 @@ __doc__ = """This module provides tools to read configurations from ini files
 and from their representation in an HDF5 file"""
 
 import sys
-if sys.version_info < (3,):
-    from StringIO import StringIO
-else:
-    from io import StringIO
+from io import StringIO
 from PyMca5.PyMcaIO import ConfigDict
 from PyMca5.PyMcaGui import PyMcaQt as qt
 from PyMca5.PyMcaGui.io import PyMcaFileDialogs

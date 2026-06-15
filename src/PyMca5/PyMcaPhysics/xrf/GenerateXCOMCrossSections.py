@@ -118,10 +118,7 @@ if __name__ == "__main__":
         else:
             factor = Elements.Element[ele]['mass'] /(1.0E-24*Elements.AVOGADRO_NUMBER)
         text += labels
-        if 0:
-            fformat = "%g %g %g %g %g %g %g\n"
-        else:
-            fformat = "%.6E %.6E %.6E %.6E %.6E %.6E %.6E\n"
+        fformat = "%.6E %.6E %.6E %.6E %.6E %.6E %.6E\n"
         outfile.write(text)
         for n in range(len(energy)):
             line = fformat % (energy[n],

@@ -36,10 +36,7 @@ import traceback
 import logging
 
 from PyMca5.PyMcaGui import PyMcaQt as qt
-if hasattr(qt, 'QString'):
-    QString = qt.QString
-else:
-    QString = qt.safe_str
+QString = qt.safe_str
 if __name__ == "__main__":
     app = qt.QApplication([])
 
@@ -124,16 +121,15 @@ class McaWindow(ScanWindow):
         self.connections()
         self.setGraphYLabel('Counts')
 
-        if 1:
-            self.fitButtonMenu = qt.QMenu()
-            self.fitButtonMenu.addAction(QString("Simple"),
-                                         self.mcaSimpleFitSignal)
-            self.fitButtonMenu.addAction(QString("Advanced") ,
-                                         self.mcaAdvancedFitSignal)
-            #self.fitButtonMenu.addAction(QString("Simple Fit"),
-            #                       self._simpleFitSignal)
-            #self.fitButtonMenu.addAction(QString("Customized Fit") ,
-            #                       self._customFitSignal)
+        self.fitButtonMenu = qt.QMenu()
+        self.fitButtonMenu.addAction(QString("Simple"),
+                                     self.mcaSimpleFitSignal)
+        self.fitButtonMenu.addAction(QString("Advanced") ,
+                                     self.mcaAdvancedFitSignal)
+        #self.fitButtonMenu.addAction(QString("Simple Fit"),
+        #                       self._simpleFitSignal)
+        #self.fitButtonMenu.addAction(QString("Customized Fit") ,
+        #                       self._customFitSignal)
 
     def _buildCalibrationControlWidget(self):
         widget = self.centralWidget()
@@ -1448,10 +1444,7 @@ class McaWindow(ScanWindow):
                 return
 
         try:
-            if sys.version < "3.0":
-                ffile = open(specFile, 'wb')
-            else:
-                ffile = open(specFile, 'w', newline='')
+            ffile = open(specFile, 'w', newline='')
         except IOError:
             msg = qt.QMessageBox(self)
             msg.setIcon(qt.QMessageBox.Critical)

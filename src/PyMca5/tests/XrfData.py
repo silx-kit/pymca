@@ -121,12 +121,8 @@ def generateSpecMesh(filename, nmaps=1, **kwargs):
     gain = info['configuration']["detector"]["gain"]
     command = 'mesh samy 0 %d %d samz 0 %d %d %g' % \
               (nRows, nRows-1, nColumns, nColumns-1, expoTime)
-    if sys.version < "3.0":
-        mode = 'wb'
-        oparams = {}
-    else:
-        mode = 'w'
-        oparams = {'newline': ''}
+    mode = 'w'
+    oparams = {'newline': ''}
     with open(filename, mode, **oparams) as ffile:
         ffile.write("#F %s\n" % filename)
         ffile.write("#D %s\n" % (time.ctime(time.time())))

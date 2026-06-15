@@ -36,10 +36,6 @@ import numpy
 import logging
 from PyMca5 import DataObject
 
-if sys.version < '2.6':
-    def bytes(x):
-        return str(x)
-
 _logger = logging.getLogger(__name__)
 
 SOURCE_TYPE = "EdfFileStack"
@@ -162,10 +158,7 @@ class MRCMap(DataObject.DataObject):
 
 def _isMRCHeader(header):
     try:
-        if sys.version < '3.0':
-            test = "MAP "
-        else:
-            test = bytes("MAP ", "utf-8")
+        test = bytes("MAP ", "utf-8")
         if struct.unpack("4s", header[208:212])[0] == test:
             return True
     except Exception:

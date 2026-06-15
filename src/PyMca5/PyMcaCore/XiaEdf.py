@@ -46,15 +46,14 @@ XiaStatIndex= {
 XiaStatNb= len(XiaStatIndex.keys())
 XiaStatLabels= ["xdet", "xevt", "xicr", "xocr", "xlt", "xdt"]
 
-if sys.version_info > (3,):
-    def cmp(first, second):
-        if first < second:
-            result = -1
-        elif second < first:
-            result = 1
-        else:
-            result = 0
-        return result
+def cmp(first, second):
+    if first < second:
+        result = -1
+    elif second < first:
+        result = 1
+    else:
+        result = 0
+    return result
 
 def checkEdfForRead(filename):
     if not os.path.isfile(filename):
@@ -314,32 +313,28 @@ class XiaEdfScanFile:
             self.data= None
             self.header= None
 
-            #try:
-            if 1:
-                if detector in self.detList:
-                    idx= self.detList.index(detector)
-                    if idx < len(self.detfiles):
-                        file= self.detfiles[idx]
-                        edf= openEdf(self.detfiles[idx])
+            if detector in self.detList:
+                idx= self.detList.index(detector)
+                if idx < len(self.detfiles):
+                    file= self.detfiles[idx]
+                    edf= openEdf(self.detfiles[idx])
+                    header= edf.GetHeader(0)
+                    xdet= int(header.get("xdet", -1))
+                    if xdet==-1 or xdet==detector:
+                        self.data= edf.GetData(0)
+                        self.header= header
+                        self.detector= xdet
+
+                if self.data is None:
+                    for file in self.detfiles:
+                        edf= openEdf(file)
                         header= edf.GetHeader(0)
                         xdet= int(header.get("xdet", -1))
-                        if xdet==-1 or xdet==detector:
+                        if xdet==detector:
                             self.data= edf.GetData(0)
                             self.header= header
                             self.detector= xdet
-
-                    if self.data is None:
-                        for file in self.detfiles:
-                            edf= openEdf(file)
-                            header= edf.GetHeader(0)
-                            xdet= int(header.get("xdet", -1))
-                            if xdet==detector:
-                                self.data= edf.GetData(0)
-                                self.header= header
-                                self.detector= xdet
-                                break
-            else: #except Exception:
-                raise XiaEdfError("Cannot read data on det #%02d in <%s>"%(detector, file))
+                            break
 
             if self.data is None:
                 raise XiaEdfError("Cannot read data on det #%02d"%detector)
@@ -750,11 +745,3 @@ if __name__=="__main__":
 
     testScan()
     sys.exit(0)
-
-    if len(sys.argv)<2:
-        print("%s <ct_filename> [<output_filename>]" % sys.argv[0])
-        sys.exit(0)
-    else:
-        infile= sys.argv[1]
-        outfile= len(sys.argv)>=3 and sys.argv[2] or None
-        testAcq(infile, outfile)

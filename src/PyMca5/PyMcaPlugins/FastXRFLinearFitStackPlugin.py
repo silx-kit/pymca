@@ -211,7 +211,6 @@ class FastXRFLinearFitStackPlugin(StackPluginBase.StackPluginBase):
                 if result[0] == "Exception":
                     # somehow this exception is not caught
                     raise Exception(result[1], result[2])#, result[3])
-                    return
 
         # Show results
         with result.bufferContext(update=True):

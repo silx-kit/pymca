@@ -448,10 +448,7 @@ class TiffIO(object):
 
         if software == defaultSoftware:
             try:
-                if sys.version < '3.0':
-                    if imageDescription.upper().startswith("IMAGEJ"):
-                        software = imageDescription.split("=")[0]
-                elif hasattr(imageDescription, "decode"):
+                if hasattr(imageDescription, "decode"):
                     tmpString = imageDescription.decode("utf-8")
                     if tmpString.upper().startswith("IMAGEJ"):
                         software = bytes(tmpString.split("=")[0],
@@ -754,32 +751,19 @@ class TiffIO(object):
                         readout = readout.reshape(-1, nColumns)
                     image[rowStart:rowEnd, :] = readout
                 else:
-                    if 1:
-                        # use numpy
-                        if self._swap:
-                            readout = numpy.array(numpy.frombuffer(fd.read(nBytes), dtype)).byteswap()
-                        else:
-                            readout = numpy.array(numpy.frombuffer(fd.read(nBytes), dtype))
-                        if hasattr(nBits, 'index'):
-                            readout = readout.reshape(-1, nColumns, len(nBits))
-                        elif colormap is not None:
-                            readout = colormap[readout]
-                            readout = readout.reshape(-1, nColumns, 3)
-                        else:
-                            readout = readout.reshape(-1, nColumns)
-                        image[rowStart:rowEnd, :] = readout
+                    # use numpy
+                    if self._swap:
+                        readout = numpy.array(numpy.frombuffer(fd.read(nBytes), dtype)).byteswap()
                     else:
-                        # using struct
-                        readout = numpy.array(struct.unpack(st+"%df" % int(nBytes/4), fd.read(nBytes)),
-                                              dtype=dtype)
-                        if hasattr(nBits, 'index'):
-                            readout = readout.reshape(-1, nColumns, len(nBits))
-                        elif colormap is not None:
-                            readout = colormap[readout]
-                            readout = readout.reshape(-1, nColumns, 3)
-                        else:
-                            readout = readout.reshape(-1, nColumns)
-                        image[rowStart:rowEnd, :] = readout
+                        readout = numpy.array(numpy.frombuffer(fd.read(nBytes), dtype))
+                    if hasattr(nBits, 'index'):
+                        readout = readout.reshape(-1, nColumns, len(nBits))
+                    elif colormap is not None:
+                        readout = colormap[readout]
+                        readout = readout.reshape(-1, nColumns, 3)
+                    else:
+                        readout = readout.reshape(-1, nColumns)
+                    image[rowStart:rowEnd, :] = readout
                 rowStart += nRowsToRead
         if close:
             self.__makeSureFileIsClosed()
@@ -919,14 +903,9 @@ class TiffIO(object):
         else:
             self._swap = True
         fd.seek(0)
-        if sys.version < '3.0':
-            fd.write(struct.pack(st + '2s', order))
-            fd.write(struct.pack(st + 'H', 42))
-            fd.write(struct.pack(st + 'I', 0))
-        else:
-            fd.write(struct.pack(st + '2s', bytes(order, 'utf-8')))
-            fd.write(struct.pack(st + 'H', 42))
-            fd.write(struct.pack(st + 'I', 0))
+        fd.write(struct.pack(st + '2s', bytes(order, 'utf-8')))
+        fd.write(struct.pack(st + 'H', 42))
+        fd.write(struct.pack(st + 'I', 0))
         fd.flush()
 
     def _getOutputIFD(self, image, description=None, software=None, date=None):
@@ -961,7 +940,7 @@ class TiffIO(object):
                 raw = description
             else:
                 raw = "%s" % description
-                if (sys.version_info[:2] > (2,6)) and hasattr(raw, "encode"):
+                if hasattr(raw, "encode"):
                     raw = raw.encode('utf-8', errors="ignore")
             imageDescription = struct.pack("%ds" % len(raw), raw)
             nDirectoryEntries += 1
@@ -972,8 +951,7 @@ class TiffIO(object):
             while softwareLength < 4:
                 software = software + " "
                 softwareLength = len(software)
-            if sys.version >= '3.0':
-                software = bytes(software, 'utf-8')
+            software = bytes(software, 'utf-8')
             softwarePackedString = struct.pack("%ds" % softwareLength, software)
             nDirectoryEntries += 1
         else:
@@ -981,8 +959,7 @@ class TiffIO(object):
 
         if date is not None:
             dateLength = len(date)
-            if sys.version >= '3.0':
-                date = bytes(date, 'utf-8')
+            date = bytes(date, 'utf-8')
             datePackedString = struct.pack("%ds" % dateLength, date)
             dateLength = len(datePackedString)
             nDirectoryEntries += 1

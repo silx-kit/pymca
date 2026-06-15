@@ -369,13 +369,7 @@ class QSpecFileWidget(QSelectorWidget.QSelectorWidget):
             return
         info = self.data.getKeyInfo(sel[0])
         self.mcaTable.build(info)
-        if False:
-            # This does not work properly yet
-            # TODO: mca as function of other parameter
-            NbMca = info.get('NbMcaDet', 0)
-            self.cntTable.build(info['LabelNames'], nmca=NbMca)
-        else:
-            self.cntTable.build(info['LabelNames'], nmca=0)
+        self.cntTable.build(info['LabelNames'], nmca=0)
 
         autoReplaceCall = True
         if (info['Lines'] > 0) and len(info['LabelNames']):

@@ -26,7 +26,6 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-from __future__ import with_statement
 
 __author__ = "T. Vincent - ESRF Data Analysis"
 __contact__ = "thomas.vincent@esrf.fr"
@@ -240,12 +239,8 @@ class Text2D(object):
 if __name__ == "__main__":
     import sys
 
-    try:
-        from PyQt4.QtGui import QApplication
-        from PyQt4.QtOpenGL import QGLWidget, QGLContext
-    except ImportError:
-        from PyQt5.QtWidgets import QApplication
-        from PyQt5.QtOpenGL import QGLWidget, QGLContext
+    from PyQt5.QtWidgets import QApplication
+    from PyQt5.QtOpenGL import QGLWidget, QGLContext
 
     from .GLContext import setGLContextGetter
     from .GLSupport import mat4Ortho

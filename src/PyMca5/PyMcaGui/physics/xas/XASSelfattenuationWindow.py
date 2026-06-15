@@ -39,10 +39,7 @@ from PyMca5.PyMcaGui.physics.xrf import MatrixImage
 from PyMca5.PyMcaGui.physics.xrf import MaterialEditor
 from PyMca5.PyMcaIO import ConfigDict
 
-if hasattr(qt, "QString"):
-    qstring = qt.QString
-else:
-    qstring = str
+qstring = str
 
 _logger = logging.getLogger(__name__)
 

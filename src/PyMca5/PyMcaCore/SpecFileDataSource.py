@@ -33,7 +33,6 @@ __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 import sys
 import os
 import numpy
-import types
 import logging
 import time
 from PyMca5.PyMcaCore import DataObject
@@ -65,10 +64,7 @@ class SpecFileDataSource(object):
         if len(nameList) > 1:
             #who knows if one day will make selections thru several files...
             raise TypeError("Constructor needs string as first argument")
-        if sys.version < '3.0':
-            testTypes = [types.StringType, types.UnicodeType]
-        else:
-            testTypes = [type("")]
+        testTypes = [type("")]
 
         for name in nameList:
             if type(name) not in testTypes:
@@ -320,13 +316,8 @@ class SpecFileDataSource(object):
                     raise ValueError("Number of calibrations does not match number of MCAs")
             ctxt= calib[0].split()
             if len(ctxt)==4:
-                #try:
-                if 1:
-                    cval= [ float(ctxt[1]), float(ctxt[2]), float(ctxt[3]) ]
-                    mcainfo["McaCalib"]= cval
-                else:
-                #except Exception:
-                    mcainfo["McaCalib"]=[0.0,1.0,0.0]
+                cval= [ float(ctxt[1]), float(ctxt[2]), float(ctxt[3]) ]
+                mcainfo["McaCalib"]= cval
         ctime= scandata.header("@CTIME")
         if len(ctime):
             if len(ctime) == info["NbMcaDet"]:

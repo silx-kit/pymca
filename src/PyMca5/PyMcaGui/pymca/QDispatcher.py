@@ -217,16 +217,8 @@ class QDispatcher(qt.QWidget):
                                     #print self.selectorWidget[source.sourceType]
                                     pass
 
-                            ddict['dataobject'] = dataObject
-                            selectionList.append(ddict)
-                        else:
-                            #this creates a weak reference to the source object
-                            #the clients will be able to retrieve the data
-                            #the problem is that 10 clients will requiere
-                            #10 read outs
-                            import weakref
-                            ddict["sourcereference"] = weakref.ref(source)
-                            selectionList.append(ddict)
+                        ddict['dataobject'] = dataObject
+                        selectionList.append(ddict)
                         if lastEvent != event:
                             if event.lower() == "addselection":
                                 self.sigAddSelection.emit(selectionList)
@@ -405,16 +397,10 @@ class QDispatcher(qt.QWidget):
                 sel['SourceName'] = ddict['SourceName']
                 sel['SourceType'] = ddict['SourceType']
                 sel['Key']        = ddict['Key']
-                if 0:
-                    sel['selection']  = objectReference.info['selection']
-                    sel['legend']     = objectReference.info['legend']
-                    if 'scanselection' in objectReference.info.keys():
-                        sel['scanselection']  = objectReference.info['scanselection']
-                else:
-                    sel['selection']  = ddict['selection']
-                    sel['legend']     = ddict['legend']
-                    sel['scanselection']  = ddict['scanselection']
-                    sel['imageselection']  = ddict['imageselection']
+                sel['selection']  = ddict['selection']
+                sel['legend']     = ddict['legend']
+                sel['scanselection']  = ddict['scanselection']
+                sel['imageselection']  = ddict['imageselection']
                 sel_list.append(sel)
         self._addSelectionSlot(sel_list)
 

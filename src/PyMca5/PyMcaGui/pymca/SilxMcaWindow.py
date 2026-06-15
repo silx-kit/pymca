@@ -1262,10 +1262,7 @@ class McaWindow(ScanWindow.ScanWindow):
         try:
             systemline = os.linesep
             os.linesep = '\n'
-            if sys.version < "3.0":
-                ffile = open(specFile, 'wb')
-            else:
-                ffile = open(specFile, 'w', newline='')
+            ffile = open(specFile, 'w', newline='')
             # This was giving problems on legends with a leading b
             # legend = legend.strip('<b>')
             # legend = legend.strip('<\b>')

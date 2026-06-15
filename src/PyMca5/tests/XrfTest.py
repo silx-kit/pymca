@@ -34,10 +34,7 @@ import unittest
 import os
 import sys
 import numpy
-if sys.version_info < (3,):
-    from StringIO import StringIO
-else:
-    from io import StringIO
+from io import StringIO
 
 cfg = """[attenuators]
 kapton = 0, -, 0.0, 0.0, 1.0

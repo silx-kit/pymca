@@ -215,10 +215,7 @@ class SpecFileDataInfo(qt.QTabWidget):
                 return
             if num:
                 table= self.__createTable(num, "Counter", "Value")
-                if sys.version_info > (3, 3):
-                    sorted_list = sorted(cnts, key=str.casefold)
-                else:
-                    sorted_list = sorted(cnts)
+                sorted_list = sorted(cnts, key=str.casefold)
                 for i in range(num):
                     idx = cnts.index(sorted_list[i])
                     table.setText(i, 0, str(cnts[idx]))

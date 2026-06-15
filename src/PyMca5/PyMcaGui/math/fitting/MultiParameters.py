@@ -305,14 +305,8 @@ def test():
                   PositionFlag=1,
                   HypermetTails=1)
     fit.setbackground('Linear')
-    if 1:
-        mcaresult=fit.mcafit(x=x,xmin=x[300],xmax=x[1000])
-        w.fillfrommca(mcaresult)
-    else:
-        fit.estimate()
-        fit.startfit()
-        w.fillfromfit(fit.paramlist,current='Fit')
-        w.removeview(view='Region 1')
+    mcaresult=fit.mcafit(x=x,xmin=x[300],xmax=x[1000])
+    w.fillfrommca(mcaresult)
     a.exec()
 
 if __name__ == "__main__":

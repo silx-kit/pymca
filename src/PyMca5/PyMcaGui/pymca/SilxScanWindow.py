@@ -899,10 +899,7 @@ class ScanWindow(BaseScanWindow):
         try:
             systemline = os.linesep
             os.linesep = '\n'
-            if sys.version < "3.0":
-                ffile = open(specFile, 'wb')
-            else:
-                ffile = open(specFile, 'w', newline='')
+            ffile = open(specFile, 'w', newline='')
             if filetype in ['Scan', 'MultiScan']:
                 ffile.write("#F %s\n" % specFile)
                 savingDate = "#D %s\n"%(time.ctime(time.time()))

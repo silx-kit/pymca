@@ -1106,22 +1106,11 @@ class SilxMaskImageWidget(qt.QMainWindow):
         self._origin = (xScale[0], yScale[0])
         self._deltaXY = (xScale[1], yScale[1])
         info = None
-        if 0:
-            self.plot.addImage(data,
-                               legend="current",
-                               origin=self._origin,
-                               scale=self._deltaXY,
-                               replace=False,
-                               z=0,
-                               info=info)
-            self.plot.setActiveImage("current")
-            self.slider.setValue(0)
-        else:
-            self.setImages([data],
-                       labels=[""],
-                       origin=self._origin,
-                       width=xScale[1] * data.shape[1],
-                       height=yScale[1]* data.shape[0])
+        self.setImages([data],
+                   labels=[""],
+                   origin=self._origin,
+                   width=xScale[1] * data.shape[1],
+                   height=yScale[1]* data.shape[0])
 
     def plotImage(self, update=True):
         """ Compatibility method with PyMca when handling single images

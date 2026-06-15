@@ -182,11 +182,7 @@ def getCovarianceMatrix(stack,
             dataView = dataView[:, ::binning] * cleanWeights
             if cleanMask is not None:
                 cleanMask = numpy.ravel(cleanMask)
-                if 0:
-                    for i in range(dataView.shape[-1]):
-                        dataView[badMask, i] = 0
-                else:
-                    dataView[badMask] = 0
+                dataView[badMask] = 0
             sumSpectrum = dataView.sum(axis=0, dtype=numpy.float64)
             #and return the standard covariance matrix as a matrix product
             covMatrix = dotblas.dot(dataView.T, dataView )\
@@ -275,11 +271,7 @@ def getCovarianceMatrix(stack,
                     #get step images for the second chunk
                     if j == i:
                         jToRead = iToRead
-                        if 0:
-                            for k in range(0, jToRead):
-                                chunk2[:, k] = chunk1[k]
-                        else:
-                            chunk2[:, 0:jToRead] = chunk1[0:jToRead, :].T
+                        chunk2[:, 0:jToRead] = chunk1[0:jToRead, :].T
                     else:
                         #get step images for the second chunk
                         jToRead = min(step, nChannels - j)
@@ -515,9 +507,6 @@ def getCovarianceMatrix(stack,
                     a = tmpData[:iToRead]
                     a = a.reshape(kToRead, nChannels)
                     a *= cleanWeights
-                    if 0:
-                        #weight each spectrum
-                        a /= (a.sum(axis=1).reshape(-1, 1))
                     sumSpectrum += a.sum(axis=0)
                     covMatrix += dotblas.dot(a.T, a)
                     a = None
@@ -634,27 +623,22 @@ def numpyPCA(stack, index=-1, ncomponents=10, binning=None,
     eigenvectors = numpy.zeros((ncomponents, N), dtype)
     eigenvalues = numpy.zeros((ncomponents,), dtype)
     # sort eigenvalues
-    if 1:
-        a = [(evalues[i], i) for i in range(len(evalues))]
-        a.sort()
-        a.reverse()
-        totalExplainedVariance = 0.0
-        for i0 in range(ncomponents):
-            i = a[i0][1]
-            eigenvalues[i0] = evalues[i]
-            partialExplainedVariance = 100. * evalues[i] / \
-                                       calculatedTotalVariance
-            _logger.info("PC%02d  Explained variance %.5f %% ",
-                         i0 + 1, partialExplainedVariance)
-            totalExplainedVariance += partialExplainedVariance
-            eigenvectors[i0, :] = evectors[:, i]
-            #print("NORMA = ", numpy.dot(evectors[:, i].T, evectors[:, i]))
-        _logger.info("Total explained variance = %.2f %% ",
-                     totalExplainedVariance)
-    else:
-        idx = numpy.argsort(evalues)
-        eigenvalues[:]  = evalues[idx]
-        eigenvectors[:, :] = evectors[:, idx].T
+    a = [(evalues[i], i) for i in range(len(evalues))]
+    a.sort()
+    a.reverse()
+    totalExplainedVariance = 0.0
+    for i0 in range(ncomponents):
+        i = a[i0][1]
+        eigenvalues[i0] = evalues[i]
+        partialExplainedVariance = 100. * evalues[i] / \
+                                   calculatedTotalVariance
+        _logger.info("PC%02d  Explained variance %.5f %% ",
+                     i0 + 1, partialExplainedVariance)
+        totalExplainedVariance += partialExplainedVariance
+        eigenvectors[i0, :] = evectors[:, i]
+        #print("NORMA = ", numpy.dot(evectors[:, i].T, evectors[:, i]))
+    _logger.info("Total explained variance = %.2f %% ",
+                 totalExplainedVariance)
 
     # figure out if eigenvectors are to be multiplied by -1
     if avgSpectrum.sum() > 0:

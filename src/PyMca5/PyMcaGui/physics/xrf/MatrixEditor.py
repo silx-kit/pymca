@@ -189,7 +189,6 @@ class MatrixEditor(qt.QWidget):
             return self._current[param]
         else:
             raise KeyError("%s" % param)
-            return
 
     def _update(self):
         if self.materialEditor is not None:

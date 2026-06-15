@@ -175,10 +175,7 @@ if __name__ == "__main__":
         else:
             factor = 1.0
         text += labels
-        if 0:
-            fformat = "%g %g %g %g %g %g\n"
-        else:
-            fformat = "%.6E %.6E %.6E %.6E %.6E %.6E\n"
+        fformat = "%.6E %.6E %.6E %.6E %.6E %.6E\n"
         outfile.write(text)
         for n in range(len(energy)):
             line = fformat % (energy[n],

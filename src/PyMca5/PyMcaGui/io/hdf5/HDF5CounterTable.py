@@ -636,15 +636,15 @@ class HDF5CounterTable(qt.QTableWidget):
         else:
             cntlist = self.cntList * 1
 
-        # no selection based on aliaslist or counterlist (yet?)
-        if 0:
+        THOUGHTS = """
+            # no selection based on aliaslist or counterlist (yet?)
             if 'aliaslist' in keys:
                 aliaslist = ddict['aliaslist']
             elif len(self.aliasList) == len(cntlist):
                 aliaslist = self.aliasList * 1
             else:
                 aliaslist = self.cntList * 1
-
+            """
         if 'x' in keys:
             x = ddict['x']
         else:

@@ -62,10 +62,6 @@ elif 'PyQt5.QtCore' in sys.modules:
 elif 'PyQt6.QtCore' in sys.modules:
     BINDING = 'PyQt6'
 
-elif 'PyQt4.QtCore' in sys.modules:
-    BINDING = 'PyQt4'
-    _logger = logging.critical("PyQt4 already imported and not supported")
-
 elif hasattr(sys, 'argv') and ('--binding=PySide2' in sys.argv):
     BINDING = 'PySide2'
 
@@ -488,43 +484,7 @@ class QToolButton(_QToolButton):
                 print("unable to setIconSize")
                 pass
 
-if sys.version_info < (3,):
-    import types
-    # perhaps a better name would be safe unicode?
-    # should this method be a more generic tool to
-    # be found outside PyMcaQt?
-    def safe_str(potentialQString):
-        if type(potentialQString) == types.StringType or\
-           type(potentialQString) == types.UnicodeType:
-            return potentialQString
-        try:
-            # default, just str
-            x = str(potentialQString)
-        except UnicodeEncodeError:
-
-            # try user OS file system encoding
-            # expected to be 'mbcs' under windows
-            # and 'utf-8' under MacOS X
-            try:
-                x = unicode(potentialQString, sys.getfilesystemencoding())
-                return x
-            except Exception:
-                # on any error just keep going
-                pass
-            # reasonable tries are 'utf-8' and 'latin-1'
-            # should I really go beyond those?
-            # In fact, 'utf-8' is the default file encoding for python 3
-            encodingOptions = ['utf-8', 'latin-1', 'utf-16', 'utf-32']
-            for encodingOption in encodingOptions:
-                try:
-                    x = unicode(potentialQString, encodingOption)
-                    break
-                except UnicodeDecodeError:
-                    if encodingOption == encodingOptions[-1]:
-                        raise
-        return x
-else:
-    safe_str = str
+safe_str = str
 
 if BINDING.lower()=="pyside2":
     _logger = logging.warning("PyMca PySide2 support deprecated and not reliable")

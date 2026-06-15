@@ -507,32 +507,10 @@ class QtMcaAdvancedFitReport:
                  stdvalue = self.fitresult['result']['sigmapar'] [i]
                  text+="            <TD>&nbsp;% .5E +/- % .5E</TD>" % (value, stdvalue)
                  text+="        </TR>"
-             if 0:
-                 text+="        <TR align=left>"
-                 text+="            <TD><I>&nbsp;%s<I></TD>" % 'Constant'
-                 value    = self.fitresult['result']['fittedpar'][self.fitresult['result']['parameters'].index('Constant')]
-                 stdvalue = self.fitresult['result']['sigmapar'] [self.fitresult['result']['parameters'].index('Constant')]
-                 text+="            <TD>&nbsp;% .5E +/- % .5E</TD>" % (value, stdvalue)
-                 text+="        </TR>"
-                 if self.fitresult['result']['config']['fit']['continuum'] > 1:
-                      text+="        <TR align=left>"
-                      text+="            <TD><I>&nbsp;%s<I></TD>" % 'Slope'
-                      value    = self.fitresult['result']['fittedpar'][self.fitresult['result']['parameters'].index('Constant')+1]
-                      stdvalue = self.fitresult['result']['sigmapar'] [self.fitresult['result']['parameters'].index('Constant')+1]
-                      text+="            <TD>&nbsp;% .5E +/- % .5E</TD>" % (value, stdvalue)
-                      text+="        </TR>"
              text+="</TR>"
         text+="        </TABLE>"
         text+="    </TD>"
         text+="</TR>"
-        if 0:
-            #not yet implemented
-            text+="<TR>"
-            text+="    <TD align=center>"
-            text+="         <I>FIT END STATUS : </I>%s<BR>"% "STATUS"
-            text+="         <B>%s</B>" % "MESSAGE"
-            text+="    </TD>"
-            text+="</TR>"
         text+="</TABLE>"
         text+="</CENTER>"
         return text

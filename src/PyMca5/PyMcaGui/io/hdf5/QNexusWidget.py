@@ -569,13 +569,7 @@ class QNexusWidget(qt.QWidget):
 
         # we can use the existing instance or a new one
         # the former solution seems more robust
-        if 1:
-            useInstance = True
-        else:
-            if h5py.version.version < '2.0':
-                useInstance = True
-            else:
-                useInstance = False
+        useInstance = True
         if useInstance:
             fileIndex = self.data.sourceName.index(filename)
             phynxFile  = self.data._sourceObjectList[fileIndex]
@@ -647,18 +641,11 @@ class QNexusWidget(qt.QWidget):
             _hdf5WidgetDatasetMenu.addAction(QString("Add to selection table"),
                                              self._addToSelectionTable)
 
-            if 0:
-                #these two options can be combined into one for the time being
-                _hdf5WidgetDatasetMenu.addAction(QString("Open"),
-                                                 self._openDataset)
-                _hdf5WidgetDatasetMenu.addAction(QString("Show Properties"),
-                                                 self._showDatasetProperties)
-            else:
-                _hdf5WidgetDatasetMenu.addAction(QString("Show Information"),
-                                                 self._showInfoWidgetSlot)
-                _hdf5WidgetDatasetMenu.addAction(QString("Copy Path to Clipboard"),
-                                             self._copyPathSlot)
-                _hdf5WidgetDatasetMenu.exec(qt.QCursor.pos())
+            _hdf5WidgetDatasetMenu.addAction(QString("Show Information"),
+                                             self._showInfoWidgetSlot)
+            _hdf5WidgetDatasetMenu.addAction(QString("Copy Path to Clipboard"),
+                                         self._copyPathSlot)
+            _hdf5WidgetDatasetMenu.exec(qt.QCursor.pos())
         self._lastItemDict = None
         return
 
@@ -779,8 +766,7 @@ class QNexusWidget(qt.QWidget):
                                        if self._isNumeric(item)]
                         try:
                             # case insensitive sorting of measurement
-                            if sys.version_info > (3, 3):
-                                measurement.sort(key=str.casefold)
+                            measurement.sort(key=str.casefold)
                         except Exception:
                             _logger.error("Cannot apply sorting %s" % sys.exc_info()[1])
                         nmeasurement = len(measurement)
@@ -1458,12 +1444,9 @@ if __name__ == "__main__":
     except Exception:
         pass
     w = QNexusWidget()
-    if 0:
-        w.setFile(sys.argv[1])
-    else:
-        from PyMca5.PyMcaCore import NexusDataSource
-        dataSource = NexusDataSource.NexusDataSource(sys.argv[1:])
-        w.setDataSource(dataSource)
+    from PyMca5.PyMcaCore import NexusDataSource
+    dataSource = NexusDataSource.NexusDataSource(sys.argv[1:])
+    w.setDataSource(dataSource)
     def addSelection(sel):
         print(sel)
     def removeSelection(sel):

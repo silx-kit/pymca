@@ -375,8 +375,6 @@ class FitPeakSelect(qt.QWidget):
             try:
                 value = float(string)
                 self.energyValue = value
-                if False:
-                    self.energyButton.setFocus()
             except Exception:
                 msg=qt.QMessageBox(self.energy)
                 msg.setIcon(qt.QMessageBox.Critical)
@@ -385,8 +383,6 @@ class FitPeakSelect(qt.QWidget):
                 self.energy.setFocus()
         else:
             self.energyValue = None
-            if False:
-                self.energyButton.setFocus()
         self.__updateSelection()
 
     def __updateSelection(self):

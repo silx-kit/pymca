@@ -161,62 +161,47 @@ class HDF5Stack1D(DataObject.DataObject):
             # the scans containing the selection, not that all the scans
             # contain the selection.
             scanlist = []
-            if 0:
-                JUST_KEYS = False
-                #expect same entry names in the files
-                #Unfortunately this does not work for SOLEIL
+            JUST_KEYS = True
+            #expect same structure in the files even if the
+            #names are different (SOLEIL ...)
+            if len(entryNames):
+                i = 0
                 for entry in entryNames:
+                    i += 1
                     path = "/" + entry + ySelection
                     dirname = posixpath.dirname(path)
                     base = posixpath.basename(path)
                     try:
                         file_entry = tmpHdf[dirname]
-                        if base in file_entry.keys():
-                            scanlist.append(entry)
-                    except Exception:
-                        pass
-            else:
-                JUST_KEYS = True
-                #expect same structure in the files even if the
-                #names are different (SOLEIL ...)
-                if len(entryNames):
-                    i = 0
-                    for entry in entryNames:
-                        i += 1
-                        path = "/" + entry + ySelection
-                        dirname = posixpath.dirname(path)
-                        base = posixpath.basename(path)
-                        try:
-                            file_entry = tmpHdf[dirname]
-                            if hasattr(file_entry, "keys"):
-                                if base in file_entry.keys():
-                                    # this is the case of a selection inside a group
-                                    scanlist.append("1.%d" % i)
-                        except KeyError:
-                            _logger.warning("%s not in file, ignoring.", dirname)
-                    if not len(scanlist):
-                        if not ySelection.startswith("/"):
-                            path = "/" + ySelection
-                        else:
-                            path = ySelection
-                        dirname = posixpath.dirname(path)
-                        base = posixpath.basename(path)
-                        try:
-                            if dirname in tmpHdf["/"]:
-                                # this is the case of a dataset at top plevel
-                                # or having given the complete path
-                                if base in tmpHdf[dirname]:
-                                    JUST_KEYS = False
-                                    scanlist.append("")
-                            elif base in file_entry.keys():
+                        if hasattr(file_entry, "keys"):
+                            if base in file_entry.keys():
+                                # this is the case of a selection inside a group
+                                scanlist.append("1.%d" % i)
+                    except KeyError:
+                        _logger.warning("%s not in file, ignoring.", dirname)
+                if not len(scanlist):
+                    if not ySelection.startswith("/"):
+                        path = "/" + ySelection
+                    else:
+                        path = ySelection
+                    dirname = posixpath.dirname(path)
+                    base = posixpath.basename(path)
+                    try:
+                        if dirname in tmpHdf["/"]:
+                            # this is the case of a dataset at top plevel
+                            # or having given the complete path
+                            if base in tmpHdf[dirname]:
                                 JUST_KEYS = False
                                 scanlist.append("")
-                        except Exception:
-                            #it will crash later on
-                            pass
-                else:
-                    JUST_KEYS = False
-                    scanlist.append("")
+                        elif base in file_entry.keys():
+                            JUST_KEYS = False
+                            scanlist.append("")
+                    except Exception:
+                        #it will crash later on
+                        pass
+            else:
+                JUST_KEYS = False
+                scanlist.append("")
         else:
             try:
                 # the ESRF uses "1.1" notation for the scans so this is ambiguous because
@@ -675,14 +660,8 @@ class HDF5Stack1D(DataObject.DataObject):
                                     if len(tmp.shape) == 3:
                                         i = int(n/dim1)
                                         j = n % dim1
-                                        if 0:
-                                            #this loop is extremely SLOW!!!(and useless)
-                                            for ii in range(tmp.shape[1]):
-                                                for jj in range(tmp.shape[2]):
-                                                    self.data[i+ii, j+jj, nImage] += tmp[0, ii, jj]
-                                        else:
-                                            self.data[i:i+tmp.shape[1],
-                                                      j:j+tmp.shape[2], nImage] += tmp[0]
+                                        self.data[i:i+tmp.shape[1],
+                                                  j:j+tmp.shape[2], nImage] += tmp[0]
                                 if mSelection is not None:
                                     for mca in range(yDataset.shape[0]):
                                         i = int(n/dim1)

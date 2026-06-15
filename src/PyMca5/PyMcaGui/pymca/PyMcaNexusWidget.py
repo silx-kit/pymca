@@ -183,11 +183,10 @@ class PyMcaNexusWidget(QNexusWidget.QNexusWidget):
             group = phynxFile[groupName]
             if 'axes' in stack.attrs.keys():
                 axes = stack.attrs['axes']
-                if sys.version > '2.9':
-                    try:
-                        axes = axes.decode('utf-8')
-                    except Exception:
-                        _logger.warning("Cannot decode axes")
+                try:
+                    axes = axes.decode('utf-8')
+                except Exception:
+                    _logger.warning("Cannot decode axes")
                 axes = axes.split(":")
                 for axis in axes:
                     if axis in group.keys():
@@ -243,12 +242,9 @@ class PyMcaNexusWidget(QNexusWidget.QNexusWidget):
 if __name__ == "__main__":
     app = qt.QApplication(sys.argv)
     w = PyMcaNexusWidget()
-    if 0:
-        w.setFile(sys.argv[1])
-    else:
-        from PyMca5.PyMcaCore import NexusDataSource
-        dataSource = NexusDataSource.NexusDataSource(sys.argv[1:])
-        w.setDataSource(dataSource)
+    from PyMca5.PyMcaCore import NexusDataSource
+    dataSource = NexusDataSource.NexusDataSource(sys.argv[1:])
+    w.setDataSource(dataSource)
     def addSelection(sel):
         print(sel)
     def removeSelection(sel):

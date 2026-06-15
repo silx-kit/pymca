@@ -289,19 +289,17 @@ class DatasetSelectionPage(qt.QWizardPage):
                         if len(signalList) == 1:
                             if 'interpretation' in nxData[key].attrs.keys():
                                 interpretation = nxData[key].attrs['interpretation']
-                                if sys.version > '2.9':
-                                    try:
-                                        interpretation = interpretation.decode('utf-8')
-                                    except Exception:
-                                        _logger.warning("Cannot decode interpretation")
+                                try:
+                                    interpretation = interpretation.decode('utf-8')
+                                except Exception:
+                                    _logger.warning("Cannot decode interpretation")
 
                             if 'axes' in nxData[key].attrs.keys():
                                 axes = nxData[key].attrs['axes']
-                                if sys.version > '2.9':
-                                    try:
-                                        axes = axes.decode('utf-8')
-                                    except Exception:
-                                        _logger.warning("Cannot decode axes")
+                                try:
+                                    axes = axes.decode('utf-8')
+                                except Exception:
+                                    _logger.warning("Cannot decode axes")
                                 axes = axes.split(":")
                                 for axis in axes:
                                     if axis in nxData.keys():

@@ -281,20 +281,6 @@ def characteristicEbel(target, e0, window=None,
     # get the energy of the characteristic lines
     lines = Elements._getUnfilteredElementDict(element, None, photoweights = True)
 
-    if 0:
-        # L shell lines will have to be entered directly by the user
-        # L shell
-        lpeaks = []
-        for label in lines['L xrays']:
-            lpeaks.append([lines[label]['energy'],
-                              lines[label]['rate'],
-                              element+' '+label])
-        lfluo = Elements._filterPeaks(lpeaks, ethreshold=0.020,
-                                      ithreshold=0.001,
-                                      nthreshold=6,
-                                      absoluteithreshold=False,
-                                      keeptotalrate=True)
-        lfluo.sort()
     peaklist = []
     rays = 'K xrays'
     if rays in lines.keys():

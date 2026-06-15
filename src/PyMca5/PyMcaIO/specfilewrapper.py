@@ -55,33 +55,22 @@ except Exception:
     SPX = False
 
 
-if sys.version >= '2.6':
-    def safe_str(bytesObject):
+def safe_str(bytesObject):
+    try:
+        return str(bytesObject, 'utf-8')
+    except UnicodeDecodeError:
         try:
-            return str(bytesObject, 'utf-8')
-        except UnicodeDecodeError:
+            return str(bytesObject, 'latin-1')
+        except Exception:
             try:
-                return str(bytesObject, 'latin-1')
+                return str(bytesObject, 'utf-16')
             except Exception:
-                try:
-                    return str(bytesObject, 'utf-16')
-                except Exception:
-                    return str(bytesObject)
-else:
-    def safe_str(*var, **kw):
-        return str(var[0])
-
-    #python 2.5 does not have bytes function
-    def bytes(*var, **kw):
-        return var[0]
+                return str(bytesObject)
 
 def Specfile(filename):
     if BlissSpecFile.isBlissSpecFile(filename):
         return BlissSpecFile.BlissSpecFile(filename)
-    if sys.version_info < (3, 0):
-        f = open(filename)
-    else:
-        f = open(filename, 'r', errors="ignore")
+    f = open(filename, 'r', errors="ignore")
     line0  = f.readline()
     if filename.upper().endswith('DTA'):
         #TwinMic single column file
@@ -182,17 +171,9 @@ class specfilewrapper(object):
         self.header = []
         if self.dta:
             #TwinMic .dta files with only one spectrum
-            if 0:
-                f = open(filename, 'rb')
-                raw_content = f.read()
-                f.close()
-                expr = r'([-+]?\d+)\t\r\n'
-                self.data = [float(i) for i in re.split(expr,raw_content) if i != '']
-                self.data = numpy.array(self.data, numpy.float32)
-            else:
-                self.data = numpy.fromfile(filename,
-                                           dtype=numpy.float32,
-                                           sep='\t\r\n')
+            self.data = numpy.fromfile(filename,
+                                       dtype=numpy.float32,
+                                       sep='\t\r\n')
             self.header = ['#S1 %s' % os.path.basename(filename)]
             self.data = self.data.reshape(-1, 1)
             self.scandata=[myscandata(self.data,'MCA','1.1',
@@ -207,15 +188,10 @@ class specfilewrapper(object):
         ncol0 = -1
         nlines= 0
         if amptek:
-            if sys.version < '3.0':
-                while "<<DATA>>" not in line:
-                    self.header.append(line.replace("\n",""))
-                    line = f.readline()
-            else:
-                while bytes("<<DATA>>", 'utf-8') not in line:
-                    self.header.append(safe_str(line.replace(bytes("\n", 'utf-8'),
-                                                    bytes("", 'utf-8'))))
-                    line = f.readline()
+            while bytes("<<DATA>>", 'utf-8') not in line:
+                self.header.append(safe_str(line.replace(bytes("\n", 'utf-8'),
+                                                bytes("", 'utf-8'))))
+                line = f.readline()
         elif qxas:
             line.replace("\n","")
             line.replace("\x00","")
@@ -278,22 +254,14 @@ class specfilewrapper(object):
             f.close()
             self.data = numpy.resize(numpy.array(outdata).astype(numpy.float64),(nlines,1))
         else:
-            if sys.version < '3.0':
-                line = line.replace(",","  ")
-                line = line.replace(";","  ")
-                line = line.replace("\t","  ")
-                line = line.replace("\r","\n")
-                line = line.replace('"',"")
-                line = line.replace('\n\n',"\n")
-            else:
-                tmpBytes = bytes(" ",'utf-8')
-                line = line.replace(bytes(",",'utf-8'), tmpBytes)
-                line = line.replace(bytes(";",'utf-8'), tmpBytes)
-                line = line.replace(bytes("\t",'utf-8'), tmpBytes)
-                tmpBytes = bytes("\n",'utf-8')
-                line = line.replace(bytes("\r","utf-8"), tmpBytes)
-                line = line.replace(bytes('"',"utf-8"), bytes("", "utf-8"))
-                line = line.replace(bytes('\n\n',"utf-8"), tmpBytes)
+            tmpBytes = bytes(" ",'utf-8')
+            line = line.replace(bytes(",",'utf-8'), tmpBytes)
+            line = line.replace(bytes(";",'utf-8'), tmpBytes)
+            line = line.replace(bytes("\t",'utf-8'), tmpBytes)
+            tmpBytes = bytes("\n",'utf-8')
+            line = line.replace(bytes("\r","utf-8"), tmpBytes)
+            line = line.replace(bytes('"',"utf-8"), bytes("", "utf-8"))
+            line = line.replace(bytes('\n\n',"utf-8"), tmpBytes)
             while(len(line)):
                 values = line.split()
                 if len(values):
@@ -306,36 +274,22 @@ class specfilewrapper(object):
                             nlines += 1
                     except Exception:
                         if len(line) > 1:
-                            if sys.version < '3.0':
-                                self.header.append(line.replace("\n",""))
-                            else:
-                                self.header.append(safe_str(line.replace(\
-                                                    bytes("\n",'utf-8'),\
-                                                    bytes("", 'utf-8'))))
+                            self.header.append(safe_str(line.replace(\
+                                                bytes("\n",'utf-8'),\
+                                                bytes("", 'utf-8'))))
                 else:
                     if len(line) > 1:
-                        if sys.version < '3.0':
-                            self.header.append(line.replace("\n",""))
-                        else:
-                            self.header.append(safe_str(line.replace(bytes("\n",'utf-8'),
-                                                            bytes("", 'utf-8'))))
+                        self.header.append(safe_str(line.replace(bytes("\n",'utf-8'),
+                                                        bytes("", 'utf-8'))))
                 line = f.readline()
-                if sys.version < '3.0':
-                    line = line.replace(",","  ")
-                    line = line.replace(";","  ")
-                    line = line.replace("\t","  ")
-                    line = line.replace("\r","\n")
-                    line = line.replace('"',"")
-                    line = line.replace('\n\n',"\n")
-                else:
-                    tmpBytes = bytes(" ",'utf-8')
-                    line = line.replace(bytes(",",'utf-8'), tmpBytes)
-                    line = line.replace(bytes(";",'utf-8'), tmpBytes)
-                    line = line.replace(bytes("\t",'utf-8'), tmpBytes)
-                    tmpBytes = bytes("\n",'utf-8')
-                    line = line.replace(bytes("\r","utf-8"), tmpBytes)
-                    line = line.replace(bytes('"',"utf-8"), bytes("", "utf-8"))
-                    line = line.replace(bytes('\n\n',"utf-8"), tmpBytes)
+                tmpBytes = bytes(" ",'utf-8')
+                line = line.replace(bytes(",",'utf-8'), tmpBytes)
+                line = line.replace(bytes(";",'utf-8'), tmpBytes)
+                line = line.replace(bytes("\t",'utf-8'), tmpBytes)
+                tmpBytes = bytes("\n",'utf-8')
+                line = line.replace(bytes("\r","utf-8"), tmpBytes)
+                line = line.replace(bytes('"',"utf-8"), bytes("", "utf-8"))
+                line = line.replace(bytes('\n\n',"utf-8"), tmpBytes)
             f.close()
             self.data = numpy.resize(numpy.array(outdata).astype(numpy.float64),(nlines,ncol0))
         if self.amptek:
@@ -645,31 +599,18 @@ class BufferedFile(object):
         f = open(filename, 'rb')
         self.__buffer = f.read()
         f.close()
-        if sys.version < '3.0':
-            self.__buffer=self.__buffer.replace("\r", "\n")
-            self.__buffer=self.__buffer.replace("\n\n", "\n")
-            self.__buffer = self.__buffer.split("\n")
-        else:
-            tmp = bytes("\n", 'utf-8')
-            self.__buffer=self.__buffer.replace(bytes("\r", 'utf-8'), tmp)
-            self.__buffer=self.__buffer.replace(bytes("\n\n", 'utf-8'), tmp)
-            self.__buffer = self.__buffer.split(tmp)
+        tmp = bytes("\n", 'utf-8')
+        self.__buffer=self.__buffer.replace(bytes("\r", 'utf-8'), tmp)
+        self.__buffer=self.__buffer.replace(bytes("\n\n", 'utf-8'), tmp)
+        self.__buffer = self.__buffer.split(tmp)
         self.__currentLine = 0
 
-    if sys.version < '3.0':
-        def readline(self):
-            if self.__currentLine >= len(self.__buffer):
-                return ""
-            line = self.__buffer[self.__currentLine] + "\n"
-            self.__currentLine += 1
-            return line
-    else:
-        def readline(self):
-            if self.__currentLine >= len(self.__buffer):
-                return bytes("", 'utf-8')
-            line = self.__buffer[self.__currentLine] + bytes("\n", 'utf-8')
-            self.__currentLine += 1
-            return line
+    def readline(self):
+        if self.__currentLine >= len(self.__buffer):
+            return bytes("", 'utf-8')
+        line = self.__buffer[self.__currentLine] + bytes("\n", 'utf-8')
+        self.__currentLine += 1
+        return line
 
     def close(self):
         self.__currentLine = 0

@@ -52,10 +52,7 @@ class testSpecfilewrapper(unittest.TestCase):
             text += "3.7  9  27\n"
             text += "\n"
             tmpFile = tempfile.mkstemp(text=False)
-            if sys.version < '3.0':
-                os.write(tmpFile[0], text)
-            else:
-                os.write(tmpFile[0], bytes(text, 'utf-8'))
+            os.write(tmpFile[0], bytes(text, 'utf-8'))
             os.close(tmpFile[0])
             self.fname = tmpFile[1]
 

@@ -248,7 +248,7 @@ class MultipleScanToMeshPlugin(Plugin1DBase.Plugin1DBase):
         # create the meshgrid
         xx, yy = numpy.meshgrid(grid0, grid1)
 
-        if 0:
+        THOUGHTS = """
             # get the interpolated values
             etData = xData - yData
             grid3 = numpy.linspace(etData.min(), etData.max(), n)
@@ -274,80 +274,81 @@ class MultipleScanToMeshPlugin(Plugin1DBase.Plugin1DBase):
             self._rixsWidget.setXLabel("Incident Energy (eV)")
             self._rixsWidget.setYLabel("Energy Transfer (eV)")
             self._rixsWidget.show()
-        elif 1:
-            if mode == "mesh":
-                etData = yData
-            else:
-                etData = xData - yData
-            grid3 = numpy.linspace(etData.min(), etData.max(), n)
-            # create the meshgrid
-            xx, yy = numpy.meshgrid(grid0, grid3)
+            """
+        
+        if mode == "mesh":
+            etData = yData
+        else:
+            etData = xData - yData
+        grid3 = numpy.linspace(etData.min(), etData.max(), n)
+        # create the meshgrid
+        xx, yy = numpy.meshgrid(grid0, grid3)
 
-            # get the interpolated values
-            if GRIDDATA == "matplotlib":
-                try:
-                    zz = griddata(xData, etData, zData, xx, yy)
-                except Exception:
-                    # Natural neighbor interpolation not always possible
-                    zz = griddata(xData, etData, zData, xx, yy, interp='linear')
-            elif GRIDDATA == "scipy":
-                zz = griddata((xData, etData),
-                              zData,
-                              (xx, yy),
-                              method='linear')
-            else:
-                raise RuntimeError("griddata function not available")
+        # get the interpolated values
+        if GRIDDATA == "matplotlib":
+            try:
+                zz = griddata(xData, etData, zData, xx, yy)
+            except Exception:
+                # Natural neighbor interpolation not always possible
+                zz = griddata(xData, etData, zData, xx, yy, interp='linear')
+        elif GRIDDATA == "scipy":
+            zz = griddata((xData, etData),
+                          zData,
+                          (xx, yy),
+                          method='linear')
+        else:
+            raise RuntimeError("griddata function not available")
 
-            if self._rixsWidget is None:
-                try:
-                    from PyMca5.PyMcaGui.pymca import RGBImageCalculator
-                    self._rixsWidget = \
-                            RGBImageCalculator.RGBImageCalculator( \
-                                math=False,
-                                usesilx=True)
-                    if not hasattr(self._rixsWidget, "setXLabel"):
-                        self._rixsWidget.setXLabel = \
-                            self._rixsWidget.graphWidget.plot.setGraphXLabel
-                        self._rixsWidget.setYLabel = \
-                            self._rixsWidget.graphWidget.plot.setGraphYLabel
-                    self._silx = True
-                except Exception:
-                    _logger.info("Cannot use SilxMaskImageWidget")
-                    self._silx = False
-                    self._rixsWidget = MaskImageWidget.MaskImageWidget(\
-                                                imageicons=False,
-                                                selection=False,
-                                                aspect=True,
-                                                profileselection=True,
-                                                scanwindow=self)
-                    self._rixsWidget.setLineProjectionMode('X')
-            #actualMax = zData.max()
-            #actualMin = zData.min()
-            #zz = numpy.where(numpy.isfinite(zz), zz, actualMax)
-            shape = zz.shape
-            xScale = (xx.min(), (xx.max() - xx.min())/float(zz.shape[1]))
-            if mode == "energyout":
-                yScale = (yy.min() + yData.min(), (yy.max() - yy.min())/float(zz.shape[0]))
-            else:
-                yScale = (yy.min(), (yy.max() - yy.min())/float(zz.shape[0]))
-            self._rixsWidget.setXLabel("Incident Energy (eV)")
-            if mode == "mesh":
-                self._rixsWidget.setYLabel("Emitted Energy (eV)")
-            elif mode == "energyout":
-                self._rixsWidget.setYLabel("Emitted Energy (eV)")
-            else:
-                self._rixsWidget.setYLabel("Energy Transfer (eV)")
-            if self._silx:
-                self._rixsWidget.graphWidget.setImageData(zz,
-                                          xScale=xScale,
-                                          yScale=yScale)
-            else:
-                self._rixsWidget.setImageData(zz,
-                                          xScale=xScale,
-                                          yScale=yScale)
-            # self._rixsWidget.graph.replot()
-            self._rixsWidget.show()
-            self._rixsWidget.raise_()
+        if self._rixsWidget is None:
+            try:
+                from PyMca5.PyMcaGui.pymca import RGBImageCalculator
+                self._rixsWidget = \
+                        RGBImageCalculator.RGBImageCalculator( \
+                            math=False,
+                            usesilx=True)
+                if not hasattr(self._rixsWidget, "setXLabel"):
+                    self._rixsWidget.setXLabel = \
+                        self._rixsWidget.graphWidget.plot.setGraphXLabel
+                    self._rixsWidget.setYLabel = \
+                        self._rixsWidget.graphWidget.plot.setGraphYLabel
+                self._silx = True
+            except Exception:
+                _logger.info("Cannot use SilxMaskImageWidget")
+                self._silx = False
+                self._rixsWidget = MaskImageWidget.MaskImageWidget(\
+                                            imageicons=False,
+                                            selection=False,
+                                            aspect=True,
+                                            profileselection=True,
+                                            scanwindow=self)
+                self._rixsWidget.setLineProjectionMode('X')
+        #actualMax = zData.max()
+        #actualMin = zData.min()
+        #zz = numpy.where(numpy.isfinite(zz), zz, actualMax)
+        shape = zz.shape
+        xScale = (xx.min(), (xx.max() - xx.min())/float(zz.shape[1]))
+        if mode == "energyout":
+            yScale = (yy.min() + yData.min(), (yy.max() - yy.min())/float(zz.shape[0]))
+        else:
+            yScale = (yy.min(), (yy.max() - yy.min())/float(zz.shape[0]))
+        self._rixsWidget.setXLabel("Incident Energy (eV)")
+        if mode == "mesh":
+            self._rixsWidget.setYLabel("Emitted Energy (eV)")
+        elif mode == "energyout":
+            self._rixsWidget.setYLabel("Emitted Energy (eV)")
+        else:
+            self._rixsWidget.setYLabel("Energy Transfer (eV)")
+        if self._silx:
+            self._rixsWidget.graphWidget.setImageData(zz,
+                                      xScale=xScale,
+                                      yScale=yScale)
+        else:
+            self._rixsWidget.setImageData(zz,
+                                      xScale=xScale,
+                                      yScale=yScale)
+        # self._rixsWidget.graph.replot()
+        self._rixsWidget.show()
+        self._rixsWidget.raise_()
         return
 
 MENU_TEXT = "MultipleScanToMeshPlugin"

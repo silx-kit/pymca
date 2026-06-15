@@ -85,15 +85,6 @@ class MaskImageWidget(qt.QWidget):
         qt.QWidget.__init__(self, parent)
         self.setWindowIcon(qt.QIcon(qt.QPixmap(IconDict['gioconda16'])))
         self.setWindowTitle("PyMca - Image Selection Tool")
-        if 0:
-            screenHeight = qt.QDesktopWidget().height()
-            if screenHeight > 0:
-                self.setMaximumHeight(int(0.99*screenHeight))
-                self.setMinimumHeight(int(0.5*screenHeight))
-            screenWidth = qt.QDesktopWidget().width()
-            if screenWidth > 0:
-                self.setMaximumWidth(int(screenWidth)-5)
-                self.setMinimumWidth(min(int(0.5*screenWidth),800))
 
         self._y1AxisInverted = False
         self.__selectionMask = None
@@ -244,15 +235,6 @@ class MaskImageWidget(qt.QWidget):
         mytoolbar.layout().addWidget(self._nRoiSelector)
         self._nRoiSelector.valueChanged[int].connect(self.setActiveRoiNumber)
 
-        if 0:
-            self._nRoiTagLabel = qt.QLabel(mytoolbar)
-            self._nRoiTagLabel.setText("Tag:")
-            mytoolbar.layout().addWidget(self._nRoiTagLabel)
-            self._nRoiTag = qt.QSpinBox(mytoolbar)
-            self._nRoiTag.setMinimum(1)
-            self._nRoiTag.setMaximum(self._maxNRois)
-            mytoolbar.layout().addWidget(self._nRoiTag)
-            self._nRoiTag.valueChanged[int].connect(self.tagRoi)
         # initialize tags (ROI 1 , has tag 1, ROI 2 has tag 2, ...)
         self._roiTags = list(range(1, self._maxNRois + 1))
 
@@ -399,8 +381,6 @@ class MaskImageWidget(qt.QWidget):
     def getGraphTitle(self):
         try:
             title = self.graphWidget.graph.getGraphTitle()
-            if sys.version < '3.0':
-                title = qt.safe_str(title)
         except Exception:
             title = ""
         return title
@@ -754,7 +734,7 @@ class MaskImageWidget(qt.QWidget):
                 x = numpy.zeros((2, npoints) , numpy.float64)
                 tmpMatrix = numpy.zeros((npoints, 2) , numpy.float64)
 
-                if 0:
+                THOUGHTS = """
                     #take only the central point
                     oversampling = 1
                     x[0, :] = tmpX
@@ -768,46 +748,43 @@ class MaskImageWidget(qt.QWidget):
                                     imageData, tmpMatrix)
                     #multiply by width too have the equivalent scale
                     ydata = ydataCentral
-                else:
-                    if True: #ddict['event'] == "PolygonSelected":
-                        #oversampling solves noise introduction issues
-                        oversampling = width + 1
-                        oversampling = min(oversampling, 21)
-                    else:
-                        oversampling = 1
-                    ncontributors = int(width * oversampling)
-                    iterValues = numpy.linspace(-0.5*width, 0.5*width, ncontributors)
-                    tmpMatrix = numpy.zeros((npoints*len(iterValues), 2) , numpy.float64)
-                    x[0, :] = tmpX
-                    offset = 0
-                    for i in iterValues:
-                        x[1, :] = i
-                        colRow = numpy.dot(rotMatrix, x)
-                        colRow[0, :] += col0
-                        colRow[1, :] += row0
-                        """
-                        colLimits = [colRow[0, 0], colRow[0, -1]]
-                        rowLimits = [colRow[1, 0], colRow[1, -1]]
-                        for a in rowLimits:
-                            if (a >= shape[0]) or (a < 0):
-                                print("outside row limits",a)
-                                return
-                        for a in colLimits:
-                            if (a >= shape[1]) or (a < 0):
-                                print("outside column limits",a)
-                                return
-                        """
-                        #it is much faster to make one call to the interpolating
-                        #routine than making many calls
-                        tmpMatrix[offset:(offset+npoints),0] = colRow[1,:]
-                        tmpMatrix[offset:(offset+npoints),1] = colRow[0,:]
-                        offset += npoints
-                    ydata = self._interpolate((x0, y0),\
-                                   imageData, tmpMatrix)
-                    ydata = ydata.reshape(len(iterValues), npoints)
-                    ydata = ydata.sum(axis=0)
-                    #deal with the oversampling
-                    ydata /= oversampling
+                    
+                    """
+                oversampling = width + 1
+                oversampling = min(oversampling, 21)
+                ncontributors = int(width * oversampling)
+                iterValues = numpy.linspace(-0.5*width, 0.5*width, ncontributors)
+                tmpMatrix = numpy.zeros((npoints*len(iterValues), 2) , numpy.float64)
+                x[0, :] = tmpX
+                offset = 0
+                for i in iterValues:
+                    x[1, :] = i
+                    colRow = numpy.dot(rotMatrix, x)
+                    colRow[0, :] += col0
+                    colRow[1, :] += row0
+                    """
+                    colLimits = [colRow[0, 0], colRow[0, -1]]
+                    rowLimits = [colRow[1, 0], colRow[1, -1]]
+                    for a in rowLimits:
+                        if (a >= shape[0]) or (a < 0):
+                            print("outside row limits",a)
+                            return
+                    for a in colLimits:
+                        if (a >= shape[1]) or (a < 0):
+                            print("outside column limits",a)
+                            return
+                    """
+                    #it is much faster to make one call to the interpolating
+                    #routine than making many calls
+                    tmpMatrix[offset:(offset+npoints),0] = colRow[1,:]
+                    tmpMatrix[offset:(offset+npoints),1] = colRow[0,:]
+                    offset += npoints
+                ydata = self._interpolate((x0, y0),\
+                               imageData, tmpMatrix)
+                ydata = ydata.reshape(len(iterValues), npoints)
+                ydata = ydata.sum(axis=0)
+                #deal with the oversampling
+                ydata /= oversampling
 
                 xdata = numpy.arange(float(npoints))
                 legend = "y = %f (x-%.1f) + %f ; width=%d" % (m, col0, b, width)
@@ -1445,10 +1422,7 @@ class MaskImageWidget(qt.QWidget):
 
     def setActiveRoiNumber(self, intValue):
         self._nRoi = intValue
-        if 0:
-            self.tagRoi(self._roiTags[intValue-1])
-        else:
-            self.plotImage(update=False)
+        self.plotImage(update=False)
 
     def __applyMaskToImageOLD(self):
         """
@@ -1480,39 +1454,16 @@ class MaskImageWidget(qt.QWidget):
                     for i in range(3):
                         self.__pixmap[:,:,i]  = (self.__pixmap0[:,:,i] *\
                                 alteration)
-                    if 0:
-                        #this is to recolor non finite points
-                        tmpMask = numpy.isfinite(self.__imageData)
-                        goodData = numpy.isfinite(self.__imageData).min()
-                        if not goodData:
-                            for i in range(3):
-                                self.__pixmap[:,:,i] *= tmpMask
                 else:
                     self.__pixmap = self.__pixmap0.copy()
                     self.__pixmap[self.__selectionMask>0,0]    = 0x40
                     self.__pixmap[self.__selectionMask>0,2]    = 0x70
                     self.__pixmap[self.__selectionMask>0,3]    = 0x40
-                    if 0:
-                        #this is to recolor non finite points
-                        tmpMask = ~numpy.isfinite(self.__imageData)
-                        badData = numpy.isfinite(self.__imageData).max()
-                        if badData:
-                            self.__pixmap[tmpMask,0]    = 0x00
-                            self.__pixmap[tmpMask,1]    = 0xff
-                            self.__pixmap[tmpMask,2]    = 0xff
-                            self.__pixmap[tmpMask,3]    = 0xff
         elif int(str(self.colormap[0])) > 1:     #color
             tmp = 1 - 0.2 * self.__selectionMask
             for i in range(3):
                 self.__pixmap[:,:,i]  = (self.__pixmap0[:,:,i] *\
                         tmp)
-            if 0:
-                tmpMask = numpy.isfinite(self.__imageData)
-                goodData = numpy.isfinite(self.__imageData).min()
-                if not goodData:
-                    if not goodData:
-                        for i in range(3):
-                            self.__pixmap[:,:,i] *= tmpMask
         else:
             self.__pixmap = self.__pixmap0.copy()
             tmp  = 1 - self.__selectionMask
@@ -1520,14 +1471,6 @@ class MaskImageWidget(qt.QWidget):
                                   tmp * self.__pixmap0[:,:,2]
             self.__pixmap[:,:, 3] = (0x40 * self.__selectionMask) +\
                                   tmp * self.__pixmap0[:,:,3]
-            if 0:
-                tmpMask = ~numpy.isfinite(self.__imageData)
-                badData = numpy.isfinite(self.__imageData).max()
-                if badData:
-                    self.__pixmap[tmpMask,0]    = 0x00
-                    self.__pixmap[tmpMask,1]    = 0xff
-                    self.__pixmap[tmpMask,2]    = 0xff
-                    self.__pixmap[tmpMask,3]    = 0xff
         return
 
     def __applyMaskToImage(self):
@@ -1575,13 +1518,6 @@ class MaskImageWidget(qt.QWidget):
                     for i in range(3):
                         self.__pixmap[:,:,i]  = (self.__pixmap0[:,:,i] *\
                                                      alteration)
-                    if 0:
-                        #this is to recolor non finite points
-                        tmpMask = numpy.isfinite(self.__imageData)
-                        goodData = numpy.isfinite(self.__imageData).min()
-                        if not goodData:
-                            for i in range(3):
-                                self.__pixmap[:,:,i] *= tmpMask
                 else:
                     _logger.debug("__applyMaskToImage CASE 4")
                     self.__pixmap = self.__pixmap0.copy()
@@ -1593,15 +1529,6 @@ class MaskImageWidget(qt.QWidget):
                         self.__pixmap[self.__selectionMask==self._nRoi,2]    = 2*0x70
                         self.__pixmap[self.__selectionMask==self._nRoi,3]    = 2*0x40
 
-                    if 0:
-                        #this is to recolor non finite points
-                        tmpMask = ~numpy.isfinite(self.__imageData)
-                        badData = numpy.isfinite(self.__imageData).max()
-                        if badData:
-                            self.__pixmap[tmpMask,0]    = 0x00
-                            self.__pixmap[tmpMask,1]    = 0xff
-                            self.__pixmap[tmpMask,2]    = 0xff
-                            self.__pixmap[tmpMask,3]    = 0xff
         elif int(str(self.colormap[0])) > 1:     #color
             _logger.debug("__applyMaskToImage CASE 5")
             # default color should be black, pink or green
@@ -1623,13 +1550,6 @@ class MaskImageWidget(qt.QWidget):
             for i in range(3):
                 self.__pixmap[:,:,i] = (self.__pixmap0[:,:,i] * alteration) + \
                                        (1 - alteration) * color[i]
-            if 0:
-                tmpMask = numpy.isfinite(self.__imageData)
-                goodData = numpy.isfinite(self.__imageData).min()
-                if not goodData:
-                    if not goodData:
-                        for i in range(3):
-                            self.__pixmap[:,:,i] *= tmpMask
         elif self._maxNRois > 1:
             _logger.debug("__applyMaskToImage CASE 6")
             tmp  = 1 - (self.__selectionMask>0)
@@ -1645,14 +1565,6 @@ class MaskImageWidget(qt.QWidget):
             for i in range(3):
                 self.__pixmap[:,:,i] = (self.__pixmap0[:,:,i] * alteration) +\
                             (1 - alteration) * color[i]
-            if 0:
-                tmpMask = ~numpy.isfinite(self.__imageData)
-                badData = numpy.isfinite(self.__imageData).max()
-                if badData:
-                    self.__pixmap[tmpMask,0]    = 0x00
-                    self.__pixmap[tmpMask,1]    = 0xff
-                    self.__pixmap[tmpMask,2]    = 0xff
-                    self.__pixmap[tmpMask,3]    = 0xff
         return
 
     def selectColormap(self):
@@ -2223,7 +2135,7 @@ def main(args):
         # show how to use user specified colors for the mask
         # without using any blitting (for the time being)
         # in the future it could be made using the alpha channel
-        if 0:
+        THOUGHTS = """
             colors = numpy.zeros((2, 4), dtype=numpy.uint8)
             colors[0,0] = 255
             colors[0,1] = 0
@@ -2234,6 +2146,7 @@ def main(args):
             colors[1,2] = 255
             colors[1,3] = 255
             container.setSelectionColors(colors)
+            """
         data = numpy.arange(400 * 400).astype(numpy.int32)
         data = data.reshape(200, 800)
         #data = numpy.eye(200)

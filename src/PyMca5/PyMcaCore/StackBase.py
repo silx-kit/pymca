@@ -696,31 +696,23 @@ class StackBase(object):
                         logger.debug("Dynamic loading case 2")
                         #no other choice than to read all images
                         #for the time being, one by one
-                        if 1:
-                            rMin = cleanMask[0][0]
-                            rMax = cleanMask[-1][0]
-                            cMin = cleanMask[:, 1].min()
-                            cMax = cleanMask[:, 1].max()
-                            #rMin, cMin = cleanMask.min(axis=0)
-                            #rMax, cMax = cleanMask.max(axis=0)
-                            tmpMask = arrayMask[rMin:(rMax + 1), cMin:(cMax + 1)]
-                            tmpData = numpy.zeros((1, rMax - rMin + 1, cMax - cMin + 1))
-                            mcaMax = numpy.zeros((self._stack.data.shape[0],), dtype=numpy.float64)
-                            for i in range(self._stack.data.shape[0]):
-                                tmpData[0:1, :, :] = self._stack.data[i:i + 1, rMin:(rMax + 1), cMin:(cMax + 1)]
-                                # multiplication is faster than selection
-                                mcaData[i] = (tmpData[0] * tmpMask).sum(dtype=numpy.float64)
-                                # Multiplication does not work with negative data
-                                # because zero it's already a maximum
-                                if mcamax:
-                                    mcaMax[i] = numpy.max(tmpData[0][tmpMask])
-                        if 0:
-                            tmpData = numpy.zeros((1, self._stack.data.shape[1], self._stack.data.shape[2]))
-                            for i in range(self._stack.data.shape[0]):
-                                tmpData[0:1, :, :] = self._stack.data[i:i + 1,:,:]
-                                #multiplication is faster than selection
-                                #tmpData[arrayMask].sum() in my machine
-                                mcaData[i] = (tmpData[0] * arrayMask).sum(dtype=numpy.float64)
+                        rMin = cleanMask[0][0]
+                        rMax = cleanMask[-1][0]
+                        cMin = cleanMask[:, 1].min()
+                        cMax = cleanMask[:, 1].max()
+                        #rMin, cMin = cleanMask.min(axis=0)
+                        #rMax, cMax = cleanMask.max(axis=0)
+                        tmpMask = arrayMask[rMin:(rMax + 1), cMin:(cMax + 1)]
+                        tmpData = numpy.zeros((1, rMax - rMin + 1, cMax - cMin + 1))
+                        mcaMax = numpy.zeros((self._stack.data.shape[0],), dtype=numpy.float64)
+                        for i in range(self._stack.data.shape[0]):
+                            tmpData[0:1, :, :] = self._stack.data[i:i + 1, rMin:(rMax + 1), cMin:(cMax + 1)]
+                            # multiplication is faster than selection
+                            mcaData[i] = (tmpData[0] * tmpMask).sum(dtype=numpy.float64)
+                            # Multiplication does not work with negative data
+                            # because zero it's already a maximum
+                            if mcamax:
+                                mcaMax[i] = numpy.max(tmpData[0][tmpMask])
                 elif self.mcaIndex == 2:
                     if isinstance(self._stack.data, numpy.ndarray):
                         logger.debug("In memory case 3")
@@ -929,10 +921,10 @@ class StackBase(object):
                     dataImage = self._stack.data[i1:i2, :, :]
                     # this calculation is very slow but it is extremely useful
                     # for XANES studies
-                    if 1:
-                        maxImage = energy[numpy.argmax(dataImage, axis=0) + i1]
-                        minImage = energy[numpy.argmin(dataImage, axis=0) + i1]
-                    else:
+                    
+                    maxImage = energy[numpy.argmax(dataImage, axis=0) + i1]
+                    minImage = energy[numpy.argmin(dataImage, axis=0) + i1]
+                    THOUGHTS = """
                         # this is slower, but uses less memory
                         maxImage = numpy.zeros(leftImage.shape, numpy.int32)
                         minImage = numpy.zeros(leftImage.shape, numpy.int32)
@@ -954,6 +946,7 @@ class StackBase(object):
                                 maxImageData[tmpIndex] = tmpData[tmpIndex]
                         minImage = energy[minImage]
                         maxImage = energy[maxImage]
+                    """
                     isUsingSuppliedEnergyAxis = True
                     background = 0.5 * (i2 - i1) * (leftImage + rightImage)
                     roiImage = numpy.sum(dataImage, axis=0, dtype=numpy.float64)

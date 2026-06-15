@@ -435,10 +435,7 @@ class ImageAlignmentStackPlugin(StackPluginBase.StackPluginBase):
         if widths is None:
             widths = [reference.shape[0], reference.shape[1]]
         fft2Function = numpy.fft.fft2
-        if 1:
-            DTYPE = numpy.float32
-        else:
-            DTYPE = numpy.float64
+        DTYPE = numpy.float32
         image2 = numpy.zeros((widths[0], widths[1]), dtype=DTYPE)
         shape = image2.shape
 

@@ -380,14 +380,15 @@ class HDF5McaTable(qt.QTableWidget):
         else:
             mcalist = self.mcaList * 1
 
+        THOUGHTS = """
         # no selection based on aliaslist or counterlist (yet?)
-        if 0:
-            if 'aliaslist' in keys:
-                aliaslist = ddict['aliaslist']
-            elif len(self.aliasList) == len(mcalist):
-                aliaslist = self.aliasList * 1
-            else:
-                aliaslist = self.mcaList * 1
+        if 'aliaslist' in keys:
+            aliaslist = ddict['aliaslist']
+        elif len(self.aliasList) == len(mcalist):
+            aliaslist = self.aliasList * 1
+        else:
+            aliaslist = self.mcaList * 1
+        """
 
         if 'selectionindex' in keys:
             selection = ddict['selectionindex']

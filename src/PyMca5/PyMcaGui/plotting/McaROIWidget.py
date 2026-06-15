@@ -491,7 +491,6 @@ class McaROITable(qt.QTableWidget):
             if row >= len(self.roilist):
                 _logger.debug("deleting???")
                 return
-                row = 0
             item = self.item(row, 0)
             if item is None:
                 text=""
@@ -606,7 +605,6 @@ class McaROITable(qt.QTableWidget):
                 if row >= len(self.roilist):
                     _logger.debug("deleting???")
                     return
-                    row = 0
                 item = self.item(row, col)
                 if item is None:
                     text=""

@@ -393,23 +393,8 @@ def RestreinedLeastSquaresFit(model0,parameters0,data0,maxiter,
         lastdeltachi = chisq0
         while flag == 0:
             newpar = parameters.copy()
-            if(1):
-                alpha = alpha0 + flambda * numpy.identity(nr) * alpha0
-                deltapar = numpy.dot(beta, inv(alpha))
-            else:
-                #an attempt to increase accuracy
-                #(it was unsuccessful)
-                alphadiag=numpy.sqrt(numpy.diag(alpha0))
-                npar = len(numpy.sqrt(alphadiag))
-                narray = numpy.zeros((npar,npar),numpy.float64)
-                for i in range(npar):
-                    for j in range(npar):
-                        narray[i,j] = alpha0[i,j]/(alphadiag[i]*alphadiag[j])
-                narray = inv(narray + flambda * numpy.identity(nr))
-                for i in range(npar):
-                    for j in range(npar):
-                        narray[i,j] = narray[i,j]/(alphadiag[i]*alphadiag[j])
-                deltapar = numpy.dot(beta, narray)
+            alpha = alpha0 + flambda * numpy.identity(nr) * alpha0
+            deltapar = numpy.dot(beta, inv(alpha))
             pwork = numpy.zeros(deltapar.shape, numpy.float64)
             for i in range(n_free):
                 if constrains [0] [free_index[i]] == CFREE:
@@ -496,13 +481,8 @@ def ChisqAlphaBeta(model0, parameters, x,y,weight, constrains,model_deriv=None,l
                (parameters[i] >= pmin):
                 A = 0.5 * (pmax + pmin)
                 B = 0.5 * (pmax - pmin)
-                if 1:
-                    fitparam.append(parameters[i])
-                    derivfactor.append(B*numpy.cos(numpy.arcsin((parameters[i] - A)/B)))
-                else:
-                    help0 = numpy.arcsin((parameters[i] - A)/B)
-                    fitparam.append(help0)
-                    derivfactor.append(B*numpy.cos(help0))
+                fitparam.append(parameters[i])
+                derivfactor.append(B*numpy.cos(numpy.arcsin((parameters[i] - A)/B)))
                 free_index.append(i)
                 n_free += 1
             elif (pmax-pmin) > 0:
@@ -598,14 +578,7 @@ def getparameters(parameters,constrains):
             #newparam.append(parameters[i] * parameters[i])
             newparam.append(abs(parameters[i]))
         elif constrains[0][i] == CQUOTED:
-            if 1:
-                newparam.append(parameters[i])
-            else:
-                pmax=max(constrains[1] [i],constrains[2] [i])
-                pmin=min(constrains[1] [i],constrains[2] [i])
-                A = 0.5 * (pmax + pmin)
-                B = 0.5 * (pmax - pmin)
-                newparam.append(A + B * numpy.sin(parameters[i]))
+            newparam.append(parameters[i])
         elif abs(constrains[0][i]) == CFIXED:
             newparam.append(parameters[i])
         else:
@@ -693,15 +666,11 @@ def test(npoints):
     data = numpy.concatenate((xx, yy, sy),1)
     parameters = [0.0,1.0,900.0, 25., 10]
     stime = time.time()
-    if 0:
-        #old fashion
-        fittedpar, chisq, sigmapar = LeastSquaresFit(gauss,parameters,data)
-    else:
-        #easier to handle
-        fittedpar, chisq, sigmapar = LeastSquaresFit(gauss,parameters,
-                                                     xdata=xx.reshape((-1,)),
-                                                     ydata=yy.reshape((-1,)),
-                                                     sigmadata=sy.reshape((-1,)))
+    #easier to handle
+    fittedpar, chisq, sigmapar = LeastSquaresFit(gauss,parameters,
+                                                 xdata=xx.reshape((-1,)),
+                                                 ydata=yy.reshape((-1,)),
+                                                 sigmadata=sy.reshape((-1,)))
     etime = time.time()
     print("Took ",etime - stime, "seconds")
     print("chi square  = ",chisq)

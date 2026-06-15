@@ -348,9 +348,6 @@ def nnma(stack, ncomponents, binning=None,
     #    numpy.add(data, mindata-1, data)
     #data.shape = oldShape
     images = A.T
-    if 0:
-        images = images.reshape(ncomponents, r, c)
-        return images, numpy.ones((ncomponents), numpy.float32),X
 
     #order and scale images according to Gerd Wellenreuthers' recipe
     #normalize all maps to be in the range [0, 1]
@@ -378,18 +375,18 @@ def nnma(stack, ncomponents, binning=None,
     values      = numpy.zeros((ncomponents,), numpy.float32)
     for i in range(ncomponents):
         idx = sorted_idx[i]
-        if 1:
-            if mask is None:
-                new_images[i, :] = images[idx, :]
-            else:
-                new_images[i, maskview] = images[idx, :]                
+        if mask is None:
+            new_images[i, :] = images[idx, :]
         else:
+            new_images[i, maskview] = images[idx, :]
+        THOUGHTS = """
             #imaging the projected sum gives same results
             Atmp = images[idx, :]
             Atmp = Atmp.reshape(-r*c, 1)
             Xtmp = X[idx,:]
             Xtmp = Xtmp.reshape(1, -1)
             new_images[i, maskview] = numpy.sum(numpy.dot(Atmp, Xtmp), axis=1)
+            """
         new_vectors[i,:] = X[idx,:]
         values[i] = 100.*total_nnma_intensity[idx][0]/original_intensity
     new_images = new_images.reshape(ncomponents, r, c)

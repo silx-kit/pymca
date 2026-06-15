@@ -36,10 +36,7 @@ import os
 import gc
 import stat
 import tempfile
-if sys.version_info < (3,):
-    from StringIO import StringIO
-else:
-    from io import StringIO
+from io import StringIO
 try:
     import h5py
     HAS_H5PY = True

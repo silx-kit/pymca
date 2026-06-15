@@ -74,10 +74,7 @@ if __name__ == "__main__":
                 os.remove(fname)
             nscan = 0
             outfile = open(fname, 'wb')
-            if sys.version < '3.0':
-                outfile.write(getHeader(fname))
-            else:
-                outfile.write(getHeader(fname).encode('UTF-8'))
+            outfile.write(getHeader(fname).encode('UTF-8'))
         nscan += 1
         for i in range(1,101):
             print("Z = %d, Element = %s" % (i, Elements[i-1]))
@@ -119,16 +116,7 @@ if __name__ == "__main__":
                         continue
                 text += '  %.7E' % ddict[key][0]
             text += '\n'
-            if sys.version < '3.0':
-                outfile.write(text)
-            else:
-                outfile.write(text.encode('UTF-8'))
-        if sys.version < '3.0':
-            outfile.write('\n')
-        else:
-            outfile.write('\n'.encode('UTF-8'))
-    if sys.version < '3.0':
-        outfile.write('\n')
-    else:
+            outfile.write(text.encode('UTF-8'))
         outfile.write('\n'.encode('UTF-8'))
+    outfile.write('\n'.encode('UTF-8'))
     outfile.close()

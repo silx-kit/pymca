@@ -92,9 +92,6 @@ class McaTheory(object):
                 self.config = ConfigDict.ConfigDict(filelist = initdict)
             else:
                 raise IOError("File %s does not exist" % initdict)
-                self.config = {}
-                self.config['fit'] = {}
-                self.config['attenuators'] = {}
         if 'config' in kw:
             self.config.update(kw['config'])
         SpecfitFuns.fastagauss([1.0,10.0,1.0],numpy.arange(10.))
@@ -725,14 +722,6 @@ class McaTheory(object):
                     #    print newpeaksnames[i], newpeaks[i][1], newpeaks[i][0]
                     tojoint=[]
                     if len(newpeaks) > 1:
-                        if 0: #if ele == "Kr":
-                            print("ELEMENTS FILTERING ")
-                            testPeaks =  [[div[i][0], div[i][1][0], div[i][2]] for i in range(len(div))]
-                            testPeaks = Elements._filterPeaks(testPeaks,
-                                                        ethreshold=deltaonepeak,
-                                                        keeptotalrate=True)
-                            for i in range(len(testPeaks)):
-                                print(testPeaks[i][2], testPeaks[i][0], testPeaks[i][1])
 
 
                         for i in range(len(newpeaks)):
@@ -783,10 +772,6 @@ class McaTheory(object):
                             for peakname in mixname:
                                 newpeaksnames.append(peakname)
 
-                    #if ele == "Fe":
-                    if 0:
-                        for i in range(len(newpeaks)):
-                            print(newpeaksnames[i],newpeaks[i])
                     #print "len newpeaks = ",len(newpeaks)
                     (r,c)=(numpy.array(newpeaks)).shape
                     PEAKS0ESCAPE.append([])
@@ -1206,7 +1191,6 @@ class McaTheory(object):
         except Exception:
             print("Unsuccessful Savitsky-Golay smoothing: %s" % sys.exc_info())
             raise
-            result=numpy.array(y).astype(numpy.float64)
         if len(result) > 1:
             result[1:-1]=numpy.convolve(result,f,mode=0)
             result[0]=0.5*(result[0]+result[1])
@@ -1583,18 +1567,8 @@ class McaTheory(object):
         if continuum:
             result += self.continuum(param,x)
         if summing:
-          if 0:
-            pileup = numpy.arange(3*len(x))*0.0
-            sumfactor = param[4]
-            xmin=int(x[0])
-            offset = zero / gain
-            for i in range(len(result)):
-                pileup[i+xmin-offset:i+len(result)+xmin-i-offset] += sumfactor * result[i] *result[0:len(result)-i]
-            return result+pileup[0:len(result)]
-          else:
-            #summing takes 0.0047 seconds
-            xmin=int(x[0])
-            return result+param[4]*SpecfitFuns.pileup(result, xmin, zero, gain)
+          xmin=int(x[0])
+          return result+param[4]*SpecfitFuns.pileup(result, xmin, zero, gain)
         else:
             return result
 
@@ -1868,16 +1842,9 @@ class McaTheory(object):
                 backpar,backcodes=self.estimatelinpol(self.xdata, self.ydata,self.zz)
         elif CONTINUUM == CONTINUUM_LIST.index('Exp. Polynomial'):
             if linearfit:
-                if 1:
-                    text  = "Linear fit is incompatible with current implementation\n"
-                    text += "of the Exponential Polynomial background"
-                    raise ValueError(text)
-                else:
-                    #no need to estimate background
-                    backpar = []
-                    for i in range(self.config['fit']['exppolorder']+1):
-                        backpar.append(0.0)
-                    backcodes=numpy.zeros((3,len(backpar)),numpy.float64)
+                text  = "Linear fit is incompatible with current implementation\n"
+                text += "of the Exponential Polynomial background"
+                raise ValueError(text)
             else:
                 backpar,backcodes=self.estimateexppol(self.xdata, self.ydata,self.zz)
         else:
@@ -2473,20 +2440,19 @@ class McaTheory(object):
                                 #chisq = -1
                                 chisq = 0.000
                         result[group][peak]['chisq']     = chisq
-                        if 1:
-                            """
-                            if self.__HYPERMET:
-                                result[group][peak]['fitarea']   = PEAKSW[r][j,0] * (1.0 + PEAKSW[r] [j,3])
-                                result[group][peak]['sigmaarea'] = PEAKSW[r][j,0] * (1.0 + PEAKSW[r] [j,3]) * \
-                                                                    abs(sigmaarea/fitarea)
-                            else:
-                            """
-                            if fitarea != 0.0:
-                               result[group][peak]['fitarea']   = PEAKSW[i][j+r,0] /gain
-                               result[group][peak]['sigmaarea'] = result[group][peak]['fitarea']  * abs(sigmaarea/fitarea)
-                            else:
-                               result[group][peak]['fitarea']   = 0.0
-                               result[group][peak]['sigmaarea'] = 0.0
+                        """
+                        if self.__HYPERMET:
+                            result[group][peak]['fitarea']   = PEAKSW[r][j,0] * (1.0 + PEAKSW[r] [j,3])
+                            result[group][peak]['sigmaarea'] = PEAKSW[r][j,0] * (1.0 + PEAKSW[r] [j,3]) * \
+                                                                abs(sigmaarea/fitarea)
+                        else:
+                        """
+                        if fitarea != 0.0:
+                           result[group][peak]['fitarea']   = PEAKSW[i][j+r,0] /gain
+                           result[group][peak]['sigmaarea'] = result[group][peak]['fitarea']  * abs(sigmaarea/fitarea)
+                        else:
+                           result[group][peak]['fitarea']   = 0.0
+                           result[group][peak]['sigmaarea'] = 0.0
                         j += 1
                 else:
                     result[group]['escapepeaks'] = []
@@ -2520,26 +2486,25 @@ class McaTheory(object):
                                     #chisq = -1
                                     chisq = 0.000
                             result[group][peak]['chisq']     = chisq
-                            if 1:
-                                """
-                                if self.__HYPERMET:
-                                    result[group][peak]['fitarea']   = PEAKSW[r][j,0] * (1.0 + PEAKSW[r] [j,3])
-                                    result[group][peak]['sigmaarea'] = PEAKSW[r][j,0] * (1.0 + PEAKSW[r] [j,3]) * \
-                                                                        abs(sigmaarea/fitarea)
-                                else:
-                                """
-                                if fitarea != 0.0:
-                                   result[group][peak]['fitarea']   = PEAKSW[i][j+r,0] /gain
-                                   result[group][peak]['sigmaarea'] = result[group][peak]['fitarea']  * abs(sigmaarea/fitarea)
-                                else:
-                                   result[group][peak]['fitarea']   = 0.0
-                                   result[group][peak]['sigmaarea'] = 0.0
-                                if len(index0):
-                                    if result[group][peak]['fitarea'] > 0:
-                                        result[group][peak]['statistics'] = numpy.take(self.ydata, index0).sum()
-                                        pseudoArea = numpy.take(contrib, index0).sum()
-                                        result[group]['statistics'] += result[group][peak]['ratio']*\
-                                                            abs(result[group][peak]['statistics']-pseudoArea)
+                            """
+                            if self.__HYPERMET:
+                                result[group][peak]['fitarea']   = PEAKSW[r][j,0] * (1.0 + PEAKSW[r] [j,3])
+                                result[group][peak]['sigmaarea'] = PEAKSW[r][j,0] * (1.0 + PEAKSW[r] [j,3]) * \
+                                                                    abs(sigmaarea/fitarea)
+                            else:
+                            """
+                            if fitarea != 0.0:
+                               result[group][peak]['fitarea']   = PEAKSW[i][j+r,0] /gain
+                               result[group][peak]['sigmaarea'] = result[group][peak]['fitarea']  * abs(sigmaarea/fitarea)
+                            else:
+                               result[group][peak]['fitarea']   = 0.0
+                               result[group][peak]['sigmaarea'] = 0.0
+                            if len(index0):
+                                if result[group][peak]['fitarea'] > 0:
+                                    result[group][peak]['statistics'] = numpy.take(self.ydata, index0).sum()
+                                    pseudoArea = numpy.take(contrib, index0).sum()
+                                    result[group]['statistics'] += result[group][peak]['ratio']*\
+                                                        abs(result[group][peak]['statistics']-pseudoArea)
                             j = j + 1
                         ii=ii+1
             #areaenergies.sort()
@@ -2548,25 +2513,8 @@ class McaTheory(object):
             #index = numpy.nonzero((energyw>=areaenergies[0]) & (energyw <=areaenergies[-1]))
             energy = numpy.take(energyw     ,index)
             yfit  = numpy.take(yfitw  ,index)
-            if 0:
-                #this takes into account summing ...
-                buff = self.PEAKS0[i][:,0] * 1.0
-                self.PEAKS0[i][:,0] = 0.0
-                yconw = self.mcatheory(self.fittedpar,xw)
-                self.PEAKS0[i][:,0] = buff * 1.0
-                ycon   = numpy.take(yconw     ,index)
-            else:
-                #(r,c) = (self.PEAKS0[i]).shape
-                #p =  PEAKSW[i][0:r,:]
-                if 0:
-                    p =  PEAKSW[i][:,:]
-                    if self.__HYPERMET:
-                        contrib = SpecfitFuns.fastahypermet(p,energy,self.__HYPERMET)
-                    else:
-                        contrib = SpecfitFuns.apvoigt(p,energy)
-                else:
-                    contrib = numpy.take(contrib     ,index)
-                ycon = yfit - contrib
+            contrib = numpy.take(contrib     ,index)
+            ycon = yfit - contrib
             y   = numpy.take(yw     ,index)
             #pmcaarea      = numpy.sum(y-(yfit-contrib))
             pmcaarea      = numpy.sum(y-ycon)

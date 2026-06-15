@@ -550,30 +550,6 @@ def save3DArrayAsHDF5(data, filename, axes=None, labels=None, dtype=None, mode='
                     dset[i, 0:shape[1], :] = tmp
                     _logger.info("Saved item %d of %d",
                                  i + 1, data.shape[-1])
-            elif 0:
-                # if I do not match the input and output shapes it takes ages
-                # to save the images as spectra. However, it is much faster
-                # when performing spectra operations.
-                dset = nxData.require_dataset('data',
-                                              shape=shape,
-                                              dtype=dtype,
-                                              chunks=(1, shape[1], shape[2]))
-                for i in range(data.shape[1]):  # shape[0]
-                    chunk = numpy.zeros((1, data.shape[2], data.shape[0]),
-                                        dtype)
-                    for k in range(data.shape[0]):  # shape[2]
-                        if 0:
-                            tmpData = data[k:k + 1]
-                            for j in range(data.shape[2]):  # shape[1]
-                                tmpData = tmpData.reshape(data.shape[1], data.shape[2])
-                                chunk[0, j, k] = tmpData[i, j]
-                        else:
-                            tmpData = data[k:k + 1, i, :]
-                            tmpData = numpy.ravel(tmpData)
-                            chunk[0, :, k] = tmpData
-                    _logger.info("Saving item %d of %d",
-                                 i, data.shape[1])
-                    dset[i, :, :] = chunk
             else:
                 # if I do not match the input and output shapes it takes ages
                 # to save the images as spectra. This is a very fast saving, but
@@ -595,6 +571,29 @@ def save3DArrayAsHDF5(data, filename, axes=None, labels=None, dtype=None, mode='
                     tmp = data[i:i + 1, :, :]
                     tmp = tmp.reshape(shape[0], shape[1], 1)
                     dset[:, :, i:i + 1] = tmp
+            THOUGHTS = """
+                # It is much faster when performing spectra operations.
+                dset = nxData.require_dataset('data',
+                                              shape=shape,
+                                              dtype=dtype,
+                                              chunks=(1, shape[1], shape[2]))
+                for i in range(data.shape[1]):  # shape[0]
+                    chunk = numpy.zeros((1, data.shape[2], data.shape[0]),
+                                        dtype)
+                    for k in range(data.shape[0]):  # shape[2]
+                        if 0:
+                            tmpData = data[k:k + 1]
+                            for j in range(data.shape[2]):  # shape[1]
+                                tmpData = tmpData.reshape(data.shape[1], data.shape[2])
+                                chunk[0, j, k] = tmpData[i, j]
+                        else:
+                            tmpData = data[k:k + 1, i, :]
+                            tmpData = numpy.ravel(tmpData)
+                            chunk[0, :, k] = tmpData
+                    _logger.info("Saving item %d of %d",
+                                 i, data.shape[1])
+                    dset[i, :, :] = chunk
+                """
         else:
             if compression:
                 _logger.debug("Saving compressed and chunked dataset")

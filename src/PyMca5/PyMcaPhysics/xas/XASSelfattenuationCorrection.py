@@ -173,13 +173,12 @@ class XASSelfattenuationCorrection(object):
         sinIn = numpy.sin(numpy.deg2rad(alphaIn))
         sinOut= numpy.sin(numpy.deg2rad(alphaOut))
         g = sinIn / sinOut
-        if 1:
-            # thick sample
-            idx = numpy.where(muSampleJump > 0.0)[0][0]
-            muSampleJump[0:idx] = muSampleJump[idx]
-            ALPHA = g * (muTotalFluorescence/muSampleJump) + totalCrossSectionBackground/muSampleJump
-            return (spectrum * ALPHA)/(1 + ALPHA - spectrum)
-        elif 1:
+        # thick sample
+        idx = numpy.where(muSampleJump > 0.0)[0][0]
+        muSampleJump[0:idx] = muSampleJump[idx]
+        ALPHA = g * (muTotalFluorescence/muSampleJump) + totalCrossSectionBackground/muSampleJump
+        return (spectrum * ALPHA)/(1 + ALPHA - spectrum)
+        THOUGHTS = """
             # all samples (to be tested)
             d = thickness * density
             idx = numpy.where(muSampleJump > 0.0)[0][0]
@@ -207,18 +206,7 @@ class XASSelfattenuationCorrection(object):
                 delta = numpy.abs(x - old).max()
                 i += 1
             return x
-        else:
-            thickness = 1.0
-            density = 1.0e-6
-            # FORMULA Booth and Bridges
-            ALPHA =  g * muTotalFluorescence + totalCrossSection
-            tmpFloat0 = density * thickness * ALPHA / sinIn
-            tmpFloat1 = numpy.exp(-tmpFloat0)
-            BETA = (muSampleJump * tmpFloat0) * tmpFloat1
-            GAMMA = 1.0 - tmpFloat1
-            b = GAMMA * ( ALPHA  - muSampleJump * spectrum + BETA)
-            discriminant = b*b + 4 * ALPHA * BETA * GAMMA * (spectrum - 1.0)
-            return 1 + (-b + numpy.sqrt(discriminant))/(2 * BETA)
+            """
 
 if __name__ == "__main__":
     from PyMca.PyMcaIO import specfilewrapper

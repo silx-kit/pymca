@@ -842,18 +842,8 @@ class QPyMcaMatplotlibImage(FigureCanvas):
         shape = self.pixmapImage.shape
         self.pixmapMask = numpy.ones(shape, numpy.uint8)
         shape = self.pixmapImage.shape
-        if 0:
-            # This is slow, but I do not expect huge images
-            for i in range(shape[0]):
-                for j in range(shape[1]):
-                    if (self.pixmapImage[i,j,0] == 0):
-                        if (self.pixmapImage[i,j,1] == 0):
-                            if (self.pixmapImage[i,j,2] == 0):
-                                self.pixmapMask[i,j,0:3] = [0, 0, 0]
-        else:
-            #the image is RGBA, so the sum when there is nothing is 255
-            s = self.pixmapImage.sum(axis=-1)
-            self.pixmapMask[s==255, 0:3] = 0
+        s = self.pixmapImage.sum(axis=-1)
+        self.pixmapMask[s==255, 0:3] = 0
         self.updateFigure()
 
     def _updatePixmapFigure(self):
@@ -875,22 +865,11 @@ class QPyMcaMatplotlibImage(FigureCanvas):
         else:
             extent = self.config['extent']
         if self.config['imagebackground'].lower() == 'white':
-            if 0:
-                self.pixmapImage[:] = (self.pixmapImage * self.pixmapMask) +\
-                               (self.pixmapMask == 0) * 255
-            else:
-                self.pixmapImage[self.pixmapMask == 0] = 255
+            self.pixmapImage[self.pixmapMask == 0] = 255
         elif self.config['imagebackground'].lower() == 'grey':
-            if 0:
-                self.pixmapImage[:] = (self.pixmapImage * self.pixmapMask) +\
-                               (self.pixmapMask == 0) * 128
-            else:
-                self.pixmapImage[self.pixmapMask == 0] = 128
+            self.pixmapImage[self.pixmapMask == 0] = 128
         else:
-            if 0:
-                self.pixmapImage[:] = (self.pixmapImage * self.pixmapMask)
-            else:
-                self.pixmapImage[self.pixmapMask == 0]= 0
+            self.pixmapImage[self.pixmapMask == 0]= 0
         self._image = self.axes.imshow(self.pixmapImage,
                                        interpolation=interpolation,
                                        origin=origin,

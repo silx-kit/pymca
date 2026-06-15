@@ -41,17 +41,7 @@ _logger = logging.getLogger(__name__)
 
 from PyMca5.PyMcaGui import PyMcaQt as qt
 
-if qt.BINDING == 'PySide':
-    from PySide.QtTest import QTest
-    try:  # Available through PySide
-        from PySide.shiboken import isValid  # noqa
-        from PySide.shiboken import createdByPython  # noqa
-        from PySide.shiboken import ownedByPython  # noqa
-    except ImportError:  # Available through standalone shiboken package
-        from Shiboken.shiboken import isValid  # noqa
-        from Shiboken.shiboken import createdByPython  # noqa
-        from Shiboken.shiboken import ownedByPython  # noqa
-elif qt.BINDING == 'PySide2':
+if qt.BINDING == 'PySide2':
     from PySide2.QtTest import QTest
     try:
         from PySide2.shiboken2 import isValid  # noqa

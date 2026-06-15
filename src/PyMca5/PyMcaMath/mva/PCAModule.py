@@ -234,16 +234,6 @@ def lanczosPCA2(stack, ncomponents=10, binning=None, legacy=True, **kw):
                                    evects[-1 - i].astype(dataorig.dtype))
     images = images.reshape(ncomponents, r, c)
     return images, evals, vectors
-    if legacy:
-        return images, evals, vectors
-    else:
-        return {"scores": images,
-                "eigenvalues": evals,
-                "eigenvectors": vectors,
-                "average": mediadata,
-                "pixels": ndata,
-                #"variance": ???????,
-                }
 
 def multipleArrayCovariancePCA(stackList0, **kw):
     return multipleArrayPCA(stackList0, scale=False, **kw)
@@ -789,189 +779,154 @@ def mdpICA(stack, ncomponents=10, binning=None, dtype='float64',
                 data = data.reshape(*oldShape)
         raise ValueError("Number of components too high.")
 
-    if 1:
-        if (mdp.__version__ >= "2.5"):
-            _logger.debug("TDSEPNone")
-            ica = mdp.nodes.TDSEPNode(white_comp=ncomponents,
-                                      verbose=False,
-                                      dtype="float64",
-                                      white_parm={'svd': svd})
-            t0 = time.time()
-            shape = data.shape
-            if len(data.shape) == 3:
-                if r > 10:
-                    step = 10
-                    last = step * (int(r / step) - 1)
-                    for i in range(0, last, step):
-                        print("Training data from %d to %d out of %d" %\
-                              (i + 1, i + step, r))
-                        tmpData = data[i:(i + step), :, :]
-                        if binning > 1:
-                            tmpData = tmpData.reshape((step * shape[1],
-                                             shape[2] // binning,
-                                             binning))
-                            tmpData = numpy.sum(tmpData, axis=-1)
-                        else:
-                            tmpData = tmpData.reshape(step * shape[1], shape[2])
-                        if spectral_mask is None:
-                            ica.train(tmpData)
-                        else:
-                            ica.train(tmpData[:, spectral_mask > 0])
-                    tmpData = None
-                    last = i + step
-                else:
-                    last = 0
-                if binning > 1:
-                    for i in range(last, r):
-                        print("Training data %d out of %d" % (i + 1, r))
-                        tmpData = data[i, :, :]
-                        tmpData = tmpData.reshape(shape[1], shape[2] // binning, binning)
+    if (mdp.__version__ >= "2.5"):
+        _logger.debug("TDSEPNone")
+        ica = mdp.nodes.TDSEPNode(white_comp=ncomponents,
+                                  verbose=False,
+                                  dtype="float64",
+                                  white_parm={'svd': svd})
+        t0 = time.time()
+        shape = data.shape
+        if len(data.shape) == 3:
+            if r > 10:
+                step = 10
+                last = step * (int(r / step) - 1)
+                for i in range(0, last, step):
+                    print("Training data from %d to %d out of %d" %\
+                          (i + 1, i + step, r))
+                    tmpData = data[i:(i + step), :, :]
+                    if binning > 1:
+                        tmpData = tmpData.reshape((step * shape[1],
+                                         shape[2] // binning,
+                                         binning))
                         tmpData = numpy.sum(tmpData, axis=-1)
-                        if spectral_mask is None:
-                            ica.train(tmpData)
-                        else:
-                            ica.train(tmpData[:, spectral_mask > 0])
-                    tmpData = None
-                else:
-                    for i in range(last, r):
-                        print("Training data %d out of %d" % (i + 1, r))
-                        if spectral_mask is None:
-                            ica.train(data[i, :, :])
-                        else:
-                            ica.train(data[i, :, spectral_mask > 0])
+                    else:
+                        tmpData = tmpData.reshape(step * shape[1], shape[2])
+                    if spectral_mask is None:
+                        ica.train(tmpData)
+                    else:
+                        ica.train(tmpData[:, spectral_mask > 0])
+                tmpData = None
+                last = i + step
             else:
-                if data.shape[0] > 10000:
-                    step = 1000
-                    last = step * (int(data.shape[0] / step) - 1)
-                    for i in range(0, last, step):
-                        print("Training data from %d to %d of %d" %\
-                              (i + 1, i + step, data.shape[0]))
-                        if spectral_mask is None:
-                            ica.train(data[i:(i + step), :])
-                        else:
-                            ica.train(data[i:(i + step), spectral_mask > 0])
-                    print("Training data from %d to end of %d" %\
-                          (i + step + 1, data.shape[0]))
-                    if spectral_mask is None:
-                        ica.train(data[(i + step):, :])
-                    else:
-                        ica.train(data[(i + step):, spectral_mask > 0])
-                elif data.shape[0] > 1000:
-                    i = int(data.shape[0] / 2)
-                    if spectral_mask is None:
-                        ica.train(data[:i, :])
-                    else:
-                        ica.train(data[:i, spectral_mask > 0])
-                    _logger.debug("Half training")
-                    if spectral_mask is None:
-                        ica.train(data[i:, :])
-                    else:
-                        ica.train(data[i:, spectral_mask > 0])
-                    _logger.debug("Full training")
-                else:
-                    if spectral_mask is None:
-                        ica.train(data)
-                    else:
-                        ica.train(data[:, spectral_mask > 0])
-            ica.stop_training()
-            _logger.debug("training elapsed = %f", time.time() - t0)
-        else:
-            if 0:
-                print("ISFANode (alike)")
-                ica = mdp.nodes.TDSEPNode(white_comp=ncomponents,
-                                            verbose=False,
-                                            dtype='float64',
-                                            white_parm={'svd':svd})
-            elif 1:
-                _logger.debug("FastICANode")
-                ica = mdp.nodes.FastICANode(white_comp=ncomponents,
-                                            verbose=False,
-                                            dtype=dtype)
-            else:
-                _logger.debug("CuBICANode")
-                ica = mdp.nodes.CuBICANode(white_comp=ncomponents,
-                                            verbose=False,
-                                            dtype=dtype)
-            ica.train(data)
-            ica.stop_training()
-            #output = ica.execute(data)
-
-        proj = ica.get_projmatrix(transposed=0)
-
-        # These are the PCA data
-        eigenvalues = ica.white.d * 1
-        eigenvectors = ica.white.v.T * 1
-        vectors = numpy.zeros((ncomponents * 2, N), data.dtype)
-        if spectral_mask is None:
-            vectors[0:ncomponents, :] = proj * 1  # ica components?
-            vectors[ncomponents:, :] = eigenvectors
-        else:
-            vectors = numpy.zeros((2 * ncomponents, N), eigenvectors.dtype)
-            vectors[0:ncomponents, spectral_mask > 0] = proj * 1
-            vectors[ncomponents:, spectral_mask > 0] = eigenvectors
-
-        if (len(data.shape) == 3):
-            images = numpy.zeros((2 * ncomponents, r, c), data.dtype)
-            for i in range(r):
-                _logger.info("Building images. Projecting data %d out of %d",
-                             i + 1, r)
-                if binning > 1:
-                    if spectral_mask is None:
-                        tmpData = data[i, :, :]
-                    else:
-                        tmpData = data[i, :, spectral_mask > 0]
-                    tmpData = tmpData.reshape((data.shape[1],
-                                     data.shape[2] // binning,
-                                     binning))
+                last = 0
+            if binning > 1:
+                for i in range(last, r):
+                    print("Training data %d out of %d" % (i + 1, r))
+                    tmpData = data[i, :, :]
+                    tmpData = tmpData.reshape(shape[1], shape[2] // binning, binning)
                     tmpData = numpy.sum(tmpData, axis=-1)
-                    tmpData = ica.white.execute(tmpData)
-                else:
                     if spectral_mask is None:
-                        tmpData = ica.white.execute(data[i, :, :])
+                        ica.train(tmpData)
                     else:
-                        tmpData = ica.white.execute(data[i, :, spectral_mask > 0])
-                images[ncomponents:(2 * ncomponents), i, :] = tmpData.T[:, :]
-                images[0:ncomponents, i, :] =\
-                    numpy.dot(tmpData, ica.filters).T[:, :]
+                        ica.train(tmpData[:, spectral_mask > 0])
+                tmpData = None
+            else:
+                for i in range(last, r):
+                    print("Training data %d out of %d" % (i + 1, r))
+                    if spectral_mask is None:
+                        ica.train(data[i, :, :])
+                    else:
+                        ica.train(data[i, :, spectral_mask > 0])
         else:
-            images = numpy.zeros((2 * ncomponents, r * c), data.dtype)
-            if spectral_mask is None:
-                images[0:ncomponents, :] =\
-                    numpy.dot(proj.astype(data.dtype), data.T)
+            if data.shape[0] > 10000:
+                step = 1000
+                last = step * (int(data.shape[0] / step) - 1)
+                for i in range(0, last, step):
+                    print("Training data from %d to %d of %d" %\
+                          (i + 1, i + step, data.shape[0]))
+                    if spectral_mask is None:
+                        ica.train(data[i:(i + step), :])
+                    else:
+                        ica.train(data[i:(i + step), spectral_mask > 0])
+                print("Training data from %d to end of %d" %\
+                      (i + step + 1, data.shape[0]))
+                if spectral_mask is None:
+                    ica.train(data[(i + step):, :])
+                else:
+                    ica.train(data[(i + step):, spectral_mask > 0])
+            elif data.shape[0] > 1000:
+                i = int(data.shape[0] / 2)
+                if spectral_mask is None:
+                    ica.train(data[:i, :])
+                else:
+                    ica.train(data[:i, spectral_mask > 0])
+                _logger.debug("Half training")
+                if spectral_mask is None:
+                    ica.train(data[i:, :])
+                else:
+                    ica.train(data[i:, spectral_mask > 0])
+                _logger.debug("Full training")
             else:
-                tmpData = data[:, spectral_mask > 0]
-                images[0:ncomponents, :] =\
-                    numpy.dot(proj.astype(data.dtype), tmpData.T)
-            proj = ica.white.get_projmatrix(transposed=0)
-            if spectral_mask is None:
-                images[ncomponents:(2 * ncomponents), :] =\
-                    numpy.dot(proj.astype(data.dtype), data.T)
-            else:
-                images[ncomponents:(2 * ncomponents), :] =\
-                    numpy.dot(proj.astype(data.dtype), data[:, spectral_mask > 0].T)
-        images = images.reshape(2 * ncomponents, r, c)
+                if spectral_mask is None:
+                    ica.train(data)
+                else:
+                    ica.train(data[:, spectral_mask > 0])
+        ica.stop_training()
+        _logger.debug("training elapsed = %f", time.time() - t0)
     else:
+        _logger.debug("FastICANode")
         ica = mdp.nodes.FastICANode(white_comp=ncomponents,
-                                    verbose=False, dtype=dtype)
+                                    verbose=False,
+                                    dtype=dtype)
         ica.train(data)
-        output = ica.execute(data)
+        ica.stop_training()
+        #output = ica.execute(data)
 
-        proj = ica.get_projmatrix(transposed=0)
+    proj = ica.get_projmatrix(transposed=0)
 
-        # These are the PCA data
-        # make sure no reference to the ica module is kept to make sure
-        # memory is relased.
-        eigenvalues = ica.white.d * 1
-        eigenvectors = ica.white.v.T * 1
-        images = numpy.zeros((2 * ncomponents, r * c), data.dtype)
-        vectors = numpy.zeros((ncomponents * 2, N), data.dtype)
+    # These are the PCA data
+    eigenvalues = ica.white.d * 1
+    eigenvectors = ica.white.v.T * 1
+    vectors = numpy.zeros((ncomponents * 2, N), data.dtype)
+    if spectral_mask is None:
         vectors[0:ncomponents, :] = proj * 1  # ica components?
         vectors[ncomponents:, :] = eigenvectors
-        images[0:ncomponents, :] = numpy.dot(proj.astype(data.dtype), data.T)
+    else:
+        vectors = numpy.zeros((2 * ncomponents, N), eigenvectors.dtype)
+        vectors[0:ncomponents, spectral_mask > 0] = proj * 1
+        vectors[ncomponents:, spectral_mask > 0] = eigenvectors
+
+    if (len(data.shape) == 3):
+        images = numpy.zeros((2 * ncomponents, r, c), data.dtype)
+        for i in range(r):
+            _logger.info("Building images. Projecting data %d out of %d",
+                         i + 1, r)
+            if binning > 1:
+                if spectral_mask is None:
+                    tmpData = data[i, :, :]
+                else:
+                    tmpData = data[i, :, spectral_mask > 0]
+                tmpData = tmpData.reshape((data.shape[1],
+                                 data.shape[2] // binning,
+                                 binning))
+                tmpData = numpy.sum(tmpData, axis=-1)
+                tmpData = ica.white.execute(tmpData)
+            else:
+                if spectral_mask is None:
+                    tmpData = ica.white.execute(data[i, :, :])
+                else:
+                    tmpData = ica.white.execute(data[i, :, spectral_mask > 0])
+            images[ncomponents:(2 * ncomponents), i, :] = tmpData.T[:, :]
+            images[0:ncomponents, i, :] =\
+                numpy.dot(tmpData, ica.filters).T[:, :]
+    else:
+        images = numpy.zeros((2 * ncomponents, r * c), data.dtype)
+        if spectral_mask is None:
+            images[0:ncomponents, :] =\
+                numpy.dot(proj.astype(data.dtype), data.T)
+        else:
+            tmpData = data[:, spectral_mask > 0]
+            images[0:ncomponents, :] =\
+                numpy.dot(proj.astype(data.dtype), tmpData.T)
         proj = ica.white.get_projmatrix(transposed=0)
-        images[ncomponents:(2 * ncomponents), :] =\
-            numpy.dot(proj.astype(data.dtype), data.T)
-        images = images.reshape(2 * ncomponents, r, c)
+        if spectral_mask is None:
+            images[ncomponents:(2 * ncomponents), :] =\
+                numpy.dot(proj.astype(data.dtype), data.T)
+        else:
+            images[ncomponents:(2 * ncomponents), :] =\
+                numpy.dot(proj.astype(data.dtype), data[:, spectral_mask > 0].T)
+    images = images.reshape(2 * ncomponents, r, c)
 
     if binning == 1:
         if data.shape != oldShape:

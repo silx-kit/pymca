@@ -5,14 +5,11 @@ import sys
 import PyMca5.PyMcaGui.pymca as target
 
 fname = os.path.join(os.path.dirname(target.__file__), 'PyMcaMain.py')
-if sys.version < '3.0':
-    execfile(fname)
+f = open(fname, "rb")
+code_txt = f.read()
+f.close()
+if sys.version_info < (3, 6):
+    code = compile(code_txt, fname, 'exec')
 else:
-    f = open(fname, "rb")
-    code_txt = f.read()
-    f.close()
-    if sys.version_info < (3, 6):
-        code = compile(code_txt, fname, 'exec')
-    else:
-        code = code_txt
-    exec(code)
+    code = code_txt
+exec(code)

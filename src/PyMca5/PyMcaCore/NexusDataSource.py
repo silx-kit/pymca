@@ -44,9 +44,6 @@ import re
 import logging
 phynx = h5py
 
-if sys.version_info >= (3,):
-    basestring = str
-
 from . import DataObject
 from . import NexusTools
 
@@ -165,7 +162,7 @@ class NexusDataSource(object):
             nameList = [nameInput]
         self.sourceName = []
         for name in nameList:
-            if not isinstance(name, basestring):
+            if not isinstance(name, str):
                 if not isinstance(name, h5py.File):
                     text = "Constructor needs string as first argument"
                     raise TypeError(text)

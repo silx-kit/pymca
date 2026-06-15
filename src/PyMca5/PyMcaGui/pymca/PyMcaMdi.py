@@ -196,7 +196,7 @@ class PyMcaMdi(qt.QMainWindow):
         self.onWinToolAction()
 
     def onWinToolAction(self):
-        apply(self.winToolMenuAction, ())
+        self.winToolMenuAction()
 
     #
     # Mdi windows geometry

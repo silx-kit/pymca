@@ -27,7 +27,6 @@
 # THE SOFTWARE.
 #
 #############################################################################*/
-from __future__ import with_statement
 __author__ = "V.A. Sole - ESRF Data Analysis"
 __contact__ = "sole@esrf.fr"
 __license__ = "MIT"

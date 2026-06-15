@@ -374,16 +374,9 @@ class PyMcaPrintPreview(qt.QDialog):
             svgItem = GraphicsSvgItem(self.page)
             svgItem.setSharedRenderer(item)
             svgItem.setBoundingRect(item._viewBox)
-        elif 1:
+        else:
             svgItem = GraphicsSvgRectItem(item._viewBox, self.page)
             svgItem.setSvgRenderer(item)
-        else:
-            svgItem = qt.QGraphicsSvgItem(self.page)
-            svgItem.setSharedRenderer(item)
-            if hasattr(item, "_viewBox"):
-                svgScaleX = item._viewBox.width()/svgItem.boundingRect().width()
-                svgScaleY = item._viewBox.height()/svgItem.boundingRect().height()
-                svgItem.scale(svgScaleX, svgScaleY)
 
         svgItem.setCacheMode(qt.QGraphicsItem.NoCache)
         svgItem.setZValue(0)
@@ -685,17 +678,12 @@ def testPreview():
 
     filename = sys.argv[1]
     if filename[-3:] == "svg":
-        if 0:
-            item = qt.QSvgWidget()
-            item.load(filename)
-            item.show()
-        else:
-            w = PyMcaPrintPreview( parent = None, printer = None, name = 'Print Prev',
-                      modal = 0, fl = 0)
-            w.resize(400,500)
-            item = qt.QGraphicsSvgItem(filename, w.page)
-            item.setFlag(qt.QGraphicsItem.ItemIsMovable, True)
-            item.setCacheMode(qt.QGraphicsItem.NoCache)
+        w = PyMcaPrintPreview( parent = None, printer = None, name = 'Print Prev',
+                  modal = 0, fl = 0)
+        w.resize(400,500)
+        item = qt.QGraphicsSvgItem(filename, w.page)
+        item.setFlag(qt.QGraphicsItem.ItemIsMovable, True)
+        item.setCacheMode(qt.QGraphicsItem.NoCache)
         sys.exit(w.exec())
 
     w = PyMcaPrintPreview( parent = None, modal=0)
