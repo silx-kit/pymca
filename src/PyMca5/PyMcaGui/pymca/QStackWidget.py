@@ -63,6 +63,9 @@ from PyMca5.PyMcaCore import McaStackExport
 from PyMca5.PyMcaGui.misc import CloseEventNotifyingWidget
 from PyMca5.PyMcaGui.plotting import MaskImageWidget
 convertToRowAndColumn = MaskImageWidget.convertToRowAndColumn
+from PyMca5.PyMcaGui.plotting.MaskScatterViewWidget import MaskScatterViewWidget
+from silx.gui.plot import items as silx_items
+from silx.gui.plot.items.scatter import _guess_grid
 
 from PyMca5.PyMcaGui.pymca import RGBCorrelator
 from PyMca5.PyMcaGui.pymca import QStackWidget
@@ -204,6 +207,13 @@ class QStackWidget(StackBase.StackBase,
         boxmainlayout.addWidget(self.roiWindow)
         self.mainLayout.addWidget(box)
 
+        # scatter mode is configured lazily in setStack when the loaded stack
+        # carries info["scatter"] == True (see _configureScatterMode). Two
+        # scatter views replace the two grid images (stack + ROI).
+        self._scatterStackView = None
+        self._scatterRoiView = None
+        self._scatterMode = False
+
 
         #add some missing icons
         offset = 8
@@ -243,7 +253,8 @@ class QStackWidget(StackBase.StackBase,
         self.stackWidget.setImageData(None)
         self.roiWidget.setImageData(None)
         StackBase.StackBase.setStack(self, *var, **kw)
-        if (1 in self._stack.data.shape) and\
+        scatter = self._stack.info.get("scatter", False)
+        if (not scatter) and (1 in self._stack.data.shape) and\
            isinstance(self._stack.data, numpy.ndarray):
             oldshape = self._stack.data.shape
             dialog = ImageShapeDialog(self, shape=oldshape[0:2])
@@ -267,6 +278,7 @@ class QStackWidget(StackBase.StackBase,
                 # make sure old ROI images are not used
                 self._ROIImageDict["ROI"] = None
                 StackBase.StackBase.setStack(self, self._stack, **kw)
+        self._configureScatterMode(scatter)
         if self._mcaMax is not None:
             self.addMcaMaxButton.show()
         else:
@@ -1087,7 +1099,12 @@ class QStackWidget(StackBase.StackBase,
     def showROIImageList(self, imageList, image_names=None):
         xScale = self._stack.info.get("xScale", None)
         yScale = self._stack.info.get("yScale", None)
-        if self.roiBackgroundButton.isChecked():
+        if self._scatterMode and (self._scatterRoiView is not None):
+            # required for the "Add Image"
+            self.roiWidget.graphWidget.graph.setGraphTitle(image_names[0])
+            self._feedScatterView(self._scatterRoiView, imageList[0], full=False)
+            self._setRoiWidgetGridImage()
+        elif self.roiBackgroundButton.isChecked():
             self.roiWidget.graphWidget.graph.setGraphTitle(image_names[0] + \
                                                            " Net")
             self.roiWidget.setImageData(imageList[0]-imageList[-1],
@@ -1271,6 +1288,21 @@ class QStackWidget(StackBase.StackBase,
                 else:
                     widget.setSelectionMask(mask, plot=True)
 
+        # mirror the mask onto the scatter views
+        if self._scatterMode and (self.getStackOriginalImage() is not None):
+            scatterMask = mask.reshape((-1,)) if mask is not None else None
+            # update original (left) stack
+            if self._scatterStackView is not None:
+                self._scatterStackView.getMaskToolsWidget().setSelectionMask(scatterMask)
+            # right view keep selection
+            if (self._scatterRoiView is not None) and (instance_id != id(self._scatterRoiView)):
+                roiMask = self._scatterRoiView.getMaskToolsWidget()
+                roiMask.sigMaskChanged.disconnect(self._scatterMaskChanged)
+                try:
+                    roiMask.setSelectionMask(scatterMask)
+                finally:
+                    roiMask.sigMaskChanged.connect(self._scatterMaskChanged)
+
         if self.rgbWidget is not None:
             if hasattr(self.rgbWidget, "setSelectionMask"):
                 self.rgbWidget.setSelectionMask(mask, instance_id=instance_id)
@@ -1311,6 +1343,137 @@ class QStackWidget(StackBase.StackBase,
 
     def getSelectionMask(self):
         return self._selectionMask
+
+    def _configureScatterMode(self, scatter):
+        """
+        Replace the raw stack and the ROI image with MaskScatterViews
+        or restore the regular widgets.
+
+        The MaskImageWidgets and MaskScatterViewWidgets
+        are kept alive but hidden in coressponding mode
+        """
+        if scatter:
+            if self._scatterRoiView is None:
+                # left - orginal stack
+                try:
+                    self._scatterStackView = MaskScatterViewWidget(parent=self.stackWindow, backend="mpl")
+                except:
+                    self._scatterStackView = MaskScatterViewWidget(parent=self.stackWindow, backend="gl")
+                irregular = silx_items.Scatter.Visualization.IRREGULAR_GRID
+                self._scatterStackView.setVisualizationMode(irregular)
+                self._scatterStackView.setSelectionEditable(False)
+                # insert the scatter view in the origin
+                sidx = self.stackWindow.mainLayout.indexOf(self.stackWidget)
+                self.stackWindow.mainLayout.insertWidget(sidx, self._scatterStackView)
+                # right - ROI image
+                try:
+                    self._scatterRoiView = MaskScatterViewWidget(parent=self.roiWindow, backend="mpl")
+                except:
+                    self._scatterRoiView = MaskScatterViewWidget(parent=self.roiWindow, backend="gl")
+                self._scatterRoiView.setVisualizationMode(irregular)
+                # show maks tool on start
+                self._scatterRoiView.setMaskToolsVisible(True)
+                # insert the scatter view in the roi
+                ridx = self.roiWindow.mainLayout.indexOf(self.roiWidget)
+                self.roiWindow.mainLayout.insertWidget(ridx, self._scatterRoiView)
+                self._buildScatterControls()
+                self._scatterRoiView.getMaskToolsWidget().sigMaskChanged.connect(self._scatterMaskChanged)
+            self.stackWidget.hide()
+            self.roiWidget.graphWidget.hide()
+            self._scatterStackView.show()
+            self._scatterRoiView.show()
+            self._scatterMode = True
+            self._updateScatterData(full=True)
+        else:
+            if self._scatterStackView is not None:
+                self._scatterStackView.hide()
+            if self._scatterRoiView is not None:
+                self._scatterRoiView.hide()
+            self.stackWidget.show()
+            self.roiWidget.graphWidget.show()
+            self._scatterMode = False
+
+    def _buildScatterControls(self):
+        """
+        Recreate, control buttons on scatterStackView
+        """
+        scatterToolBar = self._scatterStackView.addControlToolBar("Stack")
+
+        self._scatterNormalizeAction = qt.QAction(
+            self.normalizeIcon, "Add spectra normalized to the number of selected pixels", scatterToolBar)
+        self._scatterNormalizeAction.setCheckable(True)
+        self._scatterNormalizeAction.setChecked(self.normalizeButton.isChecked())
+        self._scatterNormalizeAction.toggled.connect(self.normalizeButton.setChecked)
+        self.normalizeButton.toggled.connect(self._scatterNormalizeAction.setChecked)
+        scatterToolBar.addAction(self._scatterNormalizeAction)
+
+        if self.primary:
+            loadAction = qt.QAction(self.loadIcon, "Load another stack of same shape", scatterToolBar)
+            loadAction.triggered.connect(self.loadSecondaryStack)
+            scatterToolBar.addAction(loadAction)
+
+        pluginAction = qt.QAction(self.pluginIcon, "Call/Load Stack Plugins", scatterToolBar)
+        pluginAction.triggered.connect(self._pluginClicked)
+        scatterToolBar.addAction(pluginAction)
+
+    def _feedScatterView(self, view, imageData, full):
+        """
+        Show ``imageData`` on the scatter view.
+        :param full: if True also populate the positioners
+        """
+        if (view is None) or (imageData is None):
+            return
+        if full:
+            info = self._stack.info
+            view.setNumPoints(imageData.size)
+            view.fillPositioners(info.get("positioners", {}))
+            axes = info.get("scatterAxes")
+            if axes:
+                view.setSelectedPositioners(axes[0], axes[1])
+        view.setData(imageData)
+        if full:
+            view.resetZoom()
+
+    def _updateScatterData(self, full=False):
+        image = self.getStackOriginalImage()
+        self._feedScatterView(self._scatterStackView, image, full)
+        self._feedScatterView(self._scatterRoiView, image, full)
+        self._setRoiWidgetGridImage()
+
+    def _setRoiWidgetGridImage(self):
+        gridded = self._scatterRegularGridImage()
+        if gridded is not None:
+            self.roiWidget.setImageData(gridded)
+        else:
+            _logger.warning("could define the regular-grid")
+
+    def _scatterRegularGridImage(self):
+        item = self._scatterRoiView.getScatterView().getScatterItem()
+        guess = _guess_grid(item.getXData(copy=False), item.getYData(copy=False))
+        if guess is None:
+            return None
+        order, (height, width) = guess
+        # nan padding (before padding was done only for the visualisation)
+        values = numpy.asarray(item.getValueData(copy=False), dtype=numpy.float64)
+        image = numpy.full(height * width, numpy.nan, dtype=numpy.float64)
+        image[:values.size] = values
+        if order == "row":
+            return image.reshape(height, width)
+        else:
+            return image.reshape(width, height).T
+
+    def _scatterMaskChanged(self):
+        """
+        Propagate a selection drawn on the ROI to the original stack.
+        """
+        mtw = self._scatterRoiView.getMaskToolsWidget()
+        scattermask = mtw.getSelectionMask(copy=False)
+        original = self.getStackOriginalImage()
+        if (scattermask is not None) and (original is not None):
+            mask = scattermask.reshape(original.shape)
+        else:
+            mask = None
+        self.setSelectionMask(mask, instance_id=id(self._scatterRoiView))
 
     def _maskImageWidgetSlot(self, ddict):
         if ddict['event'] == "selectionMaskChanged":
@@ -1448,6 +1611,10 @@ class QStackWidget(StackBase.StackBase,
         # Inform plugins
         for key in self.pluginInstanceDict.keys():
             self.pluginInstanceDict[key].stackClosed()
+        if self._scatterStackView is not None:
+            self._scatterStackView.close()
+        if self._scatterRoiView is not None:
+            self._scatterRoiView.close()
         CloseEventNotifyingWidget.CloseEventNotifyingWidget.closeEvent(self, event)
         if (self._primaryStack is None) and __name__ == "__main__":
             app = qt.QApplication.instance()

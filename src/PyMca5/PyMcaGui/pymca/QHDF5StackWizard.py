@@ -36,6 +36,7 @@ from PyMca5.PyMcaGui.io.hdf5 import QNexusWidget
 from PyMca5.PyMcaCore import NexusDataSource
 from PyMca5 import PyMcaDirs
 import logging
+import numpy
 
 _logger = logging.getLogger(__name__)
 
@@ -189,6 +190,11 @@ class DatasetSelectionPage(qt.QWizardPage):
 
         self.stackIndexWidget = StackIndexWidget(self)
         self.mainLayout.addWidget(self.stackIndexWidget, 0)
+
+        self._scatterCheckBox = qt.QCheckBox(
+            "Scatter plot (X, Y coordinates are set per image point)", self)
+        self._scatterCheckBox.setChecked(False)
+        self.mainLayout.addWidget(self._scatterCheckBox, 0)
 
     def setFileList(self, filelist):
         self.dataSource = NexusDataSource.NexusDataSource(filelist[0])
@@ -354,8 +360,104 @@ class DatasetSelectionPage(qt.QWizardPage):
             if len(cntSelection[key]):
                 for idx in cntSelection[key]:
                     selection[key].append(cntlist[idx])
+        scatter = self._scatterCheckBox.isChecked()
+        if scatter and len(selection['x']) < 2:
+            self.showMessage("Scatter mode requires two datasets selected as axes")
+            return False
+
+        # Compare the axes and signal sizes, while the navigator is still open
+        try:
+            # choose selected entry, or first entry if none selected
+            h5file = self.dataSource._sourceObjectList[0]
+            entries = self.nexusWidget.getSelectedEntries()
+            entry = entries[0][0] if entries else list(h5file.keys())[0]
+
+            signalShapes = []
+            for yPath in selection['y']:
+                yShape = h5file[posixpath.join(entry, yPath.lstrip("/"))].shape
+                signalShapes.append(yShape)
+            
+            # selected siganls are summed later so they must have the same shape
+            # actually if the shapes are different the sum sometimes could be computed
+            # but probably is not desired beavior
+            signalShape = signalShapes[0]
+            if not all(shape == signalShape for shape in signalShapes):
+                self.showMessage("Not all signal shapes are equal")
+                return False
+            
+            if selection['index'] == -1:
+                mcaAxis = len(signalShape) - 1
+            else:
+                mcaAxis = selection['index']
+            
+            nPoints = numpy.prod(numpy.delete(signalShape, mcaAxis))
+            
+            def _axisLength(path):
+                dataset = h5file[posixpath.join(entry, path.lstrip("/"))]
+                return numpy.prod(dataset.shape)
+            
+            axisSizes = [_axisLength(p) for p in selection['x']]
+            axisSize = axisSizes[0]
+            
+            # could be considered to be changed later
+            # if we want to allow one axis as per point and another to be normal one
+            # also will require changes in HDF5Stack1D.py
+            if not all(shape == axisSize for shape in axisSizes) and scatter:
+                self.showMessage("Axes should have same number of positions (as they hold one value per scan point)")
+                return False
+
+
+        except Exception:
+            print("WARNING: Fail to identify number of scan points and/or axes sizes")
+            nPoints, axisSizes = None, []
+
+        # check consistency of the number of points in the signal and the number of positions in the axes
+        if (nPoints is not None) and (nPoints > 1) and axisSizes:
+            if scatter:
+                if axisSize < nPoints:
+                    self.showMessage(
+                        "Fewer positions than points in scan is impossible")
+                    return False
+                if axisSize > nPoints:
+                    if not self._confirmPadding(
+                        "There are %d motor positions but only %d scan points."
+                        "The missing points can be padded with NaN and will be shown as empty."
+                        % (axisSize, nPoints)):
+                        return False
+            elif len(axisSizes) == 2:
+                nA, nB = axisSizes
+                if (nA == nB) and (nA >= nPoints):
+                    self.showMessage(
+                        "The selected motor positions hold one value per scan point."
+                        "The regular grid can not be defined."
+                        "Enable 'Scatter plot' or select different axes.")
+                    return False
+                elif (nA * nB) < nPoints:
+                    self.showMessage(
+                        "The selected axes define %d positions (%d x %d) but the "
+                        "signal has %d points. Please select differently." % (nA * nB, nA, nB, nPoints))
+                    return False
+                elif (nA * nB) > nPoints:
+                    if not self._confirmPadding(
+                        "The %d x %d grid has %d positions but there are only %d scan points."
+                        "The missing points can be padded with NaN and will be shown as empty."
+                        % (nA, nB, nA * nB, nPoints)):
+                        return False
+        selection['scatter'] = scatter
         self.selection = selection
         return True
+
+    def _confirmPadding(self, text):
+        """Confirm padding while wizard is open"""
+        msg = qt.QMessageBox(self)
+        msg.setIcon(qt.QMessageBox.Warning)
+        msg.setWindowTitle("Unfinished scan")
+        msg.setText(text + "\n\nContinue, or cancel to change the selection?")
+        contButton = msg.addButton("Continue", qt.QMessageBox.AcceptRole)
+        msg.addButton("Cancel", qt.QMessageBox.RejectRole)
+        msg.exec()
+        clicked = msg.clickedButton()
+        return clicked is contButton
 
     def showMessage(self, text):
         msg = qt.QMessageBox(self)

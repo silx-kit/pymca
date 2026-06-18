@@ -110,6 +110,7 @@ class HDF5Stack1D(DataObject.DataObject):
                 xSelection = None
         else:
             xSelection = None
+        xDatasetList = []
         # only one y is taken
         ySelection = selection['y']
         if type(ySelection) == type([]):
@@ -132,6 +133,8 @@ class HDF5Stack1D(DataObject.DataObject):
                 mSelection = None
         else:
             mSelection = None
+
+        scatter = selection.get('scatter', False)
 
         USE_JUST_KEYS = False
         # deal with the pathological case where the scanlist corresponds
@@ -359,11 +362,12 @@ class HDF5Stack1D(DataObject.DataObject):
                     mDataset = numpy.asarray(tmpHdf[mpath], dtype=mdtype)
                     self.monitor = [mDataset]
                 if xSelectionList is not None:
-                    if len(xpathList) == 1:
-                        xpath = xpathList[0]
-                        xDataset = tmpHdf[xpath][()]
-                        xDatasetList = [xDataset]
-                        self.x = [xDataset]
+                    # not to fail the scatter plot all axes are loaded
+                    xDatasetList = []
+                    for xpath in xpathList:
+                        xDatasetList.append(tmpHdf[xpath][()])
+                    if len(xDatasetList) == 1:
+                        self.x = [xDatasetList[0]]
                 if h5py.version.version < '2.0':
                     #prevent automatic closing keeping a reference
                     #to the open file
@@ -799,7 +803,7 @@ class HDF5Stack1D(DataObject.DataObject):
 
         # try to get scales
         scaleList = []
-        if xSelectionList is not None:
+        if (xSelectionList is not None) and (not scatter):
             if len(xDatasetList) == 1:
                 xDataset = xDatasetList[0]
                 if xDataset.size == shape[self.info['McaIndex']]:
@@ -823,7 +827,7 @@ class HDF5Stack1D(DataObject.DataObject):
                     for i in range(len(self.data.shape)):
                         dataset = xDatasetList[i].reshape(-1)
                         datasize = self.data.shape[i]
-                        if i == mcaIndex:
+                        if i == self.info["McaIndex"]:
                             self.x = [dataset]
                         else:
                             origin = dataset[0]
@@ -842,8 +846,8 @@ class HDF5Stack1D(DataObject.DataObject):
                     _logger.warning("Ignoring dimension selections %s" % xSelectionList)
             elif len(xDatasetList) == (len(self.data.shape) - 1):
                 scaleList = []
-                for i in range(len(self.data.shape)):
-                    if i == mcaIndex:
+                for i in range(len(xDatasetList)):
+                    if i == self.info["McaIndex"]:
                         continue
                     dataset = xDatasetList[i].reshape(-1)
                     datasize = self.data.shape[i]
@@ -873,8 +877,8 @@ class HDF5Stack1D(DataObject.DataObject):
             self.info["McaLiveTime"] = _time
         if positionersGroup:
             self.info["positioners"] = positioners
-        if (len(scaleList) == 0) and (nFiles == 1) and (nScans == 1) \
-           and (len(self.data.shape) == 3):
+        if (len(scaleList) == 0) and (not scatter) and (nFiles == 1) \
+           and (nScans == 1) and (len(self.data.shape) == 3):
             # try to figure out the scales from the data layout
             originalDir = posixpath.dirname(mcaObjectPaths["counts"])
             targetDir = posixpath.dirname(mcaObjectPaths["target"])
@@ -901,7 +905,7 @@ class HDF5Stack1D(DataObject.DataObject):
             if len(dims) == len(self.data.shape):
                 scaleList = []
                 for i in range(len(self.data.shape)):
-                    if i == mcaIndex:
+                    if i == self.info["McaIndex"]:
                         continue
                     dataset = dims[i]
                     origin = dataset[0]
@@ -920,6 +924,65 @@ class HDF5Stack1D(DataObject.DataObject):
             if len(scaleList) == 2:
                 self.info["xScale"] = xScale
                 self.info["yScale"] = yScale
+
+        if scatter and (xSelectionList is not None) and (len(xDatasetList) >= 2):
+            # This will never happen while using "show as 1D stack"
+            # Thus, all motors should be already selected
+            # The padding should happen anyway!
+            # At this point all selections should be already validated by the wizard
+            motors = []
+            names = [] 
+            # for scatter plot there should be only two motors
+            for i in (0, 1):
+                motors.append(numpy.asarray(xDatasetList[i]).reshape(-1))
+                names.append(posixpath.basename(xSelectionList[i]))
+            nPoints = motors[0].size
+            if self.data.shape[0] == 1:
+                self._padFlatStack(nPoints)
+            for name, motor in zip(names, motors):
+                # the selected axes are not treated as grid scales
+                positioners[name] = motor
+            self.info["positioners"] = positioners
+            self.info["scatter"] = True
+            self.info["scatterAxes"] = tuple(names)
+        elif (not scatter) and (self.data.shape[0] == 1) and (len(self.data.shape) == 3)\
+            and (xSelectionList is not None) and (len(xDatasetList) == 2):
+            # For stack (1, n, nChannels) and axes (i, j) with i*j = n
+            # case i*j > n is also supported with padding but should be protected
+            axes = []
+            axesDim = []
+            for i in (0, 1):
+                axes.append(numpy.asarray(xDatasetList[i]).reshape(-1))
+                axesDim.append(axes[-1].size)
+            if (len(scaleList) != 2) and (axesDim[0] * axesDim[1] >= nSpectra):
+                self._padFlatStack(axesDim[0] * axesDim[1])
+                self.data = self.data.reshape(axesDim[0], axesDim[1], self.data.shape[-1])
+                self.info["McaIndex"] = 2
+                self.info["Dim_1"] = axesDim[0]
+                self.info["Dim_2"] = axesDim[1]
+                self.info["Dim_3"] = self.data.shape[-1]
+                self.info["yScale"] = [float(axes[0][0]),
+                                       float(numpy.mean(numpy.diff(axes[0])))]
+                self.info["xScale"] = [float(axes[1][0]),
+                                       float(numpy.mean(numpy.diff(axes[1])))]
+
+    def _padFlatStack(self, targetNumPoints):
+        """Pad a stack (1, n, nChannels) with numpy.nan upto targetNumPoints."""
+        n = self.data.shape[1]
+        mcaDim = self.data.shape[-1]
+        if targetNumPoints <= n:
+            return
+        # due to numpy.nan the type should be float
+        if self.data.dtype in (numpy.float16, numpy.float32):
+            padDtype = self.data.dtype
+        else:
+            padDtype = numpy.float64
+        newData = numpy.full((1, targetNumPoints, mcaDim), numpy.nan, dtype=padDtype)
+        newData[0, :n, :] = self.data[0]
+        self.data = newData
+        self.info["Dim_1"] = 1
+        self.info["Dim_2"] = targetNumPoints
+        self.info["Dim_3"] = mcaDim
 
     def getDimensions(self, nFiles, nScans, shape, index=None):
         #somebody may want to overwrite this
