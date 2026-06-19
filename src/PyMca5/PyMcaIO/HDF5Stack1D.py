@@ -135,6 +135,8 @@ class HDF5Stack1D(DataObject.DataObject):
             mSelection = None
 
         scatter = selection.get('scatter', False)
+        # padded only if authorized by user in wizard
+        allowPadding = selection.get('allowPadding', False)
 
         USE_JUST_KEYS = False
         # deal with the pathological case where the scanlist corresponds
@@ -792,6 +794,29 @@ class HDF5Stack1D(DataObject.DataObject):
             self.info['McaCalib'] = _calibration
         else:
             self.info['McaCalib'] = [ 0.0, 1.0, 0.0]
+        # "1D data is first dimension" with McaIndex == 0 case 
+        # scatter / regular-grid imaging expect the channels to be last
+        # so normalize it once here to fit next steps
+        if (xSelectionList is not None) and (len(xDatasetList) == 2) \
+           and (self.info.get("McaIndex") == 0) and (len(self.data.shape) == 2):
+            self.data = self.data.T
+            self.data = self.data.reshape((1,) + self.data.shape)
+            self.info["McaIndex"] = 2
+        # For stack (1, n, nChannels) and axes (i, j) with i*j = n
+        # case i*j > n is also supported with padding protection
+        # Reshape it here to process it as a regular stack (nRows, nCols, nChannels)
+        if (not scatter) and (xSelectionList is not None) \
+           and (len(xDatasetList) == 2) and (len(self.data.shape) == 3) \
+           and (self.data.shape[0] == 1) and (self.info.get("McaIndex") == 2):
+            nRows = numpy.asarray(xDatasetList[0]).size
+            nCols = numpy.asarray(xDatasetList[1]).size
+            nChannels = self.data.shape[-1]
+            nFlat = self.data.shape[1]
+            if nRows * nCols == nFlat:
+                self.data = self.data.reshape(nRows, nCols, nChannels)
+            elif (nRows * nCols > nFlat) and allowPadding:
+                self.padIncompleteScan((nRows, nCols))
+
         shape = self.data.shape
         nSpectra = 1
         for i in range(len(shape)):
@@ -938,51 +963,13 @@ class HDF5Stack1D(DataObject.DataObject):
                 names.append(posixpath.basename(xSelectionList[i]))
             nPoints = motors[0].size
             if self.data.shape[0] == 1:
-                self._padFlatStack(nPoints)
+                self.padIncompleteScan((1, nPoints))
             for name, motor in zip(names, motors):
                 # the selected axes are not treated as grid scales
                 positioners[name] = motor
             self.info["positioners"] = positioners
             self.info["scatter"] = True
             self.info["scatterAxes"] = tuple(names)
-        elif (not scatter) and (self.data.shape[0] == 1) and (len(self.data.shape) == 3)\
-            and (xSelectionList is not None) and (len(xDatasetList) == 2):
-            # For stack (1, n, nChannels) and axes (i, j) with i*j = n
-            # case i*j > n is also supported with padding but should be protected
-            axes = []
-            axesDim = []
-            for i in (0, 1):
-                axes.append(numpy.asarray(xDatasetList[i]).reshape(-1))
-                axesDim.append(axes[-1].size)
-            if (len(scaleList) != 2) and (axesDim[0] * axesDim[1] >= nSpectra):
-                self._padFlatStack(axesDim[0] * axesDim[1])
-                self.data = self.data.reshape(axesDim[0], axesDim[1], self.data.shape[-1])
-                self.info["McaIndex"] = 2
-                self.info["Dim_1"] = axesDim[0]
-                self.info["Dim_2"] = axesDim[1]
-                self.info["Dim_3"] = self.data.shape[-1]
-                self.info["yScale"] = [float(axes[0][0]),
-                                       float(numpy.mean(numpy.diff(axes[0])))]
-                self.info["xScale"] = [float(axes[1][0]),
-                                       float(numpy.mean(numpy.diff(axes[1])))]
-
-    def _padFlatStack(self, targetNumPoints):
-        """Pad a stack (1, n, nChannels) with numpy.nan upto targetNumPoints."""
-        n = self.data.shape[1]
-        mcaDim = self.data.shape[-1]
-        if targetNumPoints <= n:
-            return
-        # due to numpy.nan the type should be float
-        if self.data.dtype in (numpy.float16, numpy.float32):
-            padDtype = self.data.dtype
-        else:
-            padDtype = numpy.float64
-        newData = numpy.full((1, targetNumPoints, mcaDim), numpy.nan, dtype=padDtype)
-        newData[0, :n, :] = self.data[0]
-        self.data = newData
-        self.info["Dim_1"] = 1
-        self.info["Dim_2"] = targetNumPoints
-        self.info["Dim_3"] = mcaDim
 
     def getDimensions(self, nFiles, nScans, shape, index=None):
         #somebody may want to overwrite this

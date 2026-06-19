@@ -389,7 +389,14 @@ class DatasetSelectionPage(qt.QWizardPage):
                 mcaAxis = len(signalShape) - 1
             else:
                 mcaAxis = selection['index']
-            
+
+            # Scatter needs a single scan dimension (and channels)
+            if scatter and (len(signalShape) - 1) > 1:
+                self.showMessage(
+                    "Scatter mode needs a flat per-point scan (one scan "
+                    "dimension besides the channels).")
+                return False
+
             nPoints = numpy.prod(numpy.delete(signalShape, mcaAxis))
             
             def _axisLength(path):
@@ -443,6 +450,8 @@ class DatasetSelectionPage(qt.QWizardPage):
                         "The missing points can be padded with NaN and will be shown as empty."
                         % (nA, nB, nA * nB, nPoints)):
                         return False
+                    # protecting from accidental padding
+                    selection['allowPadding'] = True
         selection['scatter'] = scatter
         self.selection = selection
         return True
