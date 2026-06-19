@@ -23,6 +23,9 @@
 # THE SOFTWARE.
 #
 #############################################################################*/
+"""
+It is a wraper of a silx :class:`ScatterView` 
+"""
 
 import logging
 import numpy
@@ -120,7 +123,7 @@ class AxesPositionersSelector(qt.QWidget):
 class MaskScatterViewWidget(qt.QWidget):
     """
     Plain QWidget (not a QMainWindow)
-    To wotk as in a layout and in plugin
+    to work in a layout and in a plugin
     """
     def __init__(self, parent=None, backend="mpl"):
         qt.QWidget.__init__(self, parent)
@@ -146,50 +149,16 @@ class MaskScatterViewWidget(qt.QWidget):
 
     def getMaskToolsWidget(self):
         return self._scatterView.getMaskToolsWidget()
-
-    def setMaskToolsVisible(self, visible=True):
-        self._scatterView._maskDock.setVisible(visible)
-
-    def setSelectionEditable(self, editable=True):
-        if not editable:
-            self._scatterView._maskDock.setVisible(False)
-        self._scatterView._maskAction.setVisible(editable)
-
-    def setVisualizationMode(self, mode):
-        self._scatterView.getScatterItem().setVisualization(mode)
-
-    def addControlToolBar(self, title="Controls"):
-        toolbar = qt.QToolBar(title, self._scatterView)
-        self._scatterView.addToolBar(qt.Qt.TopToolBarArea, toolbar)
-        return toolbar
-
-    def getScatterView(self):
-        return self._scatterView
-
+    
     def resetZoom(self):
         return self._scatterView.resetZoom()
-
+    
     def fillPositioners(self, positioners):
         self._positioners = positioners
         self._axesSelector.fillPositioners(positioners)
 
     def setNumPoints(self, n):
         self._axesSelector.setNumPoints(n)
-
-    def setSelectedPositioners(self, xName, yName):
-        """
-
-        :param str xName: motor name to use as X axis (or None)
-        :param str yName: motor name to use as Y axis (or None)
-        """
-        if xName is not None:
-            self._axesSelector.xPositioner.setCurrentText(xName)
-            if xName in self._positioners:
-                self._xdata = self._positioners[xName]
-        if yName is not None:
-            self._axesSelector.yPositioner.setCurrentText(yName)
-            if yName in self._positioners:
-                self._ydata = self._positioners[yName]
 
     def _setAxesData(self, xPositioner, yPositioner):
         """
@@ -262,3 +231,58 @@ class MaskScatterViewWidget(qt.QWidget):
                                   copy=False)
         if first_time:
             self._scatterView.resetZoom()
+
+    def _maskDockWidget(self):
+        widget = self._scatterView.getMaskToolsWidget()
+        while widget is not None and not isinstance(widget, qt.QDockWidget):
+            widget = widget.parentWidget()
+        return widget
+
+    def setMaskToolsVisible(self, visible=True):
+        dock = self._maskDockWidget()
+        if dock is not None:
+            dock.setVisible(visible)
+
+    def setSelectionReadOnly(self):
+        '''
+        To disable the mask selection for original stack in ROI tool
+        '''
+        dock = self._maskDockWidget()
+        if dock is not None:
+            dock.setVisible(False)
+            dock.toggleViewAction().setVisible(False)
+
+    def setVisualizationMode(self, mode):
+        """
+        Allow to set visualization mode like IRREGULAR_GRID
+        """
+        self._scatterView.getScatterItem().setVisualization(mode)
+
+    def addControlToolBar(self, title="Controls"):
+        """
+        To be able to add extra menus to the toolbar
+        """
+        toolbar = qt.QToolBar(title, self._scatterView)
+        self._scatterView.addToolBar(qt.Qt.TopToolBarArea, toolbar)
+        return toolbar
+
+    def getScatterView(self):
+        return self._scatterView
+
+    def setSelectedPositioners(self, xName, yName):
+        """
+
+        :param str xName: motor name to use as X axis (or None)
+        :param str yName: motor name to use as Y axis (or None)
+        """
+        if xName is not None:
+            self._axesSelector.xPositioner.setCurrentText(xName)
+            if xName in self._positioners:
+                self._xdata = self._positioners[xName]
+        if yName is not None:
+            self._axesSelector.yPositioner.setCurrentText(yName)
+            if yName in self._positioners:
+                self._ydata = self._positioners[yName]
+
+
+

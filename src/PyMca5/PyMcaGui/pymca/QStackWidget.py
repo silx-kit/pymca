@@ -1361,7 +1361,7 @@ class QStackWidget(StackBase.StackBase,
                     self._scatterStackView = MaskScatterViewWidget(parent=self.stackWindow, backend="gl")
                 irregular = silx_items.Scatter.Visualization.IRREGULAR_GRID
                 self._scatterStackView.setVisualizationMode(irregular)
-                self._scatterStackView.setSelectionEditable(False)
+                self._scatterStackView.setSelectionReadOnly()
                 # insert the scatter view in the origin
                 sidx = self.stackWindow.mainLayout.indexOf(self.stackWidget)
                 self.stackWindow.mainLayout.insertWidget(sidx, self._scatterStackView)
@@ -1371,7 +1371,7 @@ class QStackWidget(StackBase.StackBase,
                 except:
                     self._scatterRoiView = MaskScatterViewWidget(parent=self.roiWindow, backend="gl")
                 self._scatterRoiView.setVisualizationMode(irregular)
-                # show maks tool on start
+                # show mask tool on start
                 self._scatterRoiView.setMaskToolsVisible(True)
                 # insert the scatter view in the roi
                 ridx = self.roiWindow.mainLayout.indexOf(self.roiWidget)
