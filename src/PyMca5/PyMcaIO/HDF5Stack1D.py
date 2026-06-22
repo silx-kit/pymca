@@ -364,7 +364,7 @@ class HDF5Stack1D(DataObject.DataObject):
                     mDataset = numpy.asarray(tmpHdf[mpath], dtype=mdtype)
                     self.monitor = [mDataset]
                 if xSelectionList is not None:
-                    # not to fail the scatter plot all axes are loaded
+                    # all axes are loaded otherwise the scatter plot can fail
                     xDatasetList = []
                     for xpath in xpathList:
                         xDatasetList.append(tmpHdf[xpath][()])
