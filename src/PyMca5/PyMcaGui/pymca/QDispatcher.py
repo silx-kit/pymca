@@ -92,11 +92,25 @@ class QDispatcher(qt.QWidget):
                 self.selectorWidget[src_widget].sigOtherSignals.connect( \
                          self._otherSignalsSlot)
 
+        self._installAutoRefreshCheckBox()
+
         self.mainLayout.addWidget(self.sourceSelector)
         self.mainLayout.addWidget(self.tabWidget)
         self.sourceSelector.sigSourceSelectorSignal.connect( \
                     self._sourceSelectorSlot)
         self.tabWidget.currentChanged[int].connect(self._tabChanged)
+
+    def _installAutoRefreshCheckBox(self):
+        """
+        Installs the auto-refresh checkbox into the HDF5 actions panel
+        The checkbox is owned by ``self.sourceSelector``
+        """
+        if "HDF5" not in self.selectorWidget:
+            return
+        actions = self.selectorWidget["HDF5"].actions
+        if hasattr(actions, "addAutoRefreshCheckBox"):
+            actions.addAutoRefreshCheckBox(
+                self.sourceSelector.autoRefreshCheckBox)
 
     def _addSelectionSlot(self, sel_list, event=None):
         _logger.debug("QDispatcher._addSelectionSlot")

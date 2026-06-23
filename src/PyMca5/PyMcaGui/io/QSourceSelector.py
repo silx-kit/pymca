@@ -106,11 +106,12 @@ class QSourceSelector(qt.QWidget):
         else:
             specButton.setToolTip("Open new shared memory source")
 
-        self.autoRefreshCheckBox = qt.QCheckBox("Auto", self.fileWidget)
+        self.autoRefreshCheckBox = qt.QCheckBox("Auto REFRESH")
         self.autoRefreshCheckBox.setToolTip(
             "Automatically refresh HDF5 files every second\n"
-            "to see new appended data.\n" \
-            "New datasets will not appear until manual refresh (F5).")
+            "to see new appended data (uses REPLACE mode).\n"
+            "New datasets will not appear in HDF5 tree until a manual refresh (F5).")
+        self.autoRefreshCheckBox.setEnabled(False)
         
         self._autoRefreshTimer = qt.QTimer(self)
         self._autoRefreshTimer.setInterval(1000)
@@ -143,10 +144,7 @@ class QSourceSelector(qt.QWidget):
         fileWidgetLayout.addWidget(specButton)
         if sys.platform == "win32":specButton.hide()
         fileWidgetLayout.addWidget(refreshButton)
-        fileWidgetLayout.addWidget(self.autoRefreshCheckBox)
-        # if sys.platform == "win32":self.autoRefreshCheckBox.hide()
-        # Needed because on Windows hdf5 locking system is "broken"
-        # Commented for testing on Windows
+        # autoRefreshCheckBox is NOT added to this toolbar (see QDispatcher).
         
 
         self.specButton = specButton
@@ -343,6 +341,13 @@ class QSourceSelector(qt.QWidget):
             nitem = self.fileCombo.findText(key)
         self.fileCombo.removeItem(nitem)
         del self.mapCombo[key]
+        # Disables auto-refresh checkbox
+        # when the remaining source is not HDF5 or none is left.
+        newkey = qt.safe_str(self.fileCombo.currentText())
+        if newkey in self.mapCombo:
+            self._updateAutoRefreshVisibility(self.mapCombo[newkey])
+        else:
+            self._updateAutoRefreshVisibility([])
         self.sigSourceSelectorSignal.emit(ddict)
 
     def openBlissOrSpec(self):

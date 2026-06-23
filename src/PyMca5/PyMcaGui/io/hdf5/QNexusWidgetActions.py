@@ -46,15 +46,16 @@ class QNexusWidgetActions(qt.QWidget):
         else:
             self.autoAdd     = True
         self._oldCntSelection = None
+        self.autoRefreshBox = None
         qt.QWidget.__init__(self, parent)
         self._build()
 
     def _build(self):
         self.mainLayout = qt.QVBoxLayout(self)
         autoBox = qt.QWidget(self)
-        autoBoxLayout = qt.QGridLayout(autoBox)
-        autoBoxLayout.setContentsMargins(0, 0, 0, 0)
-        autoBoxLayout.setSpacing(0)
+        self.autoBoxLayout = qt.QGridLayout(autoBox)
+        self.autoBoxLayout.setContentsMargins(0, 0, 0, 0)
+        self.autoBoxLayout.setSpacing(0)
         self.autoOffBox = qt.QCheckBox(autoBox)
         self.autoOffBox.setText("Auto OFF")
         self.autoAddBox = qt.QCheckBox(autoBox)
@@ -63,9 +64,9 @@ class QNexusWidgetActions(qt.QWidget):
         self.autoReplaceBox.setText("Auto REPLACE")
 
         row = 0
-        autoBoxLayout.addWidget(self.autoOffBox, row, 0)
-        autoBoxLayout.addWidget(self.autoAddBox, row, 1)
-        autoBoxLayout.addWidget(self.autoReplaceBox, row, 2)
+        self.autoBoxLayout.addWidget(self.autoOffBox, row, 0)
+        self.autoBoxLayout.addWidget(self.autoAddBox, row, 1)
+        self.autoBoxLayout.addWidget(self.autoReplaceBox, row, 2)
 
         if self.autoReplace:
             self.autoAddBox.setChecked(False)
@@ -78,18 +79,18 @@ class QNexusWidgetActions(qt.QWidget):
         self.object3DBox = qt.QCheckBox(autoBox)
         self.object3DBox.setText("3D On")
         self.object3DBox.setToolTip("Use OpenGL and Enable 3-Axes selections")
-        autoBoxLayout.addWidget(self.object3DBox, row, 0)
+        self.autoBoxLayout.addWidget(self.object3DBox, row, 0)
 
         self.meshBox = qt.QCheckBox(autoBox)
         self.meshBox.setText("2D On")
         self.meshBox.setToolTip("Enable 2-Axes selections (mesh and scatter)")
-        autoBoxLayout.addWidget(self.meshBox, row, 1)
+        self.autoBoxLayout.addWidget(self.meshBox, row, 1)
 
 
         self.forceMcaBox = qt.QCheckBox(autoBox)
         self.forceMcaBox.setText("Force MCA")
         self.forceMcaBox.setToolTip("Interpret selections as MCA")
-        autoBoxLayout.addWidget(self.forceMcaBox, row, 2)
+        self.autoBoxLayout.addWidget(self.forceMcaBox, row, 2)
 
         self.mainLayout.addWidget(autoBox)
 
@@ -160,6 +161,21 @@ class QNexusWidgetActions(qt.QWidget):
         self.autoAddBox.setChecked(False)
         self.autoReplaceBox.setChecked(True)
         self.configurationChanged()
+
+    def addAutoRefreshCheckBox(self, checkbox):
+        self.autoRefreshBox = checkbox
+        self.autoBoxLayout.addWidget(checkbox)
+        checkbox.toggled.connect(self._autoRefreshBoxToggled)
+        self.autoReplaceBox.toggled.connect(self._autoReplaceToggledForRefresh)
+
+    def _autoRefreshBoxToggled(self, checked):
+        if checked and not self.autoReplaceBox.isChecked():
+            self._setAutoReplace()
+
+    def _autoReplaceToggledForRefresh(self, checked):
+        if (not checked) and self.autoRefreshBox is not None \
+                and self.autoRefreshBox.isChecked():
+            self.autoRefreshBox.setChecked(False)
 
     def _setForcedMca(self):
         if self.forceMcaBox.isChecked():
