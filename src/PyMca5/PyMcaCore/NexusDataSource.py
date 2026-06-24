@@ -341,6 +341,9 @@ class NexusDataSource(object):
                     output.info['MotorNames'] = []
                     output.info['MotorValues'] = []
                     for key in positioners.keys():
+                        if not NexusTools.isDataset(positioners[key]):
+                            _logger.info("Skipping non-dataset key %s" % key)
+                            continue
                         if positioners[key].dtype in [object, numpy.object_]:
                             # not a standard value
                             _logger.info("Skipping object key %s" % key)
