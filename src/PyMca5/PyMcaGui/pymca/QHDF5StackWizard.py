@@ -36,6 +36,7 @@ from PyMca5.PyMcaGui.io.hdf5 import QNexusWidget
 from PyMca5.PyMcaCore import NexusDataSource
 from PyMca5 import PyMcaDirs
 import logging
+import numpy
 
 _logger = logging.getLogger(__name__)
 
@@ -190,6 +191,11 @@ class DatasetSelectionPage(qt.QWizardPage):
         self.stackIndexWidget = StackIndexWidget(self)
         self.mainLayout.addWidget(self.stackIndexWidget, 0)
 
+        self._scatterCheckBox = qt.QCheckBox(
+            "Scatter plot (X, Y coordinates are set per 1D data)", self)
+        self._scatterCheckBox.setChecked(False)
+        self.mainLayout.addWidget(self._scatterCheckBox, 0)
+
     def setFileList(self, filelist):
         self.dataSource = NexusDataSource.NexusDataSource(filelist[0])
         self.nexusWidget.setDataSource(self.dataSource)
@@ -207,7 +213,7 @@ class DatasetSelectionPage(qt.QWizardPage):
                 try:
                     attr = attr.decode('utf-8')
                 except Exception:
-                    print("WARNING: Cannot decode NX_class attribute")
+                    _logger.warning("Cannot decode NX_class attribute")
                     attr = None
         else:
             attr = None
@@ -226,7 +232,7 @@ class DatasetSelectionPage(qt.QWizardPage):
                 try:
                     attr = attr.decode('utf-8')
                 except Exception:
-                    print("WARNING: Cannot decode NX_class attribute")
+                    _logger.warning("Cannot decode NX_class attribute")
                     continue
             if attr in ['NXdata', b'NXdata']:
                 nxDataList.append(key)
@@ -247,7 +253,7 @@ class DatasetSelectionPage(qt.QWizardPage):
                 try:
                     signal_key = signal_key.decode('utf-8')
                 except AttributeError:
-                    print("WARNING: Cannot decode NX_class attribute")
+                    _logger.warning("Cannot decode NX_class attribute")
 
             signal_dataset = nxData.get(signal_key)
             if signal_dataset is None:
@@ -258,7 +264,7 @@ class DatasetSelectionPage(qt.QWizardPage):
                 try:
                     interpretation = interpretation.decode('utf-8')
                 except AttributeError:
-                    print("WARNING: Cannot decode interpretation")
+                    _logger.warning("Cannot decode interpretation")
 
             axesList = list(nxData.attrs.get("axes", []))
             if not axesList:
@@ -270,7 +276,7 @@ class DatasetSelectionPage(qt.QWizardPage):
                         try:
                             axes = axes.decode('utf-8')
                         except AttributeError:
-                            print("WARNING: Cannot decode axes")
+                            _logger.warning("Cannot decode axes")
                     axes = axes.split(":")
                     axesList = [ax for ax in axes if ax in nxData]
             signalList.append(signal_key)
@@ -287,7 +293,7 @@ class DatasetSelectionPage(qt.QWizardPage):
                                     try:
                                         interpretation = interpretation.decode('utf-8')
                                     except Exception:
-                                        print("WARNING: Cannot decode interpretation")
+                                        _logger.warning("Cannot decode interpretation")
 
                             if 'axes' in nxData[key].attrs.keys():
                                 axes = nxData[key].attrs['axes']
@@ -295,7 +301,7 @@ class DatasetSelectionPage(qt.QWizardPage):
                                     try:
                                         axes = axes.decode('utf-8')
                                     except Exception:
-                                        print("WARNING: Cannot decode axes")
+                                        _logger.warning("Cannot decode axes")
                                 axes = axes.split(":")
                                 for axis in axes:
                                     if axis in nxData.keys():
@@ -335,16 +341,39 @@ class DatasetSelectionPage(qt.QWizardPage):
             self.nexusWidget.cntTable.setCounterSelection({'y': [0]})
 
     def validatePage(self):
+        """
+        Validate data while wizard is open
+        """
+        selection = self._buildSelection()
+        if selection is None:
+            return False
+        if not self._validateScatterSelection(selection):
+            return False
+
+        signalShapes, nPoints, axisSizes = self._collectValidationData(selection)
+        # required for case  when no axes are selected
+        if signalShapes:
+            if not self._validateSignalShapes(signalShapes):
+                return False
+        if signalShapes and nPoints and axisSizes:
+            if not self._validateScanGeometry(selection, signalShapes, nPoints, axisSizes):
+                return False
+
+        self.selection = selection
+        return True
+
+    def _buildSelection(self):
+        """
+        Build the selection dictionary from the counter table.
+        """
         cntSelection = self.nexusWidget.cntTable.getCounterSelection()
         cntlist = cntSelection['cntlist']
         if not len(cntlist):
-            text = "No dataset selection"
-            self.showMessage(text)
-            return False
+            self.showMessage("No dataset selection")
+            return None
         if not len(cntSelection['y']):
-            text = "No dataset selected as y"
-            self.showMessage(text)
-            return False
+            self.showMessage("No dataset selected as y")
+            return None
         selection = {}
         selection['x'] = []
         selection['y'] = []
@@ -354,8 +383,132 @@ class DatasetSelectionPage(qt.QWizardPage):
             if len(cntSelection[key]):
                 for idx in cntSelection[key]:
                     selection[key].append(cntlist[idx])
-        self.selection = selection
+        selection['scatter'] = self._scatterCheckBox.isChecked()
+        selection['allowPadding'] = False
+        return selection
+
+    def _validateScatterSelection(self, selection):
+        if selection['scatter'] and len(selection['x']) < 2:
+            self.showMessage("Scatter mode requires two datasets selected as axes")
+            return False
+        else:
+            return True
+
+    def _collectValidationData(self, selection):
+        """
+        Read the signal and axes shapes from the selected datasets.
+        """
+        try:
+            # choose selected entry, or first entry if none selected
+            h5file = self.dataSource._sourceObjectList[0]
+            entries = self.nexusWidget.getSelectedEntries()
+            entry = entries[0][0] if entries else list(h5file.keys())[0]
+
+            signalShapes = []
+            for yPath in selection['y']:
+                yShape = h5file[posixpath.join(entry, yPath.lstrip("/"))].shape
+                signalShapes.append(yShape)
+
+            if selection['index'] == -1:
+                mcaAxis = len(signalShapes[0]) - 1
+            else:
+                mcaAxis = selection['index']
+            nPoints = int(numpy.prod(numpy.delete(signalShapes[0], mcaAxis)))
+
+            axisSizes = []
+            for xPath in selection['x']:
+                dataset = h5file[posixpath.join(entry, xPath.lstrip("/"))].shape
+                axisSizes.append(int(numpy.prod(dataset)))
+
+            return signalShapes, nPoints, axisSizes
+            
+        except Exception:
+            _logger.warning("Fail to identify number of 1D datasets and/or axes sizes")
+            return None, None, None
+
+    def _validateSignalShapes(self, signalShapes):
+        # the selected signals are summed later so they must have the same shape
+        if not all(shape == signalShapes[0] for shape in signalShapes):
+            self.showMessage("Not all signal shapes are equal")
+            return False
         return True
+
+    def _validateScanGeometry(self, selection, signalShapes, nPoints, axisSizes):
+        scatter = selection['scatter']
+        signalShape = signalShapes[0]
+        axisSize = axisSizes[0]
+        # scatter needs a single scan dimension (besides the channels)
+        if scatter and (len(signalShape) - 1) > 1:
+            self.showMessage(
+                "Scatter mode needs a flat per-point scan (one scan "
+                "dimension besides the channels).")
+            return False
+
+        # the axes hold one value per 1D data so they must have equal sizes
+        if scatter and not all(size == axisSize for size in axisSizes):
+            self.showMessage(
+                "Axes should have same number of positions "
+                "(as they hold one value per 1D data) "
+                "Disable 'Scatter plot' or select different axes.")
+            return False
+
+        # check the number of points in the signal against the axes positions
+        if (nPoints > 1):
+            if scatter:
+                return self._validateScatterGeometry(selection, axisSize, nPoints)
+            elif len(axisSizes) == 2:
+                return self._validateGridGeometry(selection, axisSizes, nPoints)
+        return True
+
+    def _validateScatterGeometry(self, selection, axisSize, nPoints):
+        if axisSize < nPoints:
+            self.showMessage("Fewer positions than 1D data is impossible")
+            return False
+        if axisSize > nPoints:
+            if not self._confirmPadding(
+                "There are %d motor positions but only %d 1D datasets. "
+                "The missing points can be padded with NaN and will be shown as empty."
+                % (axisSize, nPoints)):
+                return False
+            selection['allowPadding'] = True
+        return True
+
+    def _validateGridGeometry(self, selection, axisSizes, nPoints):
+        nA, nB = axisSizes
+        # can cause a problem but only in unrealistic scenario
+        # when user want to pad symmetric scan which failed almost at the start
+        if (nA == nB) and (nA >= nPoints):
+            self.showMessage(
+                "Most probably the selected motor positions hold one value per 1D data. "
+                "The regular grid can not be defined. "
+                "Enable 'Scatter plot' or select different axes.")
+            return False
+        elif (nA * nB) < nPoints:
+            self.showMessage(
+                "The selected axes define %d positions (%d x %d) but the "
+                "signal has %d 1D datasets. Please select differently." % (nA * nB, nA, nB, nPoints))
+            return False
+        elif (nA * nB) > nPoints:
+            if not self._confirmPadding(
+                "The %d x %d grid has %d positions but there are only %d 1D datasets. "
+                "The missing 1D datasets can be padded with NaN and will be shown as empty."
+                % (nA, nB, nA * nB, nPoints)):
+                return False
+            # protecting from accidental padding
+            selection['allowPadding'] = True
+        return True
+
+    def _confirmPadding(self, text):
+        """Confirm padding while wizard is open"""
+        msg = qt.QMessageBox(self)
+        msg.setIcon(qt.QMessageBox.Warning)
+        msg.setWindowTitle("Unfinished scan")
+        msg.setText(text + "\n\nContinue, or cancel to change the selection?")
+        contButton = msg.addButton("Continue", qt.QMessageBox.AcceptRole)
+        msg.addButton("Cancel", qt.QMessageBox.RejectRole)
+        msg.exec()
+        clicked = msg.clickedButton()
+        return clicked is contButton
 
     def showMessage(self, text):
         msg = qt.QMessageBox(self)

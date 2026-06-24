@@ -440,8 +440,9 @@ class QNexusWidget(qt.QWidget):
 
     def getWidgetConfiguration(self):
         cntSelection = self.cntTable.getCounterSelection()
-        if hasattr(self, "actions"):
-            ddict =self.actions.getConfiguration()
+        # self.actions only exists when built without buttons
+        if hasattr(self, "actions") and hasattr(self.actions, "getConfiguration"):
+                ddict = self.actions.getConfiguration()
         else:
             ddict = {}
         ddict['counters'] = cntSelection['cntlist']

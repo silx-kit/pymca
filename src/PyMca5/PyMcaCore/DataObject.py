@@ -59,6 +59,59 @@ class DataObject(object):
         self.info = {}
         self.data = numpy.array([])
 
+    def padIncompleteScan(self, imageShape, padPositioners=False, mcaIndex=-1):
+        """
+        Pad an incomplete/unfinished scan with NaN.
+        Result array have channels as the last dimension.
+
+        :param imageShape: desired shape after padding (without the channels)
+        :param bool padPositioners: also pad the per-point positioners with NaN.
+        """
+        
+        nChannels = self.data.shape[mcaIndex]
+        imageShape = tuple(int(d) for d in imageShape)
+        finalShape = imageShape + (nChannels,)
+        nOld = numpy.prod(numpy.delete(self.data.shape, mcaIndex))
+        numberOfSpectra = int(numpy.prod(imageShape))
+        if numberOfSpectra <= nOld:
+            return
+        if self.data.dtype in (numpy.float16, numpy.float32):
+            dtype = self.data.dtype
+        else:
+            dtype = numpy.float64
+        padded = numpy.full((numberOfSpectra, nChannels), numpy.nan, dtype=dtype)
+        reorderedData = numpy.moveaxis(self.data, mcaIndex, -1)
+        padded[:nOld] = reorderedData.reshape(nOld, nChannels)
+        self.data = padded.reshape(finalShape)
+        for i in range(len(self.data.shape)):
+            self.info["Dim_%d" % (i + 1)] = self.data.shape[i]
+        self.info["McaIndex"] = len(self.data.shape) - 1
+
+        # per-point metadata (e.g. McaLiveTime) must follow the data to stay
+        # aligned, so it is always padded with zeros
+        for key, value in self.info.items():
+            if key == "positioners":
+                continue
+            if hasattr(value, "size"):
+                arr = numpy.asarray(value)
+                if arr.size == nOld:
+                    paddedArr = numpy.zeros(numberOfSpectra, dtype=arr.dtype)
+                    paddedArr[:nOld] = arr.ravel()
+                    self.info[key] = paddedArr
+        
+        if padPositioners:
+            if "positioners" in self.info and hasattr(self.info["positioners"], "items"):
+                for motor_name, motor_values in self.info["positioners"].items():
+                    if hasattr(motor_values, "size") and motor_values.size == nOld:
+                        if motor_values.dtype in (numpy.float16, numpy.float32):
+                            pos_dtype = motor_values.dtype
+                        else:
+                            pos_dtype = numpy.float64
+                        paddedPos = numpy.full(numberOfSpectra, numpy.nan, dtype=pos_dtype)
+                        paddedPos[:nOld] = numpy.asarray(motor_values).ravel()
+                        self.info["positioners"][motor_name] = paddedPos
+
+
     # all the following  methods are here for compatibility purposes
     # they are obsolete and bound to disappear.
 
