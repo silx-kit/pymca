@@ -423,7 +423,7 @@ class DatasetSelectionPage(qt.QWizardPage):
             return signalShapes, nPoints, axisSizes
             
         except Exception:
-            _logger.warning("Fail to identify number of 1D data sets and/or axes sizes")
+            _logger.warning("Fail to identify number of 1D datasets and/or axes sizes")
             return None, None, None
 
     def _validateSignalShapes(self, signalShapes):
@@ -466,7 +466,7 @@ class DatasetSelectionPage(qt.QWizardPage):
             return False
         if axisSize > nPoints:
             if not self._confirmPadding(
-                "There are %d motor positions but only %d 1D data sets. "
+                "There are %d motor positions but only %d 1D datasets. "
                 "The missing points can be padded with NaN and will be shown as empty."
                 % (axisSize, nPoints)):
                 return False
@@ -486,12 +486,12 @@ class DatasetSelectionPage(qt.QWizardPage):
         elif (nA * nB) < nPoints:
             self.showMessage(
                 "The selected axes define %d positions (%d x %d) but the "
-                "signal has %d 1D data sets. Please select differently." % (nA * nB, nA, nB, nPoints))
+                "signal has %d 1D datasets. Please select differently." % (nA * nB, nA, nB, nPoints))
             return False
         elif (nA * nB) > nPoints:
             if not self._confirmPadding(
-                "The %d x %d grid has %d positions but there are only %d 1D data sets. "
-                "The missing 1D data sets can be padded with NaN and will be shown as empty."
+                "The %d x %d grid has %d positions but there are only %d 1D datasets. "
+                "The missing 1D datasets can be padded with NaN and will be shown as empty."
                 % (nA, nB, nA * nB, nPoints)):
                 return False
             # protecting from accidental padding
