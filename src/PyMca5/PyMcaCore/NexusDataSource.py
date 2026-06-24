@@ -636,7 +636,7 @@ class NexusDataSource(object):
                 if output.m:
                     for mi in range(len(output.m)):
                         mlength = output.m[mi].size
-                        if mlength != 1:
+                        if mlength > 1:
                             delta = max(delta, abs(ylength - mlength))
                             length = min(length, mlength)
                 if delta > 1:

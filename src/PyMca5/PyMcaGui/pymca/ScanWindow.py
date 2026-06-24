@@ -322,8 +322,7 @@ class ScanWindow(PlotWindow.PlotWindow):
                             mvalue = dataObject.m[0][0]
                             if mvalue == 0:
                                 raise ValueError("Do not divide by zero")
-                            mdata = numpy.array([mvalue])
-                            ydata = ydata / mdata
+                            ydata = ydata / mvalue
                         else:
                             raise ValueError("Monitor data length different than counter data")
                     else:
