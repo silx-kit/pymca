@@ -192,7 +192,7 @@ class DatasetSelectionPage(qt.QWizardPage):
         self.mainLayout.addWidget(self.stackIndexWidget, 0)
 
         self._scatterCheckBox = qt.QCheckBox(
-            "Scatter plot (X, Y coordinates are set per image point)", self)
+            "Scatter plot (X, Y coordinates are set per 1D data)", self)
         self._scatterCheckBox.setChecked(False)
         self.mainLayout.addWidget(self._scatterCheckBox, 0)
 
@@ -423,7 +423,7 @@ class DatasetSelectionPage(qt.QWizardPage):
             return signalShapes, nPoints, axisSizes
             
         except Exception:
-            _logger.warning("Fail to identify number of scan points and/or axes sizes")
+            _logger.warning("Fail to identify number of 1D data sets and/or axes sizes")
             return None, None, None
 
     def _validateSignalShapes(self, signalShapes):
@@ -444,11 +444,12 @@ class DatasetSelectionPage(qt.QWizardPage):
                 "dimension besides the channels).")
             return False
 
-        # the axes hold one value per scan point so they must have equal sizes
+        # the axes hold one value per 1D data so they must have equal sizes
         if scatter and not all(size == axisSize for size in axisSizes):
             self.showMessage(
                 "Axes should have same number of positions "
-                "(as they hold one value per scan point)")
+                "(as they hold one value per 1D data) "
+                "Disable 'Scatter plot' or select different axes.")
             return False
 
         # check the number of points in the signal against the axes positions
@@ -461,11 +462,11 @@ class DatasetSelectionPage(qt.QWizardPage):
 
     def _validateScatterGeometry(self, selection, axisSize, nPoints):
         if axisSize < nPoints:
-            self.showMessage("Fewer positions than points in scan is impossible")
+            self.showMessage("Fewer positions than 1D data is impossible")
             return False
         if axisSize > nPoints:
             if not self._confirmPadding(
-                "There are %d motor positions but only %d scan points."
+                "There are %d motor positions but only %d 1D data sets. "
                 "The missing points can be padded with NaN and will be shown as empty."
                 % (axisSize, nPoints)):
                 return False
@@ -478,19 +479,19 @@ class DatasetSelectionPage(qt.QWizardPage):
         # when user want to pad symmetric scan which failed almost at the start
         if (nA == nB) and (nA >= nPoints):
             self.showMessage(
-                "Most probably the selected motor positions hold one value per scan point."
-                "The regular grid can not be defined."
+                "Most probably the selected motor positions hold one value per 1D data. "
+                "The regular grid can not be defined. "
                 "Enable 'Scatter plot' or select different axes.")
             return False
         elif (nA * nB) < nPoints:
             self.showMessage(
                 "The selected axes define %d positions (%d x %d) but the "
-                "signal has %d points. Please select differently." % (nA * nB, nA, nB, nPoints))
+                "signal has %d 1D data sets. Please select differently." % (nA * nB, nA, nB, nPoints))
             return False
         elif (nA * nB) > nPoints:
             if not self._confirmPadding(
-                "The %d x %d grid has %d positions but there are only %d scan points."
-                "The missing points can be padded with NaN and will be shown as empty."
+                "The %d x %d grid has %d positions but there are only %d 1D data sets. "
+                "The missing 1D data sets can be padded with NaN and will be shown as empty."
                 % (nA, nB, nA * nB, nPoints)):
                 return False
             # protecting from accidental padding
