@@ -248,7 +248,7 @@ class MultipleScanToMeshPlugin(Plugin1DBase.Plugin1DBase):
         # create the meshgrid
         xx, yy = numpy.meshgrid(grid0, grid1)
 
-        THOUGHTS = """
+        __THOUGHTS__ = """
             # get the interpolated values
             etData = xData - yData
             grid3 = numpy.linspace(etData.min(), etData.max(), n)

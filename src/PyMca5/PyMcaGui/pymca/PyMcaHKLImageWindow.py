@@ -80,7 +80,7 @@ class PyMcaHKLImageWindow(PyMcaImageWindow.PyMcaImageWindow):
         chi = info['chi']
         theta = info['theta']
 
-        THOUGHTS = """
+        __THOUGHTS__ = """
             # delta in vertical (following BM28)
             # gamma in horizontal (following BM28)
             deltaH = toDeg * numpy.arctan((x - info['pixel_zero_h']) *\
@@ -89,14 +89,14 @@ class PyMcaHKLImageWindow(PyMcaImageWindow.PyMcaImageWindow):
             deltaV = toDeg *arctan((y - info['pixel_zero_v'])*\
                         (info['pixel_size_v']/info['distance']))
             if 0:
-               #original
+               # original
                gamma = info['gamma'] + deltaH
                delta = info['delta'] - deltaV
             else:
-               #MarCCD settings
+               # MarCCD settings
                gamma = info['gamma'] - deltaV
                delta = info['delta'] - deltaH
-           #end of BM28 customization
+           # end of BM28 customization
            """
         deltaH = toDeg * numpy.arctan((x - info['pixel_zero_v']) *\
                     (info['pixel_size_v']/info['distance']))
@@ -111,8 +111,8 @@ class PyMcaHKLImageWindow(PyMcaImageWindow.PyMcaImageWindow):
         wavelength = info['lambda']
         ub = info['ub']
 
-        THOUGHTS = """
-            #e.g. this should always give 1 1 1
+        __THOUGHTS__ = """
+            # e.g. this should always give 1 1 1
             wavelength = 0.363504
             ub = [1.0, 0.0, 0.0,
                   0.0, 1.0, 0.0,

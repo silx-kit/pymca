@@ -571,7 +571,7 @@ def save3DArrayAsHDF5(data, filename, axes=None, labels=None, dtype=None, mode='
                     tmp = data[i:i + 1, :, :]
                     tmp = tmp.reshape(shape[0], shape[1], 1)
                     dset[:, :, i:i + 1] = tmp
-            THOUGHTS = """
+            __THOUGHTS__ = """
                 # It is much faster when performing spectra operations.
                 dset = nxData.require_dataset('data',
                                               shape=shape,

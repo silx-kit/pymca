@@ -1264,24 +1264,24 @@ class MatplotlibGraph(FigureCanvas):
                 bottom, top = y2min, y2max
             self.ax2.set_ylim(bottom, top)
 
-        THOUGHTS = """
+        __THOUGHTS__ = """
             # if second axis was not properly initialized, this does not work
-            #if 0 and hasattr(self.ax2, "get_visible") and self.ax2.get_visible():
-            #    #print("BOTTOM, TOP = ", bottom, top)
-            #    bottom2, top2 = self.ax2.get_ylim()
-            #    #print("BOTTOM2, TO2 = ", bottom2, top2)
-            #    i2Range = top2 - bottom2
-            #    if i2Range > 0:
-            #        ymin2 = bottom2 + i2Range * (ymin - bottom)/(top - bottom)
-            #        ymax2 = bottom2 + i2Range * (ymax - bottom)/(top - bottom)
-            #        #print("OBTAINED = ", ymin2, ymax2)
-            #        if self.ax2.yaxis_inverted():
-            #            self.ax2.set_ylim(ymax2, ymin2)
-            #        else:
-            #            self.ax2.set_ylim(ymin2, ymax2)
+            if 0 and hasattr(self.ax2, "get_visible") and self.ax2.get_visible():
+                #print("BOTTOM, TOP = ", bottom, top)
+                bottom2, top2 = self.ax2.get_ylim()
+                #print("BOTTOM2, TO2 = ", bottom2, top2)
+                i2Range = top2 - bottom2
+                if i2Range > 0:
+                    ymin2 = bottom2 + i2Range * (ymin - bottom)/(top - bottom)
+                    ymax2 = bottom2 + i2Range * (ymax - bottom)/(top - bottom)
+                    #print("OBTAINED = ", ymin2, ymax2)
+                    if self.ax2.yaxis_inverted():
+                        self.ax2.set_ylim(ymax2, ymin2)
+                    else:
+                        self.ax2.set_ylim(ymin2, ymax2)
             # Next line forces a square display region
-            #self.ax.set_aspect((xmax-xmin)/float(ymax-ymin))
-            #self.draw()
+            self.ax.set_aspect((xmax-xmin)/float(ymax-ymin))
+            self.draw()
             """
         self.emitLimitsChangedSignal()
 
@@ -2456,7 +2456,7 @@ class MatplotlibBackend(PlotBackend.PlotBackend):
         else:
             picker = False
         shape = data.shape
-        THOUGHTS = """
+        __THOUGHTS__ = """
         if 0:
             # this supports non regularly spaced coordenates!!!!
 

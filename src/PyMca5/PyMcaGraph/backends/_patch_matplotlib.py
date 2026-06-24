@@ -54,7 +54,7 @@ def patch_backend_qt():
     def _create_qApp():
         if QApplication.instance() is None:
             raise ValueError("A QApplication must be created before")
-            THOUGHTS = """
+            __THOUGHTS__ = """
             if 'PyQt5.QtCore' in sys.modules:
                 # Matplotlib is doing this but it only makes sense prior
                 # to create the QApplication

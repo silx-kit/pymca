@@ -219,8 +219,8 @@ class SpecfitGui(qt.QWidget):
         newconfiguration={}
         newconfiguration.update(oldconfiguration)
         
-        THOUGHTS = """
-            #example to force a given default configuration
+        __THOUGHTS__ = """
+            # example to force a given default configuration
             newconfiguration['FitTheory']="Pseudo-Voigt Line"
             newconfiguration['AutoFwhm']=1
             newconfiguration['AutoScaling']=1

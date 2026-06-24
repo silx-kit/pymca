@@ -734,8 +734,8 @@ class MaskImageWidget(qt.QWidget):
                 x = numpy.zeros((2, npoints) , numpy.float64)
                 tmpMatrix = numpy.zeros((npoints, 2) , numpy.float64)
 
-                THOUGHTS = """
-                    #take only the central point
+                __THOUGHTS__ = """
+                    # take only the central point
                     oversampling = 1
                     x[0, :] = tmpX
                     x[1, :] = 0.0
@@ -746,7 +746,7 @@ class MaskImageWidget(qt.QWidget):
                     tmpMatrix[:,1] = colRow[0,:]
                     ydataCentral = self._interpolate((x0, y0),\
                                     imageData, tmpMatrix)
-                    #multiply by width too have the equivalent scale
+                    # multiply by width too have the equivalent scale
                     ydata = ydataCentral
                     
                     """
@@ -2135,7 +2135,7 @@ def main(args):
         # show how to use user specified colors for the mask
         # without using any blitting (for the time being)
         # in the future it could be made using the alpha channel
-        THOUGHTS = """
+        __THOUGHTS__ = """
             colors = numpy.zeros((2, 4), dtype=numpy.uint8)
             colors[0,0] = 255
             colors[0,1] = 0

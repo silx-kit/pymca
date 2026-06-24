@@ -90,7 +90,7 @@ class ImageListStatsWidget(qt.QTabWidget):
             self.imageList = [0] * nimages
             for i in range(nimages):
                 self.imageList[i] = images[i, :]
-                THOUGHTS = """
+                __THOUGHTS__ = """
                     # or leave the data as they originally come
                     if self.imageList[i].max() < 0:
                         self.imageList[i] *= -1

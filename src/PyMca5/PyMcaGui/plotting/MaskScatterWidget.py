@@ -346,7 +346,7 @@ class MaskScatterWidget(PlotWindow.PlotWindow):
         if replot:
             self.replot()
 
-        THOUGHTS = """
+        __THOUGHTS__ = """
             # if self._plotViewMode == "density"
             # get the binned data
             imageData = self.getDensityData()

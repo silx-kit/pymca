@@ -896,8 +896,8 @@ class McaAdvancedFit(qt.QWidget):
                 self.mainTab.setCurrentIndex(0)
             return
         fitresult = self.dict
-        THOUGHTS = """
-            #from the fit, it misses any update from concentrations
+        __THOUGHTS__ = """
+            # from the fit, it misses any update from concentrations
             config = fitresult['result']['config']
             """
         config = self.mcafit.configure()

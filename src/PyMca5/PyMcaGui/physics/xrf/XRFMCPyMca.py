@@ -744,8 +744,8 @@ class XRFMCPyMca(qt.QWidget):
             # but this does not work
             newFile=ConfigDict.ConfigDict()
             newFile.read(pymcaFitFile)
-            THOUGHTS = """
-                #perform a dummy fit till xmimsim-pymca is upgraded
+            __THOUGHTS__ = """
+                # perform a dummy fit till xmimsim-pymca is upgraded
                 import numpy
                 from PyMca import ClassMcaTheory
                 newFile['fit']['linearfitflag']=1

@@ -1193,11 +1193,11 @@ if __name__ == "__main__":
         towrite.WriteImage({}, x, DataType=item, Append=0)
     sys.exit(0)
 
-    THOUGHTS = """
-    #Creates object based on file exe.edf
+    __THOUGHTS__ = """
+    # Creates object based on file exe.edf
     exe = EdfFile("images/test_image.edf")
     x = EdfFile("images/test_getdata.edf")
-    #Gets unsigned short data, storing in an signed long
+    # Gets unsigned short data, storing in an signed long
     arr = exe.GetData(0, Pos=(100, 200), Size=(200, 400))
     x.WriteImage({}, arr, 0)
 
@@ -1212,43 +1212,43 @@ if __name__ == "__main__":
 
     sys.exit()
 
-    #Creates object based on file exe.edf
+    # Creates object based on file exe.edf
     exe = EdfFile("images/.edf")
 
-    #Creates long array , filled with 0xFFFFFFFF(-1)
+    # Creates long array , filled with 0xFFFFFFFF(-1)
     la = numpy.zeros((100, 100))
     la = la - 1
 
-    #Creates a short array, filled with 0xFFFF
+    # Creates a short array, filled with 0xFFFF
     sa = numpy.zeros((100, 100))
     sa = sa + 0xFFFF
     sa = sa.astype("s")
 
-    #Writes long array, initializing file (append=0)
+    # Writes long array, initializing file (append=0)
     exe.WriteImage({}, la, 0, "")
 
-    #Appends short array with new header items
+    # Appends short array with new header items
     exe.WriteImage({'Name': 'Alexandre', 'Date': '16/07/2001'}, sa)
 
-    #Appends short array, in Edf type unsigned
+    # Appends short array, in Edf type unsigned
     exe.WriteImage({}, sa, DataType="UnsignedShort")
 
-    #Appends short array, in Edf type unsigned
+    # Appends short array, in Edf type unsigned
     exe.WriteImage({}, sa, DataType="UnsignedLong")
 
-    #Appends long array as a double, considering unsigned
+    # Appends long array as a double, considering unsigned
     exe.WriteImage({}, la, DataType="DoubleValue", WriteAsUnsigened=1)
 
-    #Gets unsigned short data, storing in an signed long
+    # Gets unsigned short data, storing in an signed long
     ushort = exe.GetData(2, "SignedLong")
 
-    #Makes an operation
+    # Makes an operation
     ushort = ushort - 0x10
 
-    #Saves Result as signed long
+    # Saves Result as signed long
     exe.WriteImage({}, ushort)
 
-    #Saves in the original format (unsigned short)
+    # Saves in the original format (unsigned short)
     OldHeader = exe.GetStaticHeader(2)
     exe.WriteImage({}, ushort, 1, OldHeader["DataType"])
     """

@@ -379,8 +379,8 @@ def nnma(stack, ncomponents, binning=None,
             new_images[i, :] = images[idx, :]
         else:
             new_images[i, maskview] = images[idx, :]
-        THOUGHTS = """
-            #imaging the projected sum gives same results
+        __THOUGHTS__ = """
+            # imaging the projected sum gives same results
             Atmp = images[idx, :]
             Atmp = Atmp.reshape(-r*c, 1)
             Xtmp = X[idx,:]

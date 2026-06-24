@@ -63,7 +63,7 @@ class RTXMap(DataObject.DataObject):
         if not os.path.exists(filename):
             raise IOError("File %s does not exists"  % filename)
 
-        THOUGHTS = """
+        __THOUGHTS__ = """
             # this works but it is very slow
             DataObject.DataObject.__init__(self)
             stack = SpecFileStack.SpecFileStack(filename)

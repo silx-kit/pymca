@@ -1047,7 +1047,7 @@ class QSpsWidget(qt.QWidget):
 
     def __refreshSelection(self):
         return
-        THOUGHTS = """
+        __THOUGHTS__ = """
         _logger.debug("__refreshSelection(self) called")
         _logger.debug(self.selection)
         if self.selection is not None:

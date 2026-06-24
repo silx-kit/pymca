@@ -924,7 +924,7 @@ class StackBase(object):
                     
                     maxImage = energy[numpy.argmax(dataImage, axis=0) + i1]
                     minImage = energy[numpy.argmin(dataImage, axis=0) + i1]
-                    THOUGHTS = """
+                    __THOUGHTS__ = """
                         # this is slower, but uses less memory
                         maxImage = numpy.zeros(leftImage.shape, numpy.int32)
                         minImage = numpy.zeros(leftImage.shape, numpy.int32)

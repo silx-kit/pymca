@@ -178,7 +178,7 @@ class XASSelfattenuationCorrection(object):
         muSampleJump[0:idx] = muSampleJump[idx]
         ALPHA = g * (muTotalFluorescence/muSampleJump) + totalCrossSectionBackground/muSampleJump
         return (spectrum * ALPHA)/(1 + ALPHA - spectrum)
-        THOUGHTS = """
+        __THOUGHTS__ = """
             # all samples (to be tested)
             d = thickness * density
             idx = numpy.where(muSampleJump > 0.0)[0][0]

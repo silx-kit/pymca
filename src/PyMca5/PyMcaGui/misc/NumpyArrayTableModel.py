@@ -285,7 +285,7 @@ class NumpyArrayTableModel(qt.QAbstractTableModel):
             # Only N-dimensional arrays of images supported
             print("NOT SUPPORTED YET")
             return
-            THOUGHTS = """
+            __THOUGHTS__ = """
                 for i in range(len(index)):
                     idx = index[i]
                     if (idx < 0) or (idx >= shape[i]):

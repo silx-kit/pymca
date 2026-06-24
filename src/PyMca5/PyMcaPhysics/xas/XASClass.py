@@ -1116,7 +1116,7 @@ class XASClass(object):
         # window
         setFT = self.fourierTransform(set2[:,0], set2[:, 1], kMin=ddict["KMin"], kMax=ddict["KMax"])
         ddict["FT"] = setFT
-        THOUGHTS = """
+        __THOUGHTS__ = """
             # for BFT
             setBFT = getBackFT(setFT["Set"],rmin=1.0,rmax=3.0,krange=[2.0,20.0])
             ddict["BFT"] = setBFT
