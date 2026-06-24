@@ -98,6 +98,54 @@ class testHDF5Utils(unittest.TestCase):
             keys = [key for key, _ in HDF5Utils.sort_h5items(h5_items)]
         assert keys == expected
 
+    def testHdf5GroupSortByStartTimeThenEndTime(self):
+        # sequential ordering (same start_time must be ordered by the end_time),
+        filename = os.path.join(self.path, "test.h5")
+        with h5py.File(filename, "w", track_order=True) as f:
+            scanA = f.create_group("scanA")
+            scanA["start_time"] = "2026-01-01T00:00:01"
+            scanA["end_time"] = "2026-01-01T00:00:09"
+            scanB = f.create_group("scanB")
+            scanB["start_time"] = "2026-01-01T00:00:01"
+            scanB["end_time"] = "2026-01-01T00:00:08"
+            scanC = f.create_group("scanC")
+            scanC["start_time"] = "2026-01-01T00:00:00"
+            scanC["end_time"] = "2026-01-01T00:00:09"
+
+        with h5py.File(filename, "r") as f:
+            h5_items = list(f.items())
+            keys = [key for key, _ in HDF5Utils.sort_h5items(h5_items)]
+        assert keys == ["scanC", "scanB", "scanA"]
+
+    def testHdf5GroupSortByStartTimeMissingForSome(self):
+        # entries without the sort key must go last
+        filename = os.path.join(self.path, "test.h5")
+        with h5py.File(filename, "w", track_order=True) as f:
+            scanA = f.create_group("scanA")
+            scanA["start_time"] = "2026-01-01T00:00:01"
+            f.create_group("scanB")  # no start_time
+            scanC = f.create_group("scanC")
+            scanC["start_time"] = "2026-01-01T00:00:00"
+
+        with h5py.File(filename, "r") as f:
+            h5_items = list(f.items())
+            keys = [key for key, _ in HDF5Utils.sort_h5items(h5_items)]
+        # present sorted by start_time (scanC, scanA), missing (scanB) last
+        assert keys == ["scanC", "scanA", "scanB"]
+
+    def testHdf5GroupSortByTitleNaturalOrder(self):
+        # titles natural order: "scan 2" before "scan 10"
+        filename = os.path.join(self.path, "test.h5")
+        with h5py.File(filename, "w", track_order=True) as f:
+            f.create_group("1.1")["title"] = "scan 10"
+            f.create_group("1.2")["title"] = "scan 2"
+            f.create_group("1.3")["title"] = "scan 1"
+
+        with h5py.File(filename, "r") as f:
+            h5_items = list(f.items())
+            keys = [key for key, _ in HDF5Utils.sort_h5items(h5_items, ["title"])]
+        assert keys == ["1.3", "1.2", "1.1"]
+
     def testHdf5GroupSortByIdenticalStartTime(self):
         filename = os.path.join(self.path, "test.h5")
         expected = []
