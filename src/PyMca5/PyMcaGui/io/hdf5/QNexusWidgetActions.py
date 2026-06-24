@@ -39,6 +39,7 @@ class QNexusWidgetActions(qt.QWidget):
     sigRemoveSelection = qt.pyqtSignal()
     sigReplaceSelection = qt.pyqtSignal()
     sigActionsConfigurationChanged = qt.pyqtSignal(object)
+    sigAutoRefreshToggled = qt.pyqtSignal(bool)
     def __init__(self, parent=None, autoreplace=False):
         self.autoReplace = autoreplace
         if self.autoReplace:
@@ -46,7 +47,6 @@ class QNexusWidgetActions(qt.QWidget):
         else:
             self.autoAdd     = True
         self._oldCntSelection = None
-        self.autoRefreshBox = None
         qt.QWidget.__init__(self, parent)
         self._build()
 
@@ -64,9 +64,18 @@ class QNexusWidgetActions(qt.QWidget):
         self.autoReplaceBox.setText("Auto REPLACE")
 
         row = 0
+        self.autoRefreshBox = qt.QCheckBox(autoBox)
+        self.autoRefreshBox.setText("Auto REFRESH")
+        self.autoRefreshBox.setToolTip(
+            "Automatically refresh HDF5 files every second\n"
+            "to see new appended data (uses REPLACE mode).\n"
+            "New datasets will not appear in HDF5 tree until a manual refresh (F5).")
+        self.autoRefreshBox.setEnabled(False)
+
         self.autoBoxLayout.addWidget(self.autoOffBox, row, 0)
         self.autoBoxLayout.addWidget(self.autoAddBox, row, 1)
         self.autoBoxLayout.addWidget(self.autoReplaceBox, row, 2)
+        self.autoBoxLayout.addWidget(self.autoRefreshBox, row, 3)
 
         if self.autoReplace:
             self.autoAddBox.setChecked(False)
@@ -118,6 +127,8 @@ class QNexusWidgetActions(qt.QWidget):
         self.autoAddBox.clicked.connect(self._setAutoAdd)
         self.autoReplaceBox.clicked.connect(self._setAutoReplace)
         self.forceMcaBox.clicked.connect(self._setForcedMca)
+        self.autoRefreshBox.toggled.connect(self._autoRefreshBoxToggled)
+        self.autoReplaceBox.toggled.connect(self._autoReplaceToggledForRefresh)
         self.addButton.clicked.connect(self._addClickedSlot)
         self.removeButton.clicked.connect(self._removeClicked)
         self.replaceButton.clicked.connect(self._replaceClicked)
@@ -162,19 +173,18 @@ class QNexusWidgetActions(qt.QWidget):
         self.autoReplaceBox.setChecked(True)
         self.configurationChanged()
 
-    def addAutoRefreshCheckBox(self, checkbox):
-        self.autoRefreshBox = checkbox
-        self.autoBoxLayout.addWidget(checkbox)
-        checkbox.toggled.connect(self._autoRefreshBoxToggled)
-        self.autoReplaceBox.toggled.connect(self._autoReplaceToggledForRefresh)
-
     def _autoRefreshBoxToggled(self, checked):
         if checked and not self.autoReplaceBox.isChecked():
             self._setAutoReplace()
+        self.sigAutoRefreshToggled.emit(checked)
 
     def _autoReplaceToggledForRefresh(self, checked):
-        if (not checked) and self.autoRefreshBox is not None \
-                and self.autoRefreshBox.isChecked():
+        if (not checked) and self.autoRefreshBox.isChecked():
+            self.autoRefreshBox.setChecked(False)
+
+    def setAutoRefreshEnabled(self, enabled):
+        self.autoRefreshBox.setEnabled(enabled)
+        if (not enabled) and self.autoRefreshBox.isChecked():
             self.autoRefreshBox.setChecked(False)
 
     def _setForcedMca(self):
