@@ -608,12 +608,21 @@ class NexusDataSource(object):
                         output.x.append(data)
             elif cnt == 'm':
                 # support multiple monitors
-                output.m = [data]
+                if numpy.ndim(data) == 0:
+                    data_array = numpy.array([data])
+                else:
+                    data_array = numpy.array(data)
+
+                output.m = [data_array]
                 if len(selection[cnt]) > 1:
                     for midx in range(1, len(selection[cnt])):
                         mpath = entry + selection['cntlist'][selection[cnt][midx]]
                         mdata = phynxFile[mpath][()]
-                        output.m.append(mdata)
+                        if numpy.ndim(mdata) == 0:
+                            mdata_array = numpy.array([mdata])
+                        else:
+                            mdata_array = numpy.array(mdata)
+                        output.m.append(mdata_array)
 
         # SCAN specific to handle asynchronous writing
         if output.info['selectiontype'] in ["1D"]:
@@ -627,8 +636,9 @@ class NexusDataSource(object):
                 if output.m:
                     for mi in range(len(output.m)):
                         mlength = output.m[mi].size
-                        delta = max(delta, abs(ylength - mlength))
-                        length = min(length, mlength)
+                        if mlength > 1:
+                            delta = max(delta, abs(ylength - mlength))
+                            length = min(length, mlength)
                 if delta > 1:
                     _logger.warning("Stripping last %d points" % delta)
                 elif delta == 1:
