@@ -497,6 +497,18 @@ class NexusDataSource(object):
                 continue
             path =  entry + selection['cntlist'][selection[cnt][0]]
 
+            # if the axes path is not in the file
+            # it is for cases when same scan is repeated with different motors - for example undulators scans
+            if (cnt == 'x') and (path not in phynxFile):
+                scanned = NexusTools.getScannedPositioners(phynxFile, entry)
+                try:
+                    _logger.warning("Motor is missing, trying to use same number of scanned positioners")
+                    selectedIndex = selection[cnt][0]
+                    path = scanned[selectedIndex]
+                except IndexError:
+                    _logger.warning("Motor is missing, trying to use first scanned positioner")
+                    path = scanned[0]
+
             # get the data
             data = phynxFile[path]
             totalElements = 1
