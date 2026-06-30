@@ -50,6 +50,7 @@ if sys.version_info > (3, 5):
 
 class QSourceSelector(qt.QWidget):
     sigSourceSelectorSignal = qt.pyqtSignal(object)
+    sigAutoRefreshAvailable = qt.pyqtSignal(bool)
     def __init__(self, parent=None, filetypelist=None, pluginsIcon=False):
         qt.QWidget.__init__(self, parent)
         self.mainLayout= qt.QVBoxLayout(self)
@@ -106,11 +107,7 @@ class QSourceSelector(qt.QWidget):
         else:
             specButton.setToolTip("Open new shared memory source")
 
-        self.autoRefreshCheckBox = qt.QCheckBox("Auto", self.fileWidget)
-        self.autoRefreshCheckBox.setToolTip(
-            "Automatically refresh HDF5 files every second\n"
-            "to see new appended data.\n" \
-            "New datasets will not appear until manual refresh (F5).")
+        self._autoRefreshActive = False
         
         self._autoRefreshTimer = qt.QTimer(self)
         self._autoRefreshTimer.setInterval(1000)
@@ -118,13 +115,11 @@ class QSourceSelector(qt.QWidget):
         closeButton.setSizePolicy(qt.QSizePolicy(qt.QSizePolicy.Fixed, qt.QSizePolicy.Minimum))
         specButton.setSizePolicy(qt.QSizePolicy(qt.QSizePolicy.Fixed, qt.QSizePolicy.Minimum))
         refreshButton.setSizePolicy(qt.QSizePolicy(qt.QSizePolicy.Fixed, qt.QSizePolicy.Minimum))
-        self.autoRefreshCheckBox.setSizePolicy(qt.QSizePolicy(qt.QSizePolicy.Fixed, qt.QSizePolicy.Minimum))
 
         openButton.clicked.connect(self._openFileSlot)
         closeButton.clicked.connect(self.closeFile)
         refreshButton.clicked.connect(self._reload)
         self.f5Shortcut = qt.QShortcut(qt.QKeySequence(qt.Qt.Key_F5), self, self._reload)
-        self.autoRefreshCheckBox.toggled.connect(self._autoRefreshToggled)
         self._autoRefreshTimer.timeout.connect(self._autoRefreshTimeout)
 
         # For `QDispatcher` to disable during refresh
@@ -143,10 +138,6 @@ class QSourceSelector(qt.QWidget):
         fileWidgetLayout.addWidget(specButton)
         if sys.platform == "win32":specButton.hide()
         fileWidgetLayout.addWidget(refreshButton)
-        fileWidgetLayout.addWidget(self.autoRefreshCheckBox)
-        # if sys.platform == "win32":self.autoRefreshCheckBox.hide()
-        # Needed because on Windows hdf5 locking system is "broken"
-        # Commented for testing on Windows
         
 
         self.specButton = specButton
@@ -180,13 +171,11 @@ class QSourceSelector(qt.QWidget):
         return all(source.lower().endswith(HDF5_EXTENSIONS) for source in sourcelist)
 
     def _updateAutoRefreshVisibility(self, sourcelist):
-        """Auto checkbox is only for HDF5 sources."""
-        isHDF5 = self._isSourceHDF5(sourcelist)
-        self.autoRefreshCheckBox.setEnabled(isHDF5)
-        if not isHDF5 and self.autoRefreshCheckBox.isChecked():
-            self.autoRefreshCheckBox.setChecked(False)
+        """Auto-refresh is only available for HDF5 sources."""
+        self.sigAutoRefreshAvailable.emit(self._isSourceHDF5(sourcelist))
 
-    def _autoRefreshToggled(self, checked):
+    def autoRefreshToggled(self, checked):
+        self._autoRefreshActive = checked
         if checked:
             _logger.info("Auto-refresh started")
             self._autoRefreshTimer.start()
@@ -198,7 +187,7 @@ class QSourceSelector(qt.QWidget):
         """Pause the timer to prevent queuing."""
         self._autoRefreshTimer.stop()
         self._reload(autorefresh=True)
-        if self.autoRefreshCheckBox.isChecked():
+        if self._autoRefreshActive:
             self._autoRefreshTimer.start()
 
     def _openFileSlot(self):
@@ -343,6 +332,13 @@ class QSourceSelector(qt.QWidget):
             nitem = self.fileCombo.findText(key)
         self.fileCombo.removeItem(nitem)
         del self.mapCombo[key]
+        # Disables auto-refresh checkbox
+        # when the remaining source is not HDF5 or none is left.
+        newkey = qt.safe_str(self.fileCombo.currentText())
+        if newkey in self.mapCombo:
+            self._updateAutoRefreshVisibility(self.mapCombo[newkey])
+        else:
+            self._updateAutoRefreshVisibility([])
         self.sigSourceSelectorSignal.emit(ddict)
 
     def openBlissOrSpec(self):

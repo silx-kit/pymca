@@ -39,6 +39,7 @@ class QNexusWidgetActions(qt.QWidget):
     sigRemoveSelection = qt.pyqtSignal()
     sigReplaceSelection = qt.pyqtSignal()
     sigActionsConfigurationChanged = qt.pyqtSignal(object)
+    sigAutoRefreshToggled = qt.pyqtSignal(bool)
     def __init__(self, parent=None, autoreplace=False):
         self.autoReplace = autoreplace
         if self.autoReplace:
@@ -52,9 +53,9 @@ class QNexusWidgetActions(qt.QWidget):
     def _build(self):
         self.mainLayout = qt.QVBoxLayout(self)
         autoBox = qt.QWidget(self)
-        autoBoxLayout = qt.QGridLayout(autoBox)
-        autoBoxLayout.setContentsMargins(0, 0, 0, 0)
-        autoBoxLayout.setSpacing(0)
+        self.autoBoxLayout = qt.QGridLayout(autoBox)
+        self.autoBoxLayout.setContentsMargins(0, 0, 0, 0)
+        self.autoBoxLayout.setSpacing(0)
         self.autoOffBox = qt.QCheckBox(autoBox)
         self.autoOffBox.setText("Auto OFF")
         self.autoAddBox = qt.QCheckBox(autoBox)
@@ -63,9 +64,18 @@ class QNexusWidgetActions(qt.QWidget):
         self.autoReplaceBox.setText("Auto REPLACE")
 
         row = 0
-        autoBoxLayout.addWidget(self.autoOffBox, row, 0)
-        autoBoxLayout.addWidget(self.autoAddBox, row, 1)
-        autoBoxLayout.addWidget(self.autoReplaceBox, row, 2)
+        self.autoRefreshBox = qt.QCheckBox(autoBox)
+        self.autoRefreshBox.setText("Auto REFRESH")
+        self.autoRefreshBox.setToolTip(
+            "Automatically refresh HDF5 files every second\n"
+            "to see new appended data (uses REPLACE mode).\n"
+            "New datasets will not appear in HDF5 tree until a manual refresh (F5).")
+        self.autoRefreshBox.setEnabled(False)
+
+        self.autoBoxLayout.addWidget(self.autoOffBox, row, 0)
+        self.autoBoxLayout.addWidget(self.autoAddBox, row, 1)
+        self.autoBoxLayout.addWidget(self.autoReplaceBox, row, 2)
+        self.autoBoxLayout.addWidget(self.autoRefreshBox, row, 3)
 
         if self.autoReplace:
             self.autoAddBox.setChecked(False)
@@ -78,18 +88,18 @@ class QNexusWidgetActions(qt.QWidget):
         self.object3DBox = qt.QCheckBox(autoBox)
         self.object3DBox.setText("3D On")
         self.object3DBox.setToolTip("Use OpenGL and Enable 3-Axes selections")
-        autoBoxLayout.addWidget(self.object3DBox, row, 0)
+        self.autoBoxLayout.addWidget(self.object3DBox, row, 0)
 
         self.meshBox = qt.QCheckBox(autoBox)
         self.meshBox.setText("2D On")
         self.meshBox.setToolTip("Enable 2-Axes selections (mesh and scatter)")
-        autoBoxLayout.addWidget(self.meshBox, row, 1)
+        self.autoBoxLayout.addWidget(self.meshBox, row, 1)
 
 
         self.forceMcaBox = qt.QCheckBox(autoBox)
         self.forceMcaBox.setText("Force MCA")
         self.forceMcaBox.setToolTip("Interpret selections as MCA")
-        autoBoxLayout.addWidget(self.forceMcaBox, row, 2)
+        self.autoBoxLayout.addWidget(self.forceMcaBox, row, 2)
 
         self.mainLayout.addWidget(autoBox)
 
@@ -117,6 +127,8 @@ class QNexusWidgetActions(qt.QWidget):
         self.autoAddBox.clicked.connect(self._setAutoAdd)
         self.autoReplaceBox.clicked.connect(self._setAutoReplace)
         self.forceMcaBox.clicked.connect(self._setForcedMca)
+        self.autoRefreshBox.toggled.connect(self._autoRefreshBoxToggled)
+        self.autoReplaceBox.toggled.connect(self._autoReplaceToggledForRefresh)
         self.addButton.clicked.connect(self._addClickedSlot)
         self.removeButton.clicked.connect(self._removeClicked)
         self.replaceButton.clicked.connect(self._replaceClicked)
@@ -160,6 +172,20 @@ class QNexusWidgetActions(qt.QWidget):
         self.autoAddBox.setChecked(False)
         self.autoReplaceBox.setChecked(True)
         self.configurationChanged()
+
+    def _autoRefreshBoxToggled(self, checked):
+        if checked and not self.autoReplaceBox.isChecked():
+            self._setAutoReplace()
+        self.sigAutoRefreshToggled.emit(checked)
+
+    def _autoReplaceToggledForRefresh(self, checked):
+        if (not checked) and self.autoRefreshBox.isChecked():
+            self.autoRefreshBox.setChecked(False)
+
+    def setAutoRefreshEnabled(self, enabled):
+        self.autoRefreshBox.setEnabled(enabled)
+        if (not enabled) and self.autoRefreshBox.isChecked():
+            self.autoRefreshBox.setChecked(False)
 
     def _setForcedMca(self):
         if self.forceMcaBox.isChecked():

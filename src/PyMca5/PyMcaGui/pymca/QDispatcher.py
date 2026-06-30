@@ -92,11 +92,33 @@ class QDispatcher(qt.QWidget):
                 self.selectorWidget[src_widget].sigOtherSignals.connect( \
                          self._otherSignalsSlot)
 
+        self._connectAutoRefresh()
+
         self.mainLayout.addWidget(self.sourceSelector)
         self.mainLayout.addWidget(self.tabWidget)
         self.sourceSelector.sigSourceSelectorSignal.connect( \
                     self._sourceSelectorSlot)
         self.tabWidget.currentChanged[int].connect(self._tabChanged)
+
+    def _connectAutoRefresh(self):
+        """Connect the HDF5 actions to the source selector
+        the action reports the state,
+        the source selector starts/stops the timer and reports availability
+        """
+        if "HDF5" not in self.selectorWidget:
+            return
+        actions = self.selectorWidget["HDF5"].actions
+        actions.sigAutoRefreshToggled.connect(
+            self.sourceSelector.autoRefreshToggled)
+        self.sourceSelector.sigAutoRefreshAvailable.connect(
+            actions.setAutoRefreshEnabled)
+
+    def _stopAutoRefresh(self):
+        if "HDF5" not in self.selectorWidget:
+            return
+        actions = self.selectorWidget["HDF5"].actions
+        if actions.autoRefreshBox.isChecked():
+            actions.autoRefreshBox.setChecked(False)
 
     def _addSelectionSlot(self, sel_list, event=None):
         _logger.debug("QDispatcher._addSelectionSlot")
@@ -166,8 +188,7 @@ class QDispatcher(qt.QWidget):
                                     text += "Source: %s\n" % source.sourceName
                                     text += "Key: %s\n"  % sel['Key']
                                     text += "Error: %s" % error[1]
-                                    if self.sourceSelector.autoRefreshCheckBox.isChecked():
-                                        self.sourceSelector.autoRefreshCheckBox.setChecked(False)
+                                    self._stopAutoRefresh()
                                     msg = qt.QMessageBox(self)
                                     msg.setWindowTitle('Source Error')
                                     msg.setIcon(qt.QMessageBox.Critical)
@@ -334,8 +355,7 @@ class QDispatcher(qt.QWidget):
                             "Auto-refresh failed %d times in a row, stopping: %s",
                             n, sys.exc_info()[1])
                         self._autoRefreshFailures = 0
-                        self.sourceSelector.autoRefreshCheckBox.setChecked(
-                            False)
+                        self._stopAutoRefresh()
                     else:
                         _logger.warning(
                             "Auto-refresh attempt failed, will retry in one second"
