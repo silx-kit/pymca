@@ -59,23 +59,18 @@ def subprocess_main(queue, method, *args, **kwargs):
 
 def sort_h5items(h5_items, sorting_list=None):
     """
-    :param h5_items: list of key and HDF5 item pairs
+    :param h5_items: list of name and HDF5 item pairs
     :param sorting_list: list of HDF5 datasets names to sort on
-    :returns: list of key and HDF5 item pairs
+    :returns: list of name and HDF5 item pairs
     """
     n = len(h5_items)
     if n < 2:
         return h5_items
 
-    if sorting_list is None:
-        sorting_list = ['start_time', 'end_time']
-
-    # we have received items, not values
-    # perform a first sort based on received names
-    # this solves a problem with Eiger data where all the
-    # external data have the same posixName. Without this sorting
-    # they arrive "unsorted"
+    # Alphabetic sorting on names
     h5_items.sort()
+
+    # Get full HDF5 item names
     try:
         posixNames = [h5_item.name for _, h5_item in h5_items]
     except AttributeError as ex:
@@ -83,76 +78,92 @@ def sort_h5items(h5_items, sorting_list=None):
         _logger.debug(f"Cannot get posixNames: {ex}")
         return h5_items
 
-    # This implementation only sorts entries
     if posixpath.dirname(posixNames[0]) != "/":
+        # First posix name is not a top-level name
         return h5_items
 
-    sorting_key = None
-    first_h5_item = h5_items[0][1]
-    if hasattr(first_h5_item, "items"):
-        names = [k for k, _ in first_h5_item.items()]
-        for name in sorting_list:
-            if name in names:
-                sorting_key = name
-                break
+    # Names of the children whose values is used for sorting
+    if sorting_list is None:
+        child_names = ["start_time", "end_time"]
+    elif set(sorting_list) == {"title"}:
+        child_names = ["title", "start_time", "end_time"]
+    elif "title" in sorting_list:
+        child_names = list(sorting_list)
+        child_names.remove("title")
+        child_names.insert(0, "title")
+    else:
+        child_names = list(sorting_list)
 
-    if sorting_key:
-        try:
-            if sorting_key == 'title':
-                list_to_sort = [(_extract_h5title(item[1]), item) for item in h5_items]
-            else:
-                list_to_sort = [(item[1][sorting_key][()], item) for item in h5_items]
-        except Exception as ex:
-            list_to_sort = []
-            _logger.warning("WARNING: Sorting by '%s' failed (%s)", sorting_key, ex)
+    # Sort on HDF5 item names
+    ordered = sorted(h5_items, key=_h5item_natural_sort_key)
 
-        if _list_of_tuples_has_unique_first_item(list_to_sort):
-            sorted_list = sorted(list_to_sort, key=itemgetter(0))
-            return [item for _, item in sorted_list]
+    # Sort by all child values from lowest priority (last) to highest priority (first)
+    for child_name in reversed(child_names):
+        ordered = _sort_by_child_value(ordered, child_name)
+    return ordered
 
-        sorting_list = [key for key in sorting_list if key != sorting_key]
-        if sorting_list:
-            return sort_h5items(h5_items, sorting_list=sorting_list)
 
+def _sort_by_child_value(h5_items, child_name):
+    """
+    Sorts items by a given HDF5 child value, missing values last.
+    """
+    to_be_sorted = []
+    for h5name, h5item in h5_items:
+        child_value = _extract_child_value(h5item, child_name)
+        # missing values (None) are sorted last
+        sort_key = (child_value is None, _natural_sort_key(child_value))
+        to_be_sorted.append((sort_key, h5name, h5item))
+
+    sorted_by_key = sorted(to_be_sorted, key=itemgetter(0))
+    return [(h5name, h5item) for _, h5name, h5item in sorted_by_key]
+
+
+def _extract_child_value(parent, child_name):
+    """
+    Returns either
+
+    - child value when a scalar or
+    - first item of child value when a sequence or
+    - None when missing
+    """
     try:
-        list_to_sort = [(_extract_sort_key_from_name(item[1].name), item) for item in h5_items]
-    except Exception as ex:
-        list_to_sort = []
-        _logger.warning("WARNING: Sorting by name failed ('%s')", sorting_key, ex)
-
-    if _list_of_tuples_has_unique_first_item(list_to_sort):
-        sorted_list = sorted(list_to_sort, key=itemgetter(0))
-        return [item for _, item in sorted_list]
-
-    return h5_items
-
-
-def _list_of_tuples_has_unique_first_item(list_of_tuples):
-    if not list_of_tuples:
-        return False
-    first_items = [tpl[0] for tpl in list_of_tuples]
-    return len(set(first_items)) == len(first_items)
-
-
-def _extract_h5title(h5item):
-    try:
-        title = h5item["title"][()]
+        value = parent[child_name][()]
     except Exception:
-        # allow the title to be missing
-        title = ""
-    if hasattr(title, "dtype"):
-        if hasattr(title, "__len__"):
-            if len(title) == 1:
-                title = title[0]
-    if hasattr(title, "decode"):
-        title = title.decode("utf-8")
-    return title
+        return None
+
+    # Get first value in case it is a sequence
+    if hasattr(value, "dtype"):
+        if hasattr(value, "__len__"):
+            if len(value) == 1:
+                value = value[0]
+
+    return value
 
 
-def _extract_sort_key_from_name(name):
-    key = tuple(int(w) for w in _NON_NUMERIC_CHARS.split(name) if w)
-    if key:
-        return key
-    return name
+def _natural_sort_key(name):
+    """
+    Split string in a sequence of types (str, int, str, int, ..., str),
+    starts and ends with a string (could be a single string).
+    """
+    if isinstance(name, bytes):
+        name = name.decode("utf-8", "ignore")
+    if not isinstance(name, str):
+        name = str(name)
+    sort_key = []
+    for chunk in _NUMERIC_CHARS.split(name):
+        if chunk.isdigit():
+            sort_key.append(int(chunk))
+        else:
+            sort_key.append(chunk)
+    return tuple(sort_key)
 
-_NON_NUMERIC_CHARS = re.compile('[^0-9]')
+
+def _h5item_natural_sort_key(item):
+    """
+    Return natural sort key of the HDF5 item name
+    """
+    _, h5item = item
+    return _natural_sort_key(h5item.name)
+
+
+_NUMERIC_CHARS = re.compile("([0-9]+)")
