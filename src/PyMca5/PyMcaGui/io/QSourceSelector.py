@@ -174,7 +174,7 @@ class QSourceSelector(qt.QWidget):
         """Auto-refresh is only available for HDF5 sources."""
         self.sigAutoRefreshAvailable.emit(self._isSourceHDF5(sourcelist))
 
-    def _autoRefreshToggled(self, checked):
+    def autoRefreshToggled(self, checked):
         self._autoRefreshActive = checked
         if checked:
             _logger.info("Auto-refresh started")

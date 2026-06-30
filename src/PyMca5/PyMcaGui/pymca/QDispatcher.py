@@ -109,7 +109,7 @@ class QDispatcher(qt.QWidget):
             return
         actions = self.selectorWidget["HDF5"].actions
         actions.sigAutoRefreshToggled.connect(
-            self.sourceSelector._autoRefreshToggled)
+            self.sourceSelector.autoRefreshToggled)
         self.sourceSelector.sigAutoRefreshAvailable.connect(
             actions.setAutoRefreshEnabled)
 
