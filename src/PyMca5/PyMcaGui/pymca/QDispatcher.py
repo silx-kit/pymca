@@ -165,57 +165,57 @@ class QDispatcher(qt.QWidget):
                             lastEvent = event
                         #we have found the source
                         #this recovers the data and the info
-                        if True:
-                            #this creates a data object that is passed to everybody so
-                            #there is only one read out.
-                            #I should create a weakref to it in order to be informed
-                            #about its deletion.
-                            addToPoller = False
-                            if source.sourceType == "SPS":
+                        
+                        #this creates a data object that is passed to everybody so
+                        #there is only one read out.
+                        #I should create a weakref to it in order to be informed
+                        #about its deletion.
+                        addToPoller = False
+                        if source.sourceType == "SPS":
+                            addToPoller = True
+                        elif "addToPoller" in sel:
+                            if sel["addToPoller"]:
                                 addToPoller = True
-                            elif "addToPoller" in sel:
-                                if sel["addToPoller"]:
-                                    addToPoller = True
-                            if not addToPoller:
-                                try:
-                                    dataObject = source.getDataObject(sel['Key'],
-                                                          selection=sel['selection'])
-                                except Exception:
-                                    if _logger.getEffectiveLevel() == logging.DEBUG:
-                                        raise
-                                    error = sys.exc_info()
-                                    text = "Failed to read data source.\n"
-                                    text += "Source: %s\n" % source.sourceName
-                                    text += "Key: %s\n"  % sel['Key']
-                                    text += "Error: %s" % error[1]
-                                    self._stopAutoRefresh()
-                                    msg = qt.QMessageBox(self)
-                                    msg.setWindowTitle('Source Error')
-                                    msg.setIcon(qt.QMessageBox.Critical)
-                                    msg.setInformativeText(text)
-                                    msg.setDetailedText(\
-                                        traceback.format_exc())
-                                    msg.exec()
-                                    continue
-                            else:
+                        if not addToPoller:
+                            try:
                                 dataObject = source.getDataObject(sel['Key'],
-                                                          selection=sel['selection'],
-                                                          poll=False)
-                                if dataObject is not None:
-                                    dataObject.info['legend'] = sel['legend']
-                                    dataObject.info['targetwidgetid'] = targetwidgetid
-                                    source.addToPoller(dataObject)
-                                else:
-                                    #this may happen on deletion??
-                                    return
-                                if sel['Key'] == "SCAN_D":
-                                    # I have to inform the widget about any possible
-                                    # change in the associated environment
-                                    #print source.sourceType
-                                    #print source.sourceName
-                                    #print sel['Key']
-                                    #print self.selectorWidget[source.sourceType]
-                                    pass
+                                                        selection=sel['selection'])
+                            except Exception:
+                                if _logger.getEffectiveLevel() == logging.DEBUG:
+                                    raise
+                                error = sys.exc_info()
+                                text = "Failed to read data source.\n"
+                                text += "Source: %s\n" % source.sourceName
+                                text += "Key: %s\n"  % sel['Key']
+                                text += "Error: %s" % error[1]
+                                self._stopAutoRefresh()
+                                msg = qt.QMessageBox(self)
+                                msg.setWindowTitle('Source Error')
+                                msg.setIcon(qt.QMessageBox.Critical)
+                                msg.setInformativeText(text)
+                                msg.setDetailedText(\
+                                    traceback.format_exc())
+                                msg.exec()
+                                continue
+                        else:
+                            dataObject = source.getDataObject(sel['Key'],
+                                                        selection=sel['selection'],
+                                                        poll=False)
+                            if dataObject is not None:
+                                dataObject.info['legend'] = sel['legend']
+                                dataObject.info['targetwidgetid'] = targetwidgetid
+                                source.addToPoller(dataObject)
+                            else:
+                                #this may happen on deletion??
+                                return
+                            if sel['Key'] == "SCAN_D":
+                                # I have to inform the widget about any possible
+                                # change in the associated environment
+                                #print source.sourceType
+                                #print source.sourceName
+                                #print sel['Key']
+                                #print self.selectorWidget[source.sourceType]
+                                pass
 
                         ddict['dataobject'] = dataObject
                         selectionList.append(ddict)
