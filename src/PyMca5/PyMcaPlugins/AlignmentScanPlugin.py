@@ -176,7 +176,7 @@ class AlignmentScanPlugin(Plugin1DBase.Plugin1DBase):
                 # shift the curve
                 shift = (shift - m) * (x[1]-x[0])
                 x = numpy.ravel(x)
-                y = numpy.fft.ifft(numpy.exp(-2.0*numpy.pi*numpy.sqrt(numpy.complex(-1))*\
+                y = numpy.fft.ifft(numpy.exp(-2.0*numpy.pi*numpy.sqrt(numpy.complex128(-1))*\
                                 numpy.fft.fftfreq(len(x), d=x[1]-x[0])*shift)*ffty)
                 y = y.real
                 y = numpy.ravel(y)

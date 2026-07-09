@@ -43,7 +43,7 @@ spe = os.path.join(dataDir, "Steel.spe")
 cfg = os.path.join(dataDir, "Steel.cfg")
 sf = specfile.Specfile(spe)
 y = counts = sf[0].mca(1)
-x = channels = numpy.arange(y.size).astype(numpy.float)
+x = channels = numpy.arange(y.size).astype(numpy.float64)
 configuration = ConfigDict.ConfigDict()
 configuration.read(cfg)
 calibration = configuration["detector"]["zero"], \
@@ -54,8 +54,8 @@ initialTime = configuration["concentrations"]["time"]
 nRows = 5
 nColumns = 10
 nTimes = 3
-data = numpy.zeros((nRows, nColumns, counts.size), dtype = numpy.float)
-live_time = numpy.zeros((nRows * nColumns), dtype=numpy.float)
+data = numpy.zeros((nRows, nColumns, counts.size), dtype = numpy.float64)
+live_time = numpy.zeros((nRows * nColumns), dtype=numpy.float64)
 
 mcaIndex = 0
 for i in range(nRows):
