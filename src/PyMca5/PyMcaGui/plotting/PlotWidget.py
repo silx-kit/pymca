@@ -119,7 +119,11 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
         imgData.flush()
         imgData.seek(0)
         svgRawData = imgData.read()
-        svgRendererData = qt.QXmlStreamReader(svgRawData)
+        if qt.BINDING in ("PyQt6", "PySide6") and isinstance(svgRawData, bytes):
+            # In Qt6 QXmlStreamReader expects str not bytes
+            svgRendererData = qt.QXmlStreamReader(svgRawData.decode("utf-8", errors="replace"))
+        else:
+            svgRendererData = qt.QXmlStreamReader(svgRawData)
         svgRenderer = qt.QSvgRenderer(svgRendererData)
         svgRenderer._svgRawData = svgRawData
         svgRenderer._svgRendererData = svgRendererData

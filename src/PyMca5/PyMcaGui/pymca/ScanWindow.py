@@ -1570,7 +1570,11 @@ class ScanWindow(PlotWindow.PlotWindow):
         svgData = svgData.encode(encoding="utf-8",
                                  errors="replace")
         svgRenderer._svgRawData = svgData
-        svgRenderer._svgRendererData = qt.QXmlStreamReader(svgData)
+        svgStreamData = svgData
+        if qt.BINDING in ("PyQt6", "PySide6") and isinstance(svgStreamData, bytes):
+            # In Qt6 QXmlStreamReader expects str not bytes
+            svgStreamData = svgStreamData.decode("utf-8", errors="replace")
+        svgRenderer._svgRendererData = qt.QXmlStreamReader(svgStreamData)
 
         if not svgRenderer.load(svgRenderer._svgRendererData):
             raise RuntimeError("Cannot interpret svg data")
