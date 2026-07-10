@@ -36,7 +36,6 @@ import os
 import numpy
 import re
 import weakref
-import types
 from PyMca5.PyMcaIO import ConfigDict
 from . import CoherentScattering
 from . import IncoherentScattering
@@ -560,21 +559,15 @@ def getPhotoWeight(ele,shelllist,energy, normalize = None, totals = None):
 def _getFluorescenceWeights(ele, energy, normalize = None, cascade = None):
     if normalize is None:normalize = True
     if cascade   is None:cascade   = False
-    if sys.version < '3.0':
-        if type(ele) in types.StringTypes:
-            pass
-        else:
-            ele = getsymbol(int(ele))
+    #python 3
+    if type(ele) == type(" "):
+        #unicode, fine
+        pass
+    elif 'bytes' in str(type(ele)):
+        #bytes object, convert to unicode
+        ele = ele.decode()
     else:
-        #python 3
-        if type(ele) == type(" "):
-            #unicode, fine
-            pass
-        elif 'bytes' in str(type(ele)):
-            #bytes object, convert to unicode
-            ele = ele.decode()
-        else:
-            ele = getsymbol(int(ele))
+        ele = getsymbol(int(ele))
     wall = getPhotoWeight(ele,['K','L1','L2','L3','M1','M2','M3','M4','M5','all other'],energy, normalize=True)
     #weights due to Coster - Kronig transitions
     #k shell is not affected
@@ -1216,22 +1209,6 @@ def getMultilayerFluorescence(multilayer0,
     flagList   = numpy.take(flagList, i0).astype(numpy.float64)
     #normalize selected weights
     total = sum(weightList)
-    if 0:
-        #old way
-        for beamfilter in beamfilters:
-            formula   = beamfilter[0]
-            thickness = beamfilter[1] * beamfilter[2]
-            coeffs   =  thickness * numpy.array(getMaterialMassAttenuationCoefficients(formula,1.0,energyList)['total'])
-            try:
-                trans = numpy.exp(-coeffs)
-            except OverflowError:
-                for coef in coeffs:
-                    if coef < 0.0:
-                        raise ValueError("Positive exponent in attenuators transmission term")
-                trans = 0.0 * coeffs
-            weightList = weightList * trans
-    else:
-        pass
         #new way will be made later
         #formula  = []
         #thickness = []
@@ -1291,9 +1268,6 @@ def getMultilayerFluorescence(multilayer0,
                 newbeamfilters[-1][2] = newbeamfilters[-1][2]/sinAlphaIn
             else:
                 del newbeamfilters[-1]
-        if 0:
-            print(multilayer[ilayer], "beamfilters =", newbeamfilters)
-            print(multilayer[ilayer], "attenuators =", origattenuators)
         if ilayer not in layerList:continue
         pseudomatrix = multilayer[ilayer] * 1
         newelementsList = []
@@ -1557,7 +1531,7 @@ def getScattering(matrix, energy, attenuators = None, alphain = None, alphaout =
         elementsList = [[getz(x),x] for x in keys]
         elementsList.sort()
     else:
-        if (type(elementsList) != type([])) and (type(elementsList) != types.TupleType):
+        if (type(elementsList) != type([])) and (type(elementsList) != tuple):
             elementsList  = [elementsList]
         elementsList = [[getz(x),x] for x in elementsList]
         elementsList.sort()
@@ -1643,24 +1617,22 @@ def getScattering(matrix, energy, attenuators = None, alphain = None, alphaout =
             mutotal  = allcoeffs['total']
             del energies[-1]
             i = 0
-            if 1:
-                #thick target term
-                trans = outputDict[ele]['mass fraction'] * 1.0/(mutotal[-1] + mutotal[i] * (sinAlphaIn/sinAlphaOut))
-                #correction term
-                if thickness > 0.0:
-                    if abs(sinAlphaIn) > 0.0:
-                        try:
-                            expterm = numpy.exp(-((mutotal[-1]/sinAlphaIn) +(mutotal[i]/sinAlphaOut)) * thickness)
-                        except OverflowError:
-                            if -((mutotal[-1]/sinAlphaIn) +(mutotal[i]/sinAlphaOut)) * thickness > 0.0:
-                                raise ValueError("Positive exponent in transmission term")
-                            expterm = 0.0
-                        trans *= (1.0 -  expterm)
-                #if ele == 'Pb':
-                #    oldRatio.append(newpeaks[i][0])
-                #    print "energy = %.3f ratio=%.5f transmission = %.5g final=%.5g" % (newpeaks[i][1], newpeaks[i][0],trans,trans * newpeaks[i][0])
-                rates[i] *=  trans
-                outputDict[ele][rays]['rate'] = rates[i]
+            trans = outputDict[ele]['mass fraction'] * 1.0/(mutotal[-1] + mutotal[i] * (sinAlphaIn/sinAlphaOut))
+            #correction term
+            if thickness > 0.0:
+                if abs(sinAlphaIn) > 0.0:
+                    try:
+                        expterm = numpy.exp(-((mutotal[-1]/sinAlphaIn) +(mutotal[i]/sinAlphaOut)) * thickness)
+                    except OverflowError:
+                        if -((mutotal[-1]/sinAlphaIn) +(mutotal[i]/sinAlphaOut)) * thickness > 0.0:
+                            raise ValueError("Positive exponent in transmission term")
+                        expterm = 0.0
+                    trans *= (1.0 -  expterm)
+            #if ele == 'Pb':
+            #    oldRatio.append(newpeaks[i][0])
+            #    print "energy = %.3f ratio=%.5f transmission = %.5g final=%.5g" % (newpeaks[i][1], newpeaks[i][0],trans,trans * newpeaks[i][0])
+            rates[i] *=  trans
+            outputDict[ele][rays]['rate'] = rates[i]
             outputDict[ele]['rates'][rays] = sum(rates)
             #outputDict[ele][rays]= Element[ele]['rays'] * 1
     return outputDict
@@ -1747,7 +1719,7 @@ def getFluorescence(matrix, energy, attenuators = None,
         elementsList.sort()
     else:
         if (type(elementsList) != type([])) and\
-           (type(elementsList) != types.TupleType):
+           (type(elementsList) != tuple):
             elementsList  = [elementsList]
         if len(elementsList[0]) == 3:
             raysforloopindex = 0
@@ -2682,17 +2654,12 @@ def getelementmassattcoef(ele,energy=None):
                 i += 1
             line = f.readline()
         f.close()
-        if sys.version >= '3.0':
-            # next line gave problems under under windows
-            # just try numpy.argsort([1,1,1,1,1]) under linux and windows to see
-            # what I mean
-            # i1=numpy.argsort(Element[ele]['xcom']['energy']) did not work
-            # (uses quicksort and gives problems with Pb not passing tests)
-            i1=numpy.argsort(Element[ele]['xcom']['energy'], kind='mergesort')
-        else:
-            sset = map(None,Element[ele]['xcom']['energy'],range(len(Element[ele]['xcom']['energy'])))
-            sset.sort()
-            i1=numpy.array([x[1] for x in sset])
+        # next line gave problems under windows
+        # just try numpy.argsort([1,1,1,1,1]) under linux and windows to see
+        # what I mean
+        # i1=numpy.argsort(Element[ele]['xcom']['energy']) did not work
+        # (uses quicksort and gives problems with Pb not passing tests)
+        i1=numpy.argsort(Element[ele]['xcom']['energy'], kind='mergesort')
         Element[ele]['xcom']['energy']=numpy.take(Element[ele]['xcom']['energy'],i1)
         Element[ele]['xcom']['coherent']=numpy.take(Element[ele]['xcom']['coherent'],i1)
         Element[ele]['xcom']['compton']=numpy.take(Element[ele]['xcom']['compton'],i1)
@@ -3121,13 +3088,10 @@ if __name__ == "__main__":
                     print("callback called")
                 registerUpdate(testCallback)
                 e = float(sys.argv[2])
-                if 0:
-                    _updateElementDict(ele,Element[ele],energy=e)
-                else:
-                    import time
-                    t0=time.time()
-                    updateDict(energy=e)
-                    print("update took ",time.time() - t0)
+                import time
+                t0=time.time()
+                updateDict(energy=e)
+                print("update took ",time.time() - t0)
             for rays in Element[ele]['rays']:
                 print(rays,":")
                 for transition in Element[ele][rays]:

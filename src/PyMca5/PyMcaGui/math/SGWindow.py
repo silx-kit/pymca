@@ -196,10 +196,9 @@ class SGDialog(qt.QDialog):
 if __name__ == "__main__":
     import numpy
     app = qt.QApplication([])
-    if 1:
-        noise = numpy.random.randn(1000)
-        y=numpy.arange(1000.)
-        w = SGDialog(None, y+numpy.sqrt(y)* noise)
+    noise = numpy.random.randn(1000)
+    y=numpy.arange(1000.)
+    w = SGDialog(None, y+numpy.sqrt(y)* noise)
     w.show()
     ret = w.exec()
     if ret:

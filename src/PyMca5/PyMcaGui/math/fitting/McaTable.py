@@ -29,10 +29,7 @@ __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 import logging
 from PyMca5.PyMcaGui import PyMcaQt as qt
-if hasattr(qt, "QString"):
-    QString = qt.QString
-else:
-    QString = str
+QString = str
 
 QTVERSION = qt.qVersion()
 
@@ -91,61 +88,60 @@ class McaTable(QTable):
                 chisq=QString("%6.2f" % (result['chisq']))
             else:
                 chisq=QString("Fit Error")
-            if 1:
-                xbegin=QString("%6g" % (result['xbegin']))
-                xend=QString("%6g" % (result['xend']))
-                fitlabel,fitpars, fitsigmas = self.__getfitpar(result)
-                item = self.horizontalHeaderItem(1)
-                item.setText("Fit "+fitlabel)
-                i = 0
-                for (pos,area,sigma,fwhm) in result['mca_areas']:
-                    line0=line0+1
-                    nlines=self.rowCount()
-                    if (line0 > nlines):
-                        self.setRowCount(line0)
-                    line=line0-1
-                    #pos=QString(str(pos))
-                    #area=QString(str(area))
-                    #sigma=QString(str(sigma))
-                    #fwhm=QString(str(fwhm))
-                    tregion=QString(str(region))
-                    pos=QString("%6g" % (pos))
-                    fitpar = QString("%6g" % (fitpars[i]))
-                    if fitlabel == 'Area':
-                        sigma = max(sigma,fitsigmas[i])
-                    areastr=QString("%6g" % (area))
-                    sigmastr=QString("%6.3g" % (sigma))
-                    fwhm=QString("%6g" % (fwhm))
-                    tregion=QString("%6g" % (region))
-                    fields=[pos,fitpar,areastr,sigmastr,fwhm,chisq,tregion,xbegin,xend]
-                    col=0
-                    recolor = 0
-                    if fitlabel == 'Area':
-                        if diag:
-                            if abs(fitpars[i]-area) > (3.0 * sigma):
-                                try:
-                                    _hl = qt.QApplication.instance().palette().color(qt.QPalette.Highlight)
-                                    color = qt.QColor(_hl.red(), _hl.green(), _hl.blue(), 100)
-                                except Exception:
-                                    color = qt.QColor(255,182,193)
-                                recolor = 1
-                    for field in fields:
-                        key = self.item(line, col)
-                        if key is None:
-                            key = qt.QTableWidgetItem(field)
-                            self.setItem(line, col, key)
-                        else:
-                            item.setText(field)
-                        if recolor:
-                            #function introduced in Qt 4.2.0
-                            item.setBackground(qt.QBrush(color))
-                        item.setFlags(qt.Qt.ItemIsSelectable|qt.Qt.ItemIsEnabled)
-                        col=col+1
+            xbegin=QString("%6g" % (result['xbegin']))
+            xend=QString("%6g" % (result['xend']))
+            fitlabel,fitpars, fitsigmas = self.__getfitpar(result)
+            item = self.horizontalHeaderItem(1)
+            item.setText("Fit "+fitlabel)
+            i = 0
+            for (pos,area,sigma,fwhm) in result['mca_areas']:
+                line0=line0+1
+                nlines=self.rowCount()
+                if (line0 > nlines):
+                    self.setRowCount(line0)
+                line=line0-1
+                #pos=QString(str(pos))
+                #area=QString(str(area))
+                #sigma=QString(str(sigma))
+                #fwhm=QString(str(fwhm))
+                tregion=QString(str(region))
+                pos=QString("%6g" % (pos))
+                fitpar = QString("%6g" % (fitpars[i]))
+                if fitlabel == 'Area':
+                    sigma = max(sigma,fitsigmas[i])
+                areastr=QString("%6g" % (area))
+                sigmastr=QString("%6.3g" % (sigma))
+                fwhm=QString("%6g" % (fwhm))
+                tregion=QString("%6g" % (region))
+                fields=[pos,fitpar,areastr,sigmastr,fwhm,chisq,tregion,xbegin,xend]
+                col=0
+                recolor = 0
+                if fitlabel == 'Area':
+                    if diag:
+                        if abs(fitpars[i]-area) > (3.0 * sigma):
+                            try:
+                                _hl = qt.QApplication.instance().palette().color(qt.QPalette.Highlight)
+                                color = qt.QColor(_hl.red(), _hl.green(), _hl.blue(), 100)
+                            except Exception:
+                                color = qt.QColor(255,182,193)
+                            recolor = 1
+                for field in fields:
+                    key = self.item(line, col)
+                    if key is None:
+                        key = qt.QTableWidgetItem(field)
+                        self.setItem(line, col, key)
+                    else:
+                        item.setText(field)
                     if recolor:
-                        if not alreadyforced:
-                            alreadyforced = 1
-                            self.scrollToItem(self.item(line, 0))
-                    i += 1
+                        #function introduced in Qt 4.2.0
+                        item.setBackground(qt.QBrush(color))
+                    item.setFlags(qt.Qt.ItemIsSelectable|qt.Qt.ItemIsEnabled)
+                    col=col+1
+                if recolor:
+                    if not alreadyforced:
+                        alreadyforced = 1
+                        self.scrollToItem(self.item(line, 0))
+                i += 1
 
         i = 0
         for label in self.labels:

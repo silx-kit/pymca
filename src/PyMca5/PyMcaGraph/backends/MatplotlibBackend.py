@@ -163,67 +163,27 @@ class MatplotlibGraph(FigureCanvas):
             #self.fig.set_facecolor(color)
             self.fig.set_facecolor("w")
             # that's it
-        if 1:
-            #this almost works
-            """
-        def twinx(self):
-            call signature::
+        self.ax = self.fig.add_axes([.15, .15, .75, .75], label="left")
+        self.ax2 = self.ax.twinx()
+        self.ax2.set_label("right")
 
-              ax = twinx()
-
-            create a twin of Axes for generating a plot with a sharex
-            x-axis but independent y axis.  The y-axis of self will have
-            ticks on left and the returned axes will have ticks on the
-            right
-            ax2 = self.fig.add_axes(self.get_position(True), sharex=self,
-                frameon=False)
-            ax2.yaxis.tick_right()
-            ax2.yaxis.set_label_position('right')
-            ax2.yaxis.set_offset_position('right')
-            self.ax.yaxis.tick_left()
-            ax2.xaxis.set_visible(False)
-            return ax2
-            """
-            self.ax = self.fig.add_axes([.15, .15, .75, .75], label="left")
-            self.ax2 = self.ax.twinx()
-            self.ax2.set_label("right")
-
-            # critical for picking!!!!
-            self.ax2.set_zorder(0)
-            self.ax2.set_autoscaley_on(True)
-            self.ax.set_zorder(1)
-            #this works but the figure color is left
-            if hasattr(self.ax, "set_facecolor"):
-                self.ax.set_facecolor('none')
-            else:
-                # this was deprecated in 2.0
-                self.ax.set_axis_bgcolor('none')
-            self.fig.sca(self.ax)
-            try:
-                # prevent use of offsets
-                self.ax.get_yaxis().get_major_formatter().set_useOffset(False)
-                self.ax.get_xaxis().get_major_formatter().set_useOffset(False)
-            except Exception:
-                print("Error disabling matplotlib offsets")
+        # critical for picking!!!!
+        self.ax2.set_zorder(0)
+        self.ax2.set_autoscaley_on(True)
+        self.ax.set_zorder(1)
+        #this works but the figure color is left
+        if hasattr(self.ax, "set_facecolor"):
+            self.ax.set_facecolor('none')
         else:
-            #this almost works
-            self.ax2 = self.fig.add_axes([.15, .15, .75, .75],
-                                         axisbg="w",
-                                         label="right",
-                                         frameon=False)
-            self.ax = self.fig.add_axes(self.ax2.get_position(),
-                                        sharex=self.ax2,
-                                        label="left",
-                                        frameon=True)
-            self.ax2.yaxis.tick_right()
-            self.ax2.xaxis.set_visible(False)
-            self.ax2.yaxis.set_label_position('right')
-            self.ax2.yaxis.set_offset_position('right')
-            if hasattr(self.ax, "set_facecolor"):
-                self.ax.set_facecolor('none')
-            else:
-                # this was deprecated in 2.0
-                self.ax.set_axis_bgcolor('none')
+            # this was deprecated in 2.0
+            self.ax.set_axis_bgcolor('none')
+        self.fig.sca(self.ax)
+        try:
+            # prevent use of offsets
+            self.ax.get_yaxis().get_major_formatter().set_useOffset(False)
+            self.ax.get_xaxis().get_major_formatter().set_useOffset(False)
+        except Exception:
+            print("Error disabling matplotlib offsets")
 
         # this respects aspect size
         # self.ax = self.fig.add_subplot(111, aspect='equal')
@@ -1304,23 +1264,25 @@ class MatplotlibGraph(FigureCanvas):
                 bottom, top = y2min, y2max
             self.ax2.set_ylim(bottom, top)
 
-        # if second axis was not properly initialized, this does not work
-        #if 0 and hasattr(self.ax2, "get_visible") and self.ax2.get_visible():
-        #    #print("BOTTOM, TOP = ", bottom, top)
-        #    bottom2, top2 = self.ax2.get_ylim()
-        #    #print("BOTTOM2, TO2 = ", bottom2, top2)
-        #    i2Range = top2 - bottom2
-        #    if i2Range > 0:
-        #        ymin2 = bottom2 + i2Range * (ymin - bottom)/(top - bottom)
-        #        ymax2 = bottom2 + i2Range * (ymax - bottom)/(top - bottom)
-        #        #print("OBTAINED = ", ymin2, ymax2)
-        #        if self.ax2.yaxis_inverted():
-        #            self.ax2.set_ylim(ymax2, ymin2)
-        #        else:
-        #            self.ax2.set_ylim(ymin2, ymax2)
-        # Next line forces a square display region
-        #self.ax.set_aspect((xmax-xmin)/float(ymax-ymin))
-        #self.draw()
+        __THOUGHTS__ = """
+            # if second axis was not properly initialized, this does not work
+            if 0 and hasattr(self.ax2, "get_visible") and self.ax2.get_visible():
+                #print("BOTTOM, TOP = ", bottom, top)
+                bottom2, top2 = self.ax2.get_ylim()
+                #print("BOTTOM2, TO2 = ", bottom2, top2)
+                i2Range = top2 - bottom2
+                if i2Range > 0:
+                    ymin2 = bottom2 + i2Range * (ymin - bottom)/(top - bottom)
+                    ymax2 = bottom2 + i2Range * (ymax - bottom)/(top - bottom)
+                    #print("OBTAINED = ", ymin2, ymax2)
+                    if self.ax2.yaxis_inverted():
+                        self.ax2.set_ylim(ymax2, ymin2)
+                    else:
+                        self.ax2.set_ylim(ymin2, ymax2)
+            # Next line forces a square display region
+            self.ax.set_aspect((xmax-xmin)/float(ymax-ymin))
+            self.draw()
+            """
         self.emitLimitsChangedSignal()
 
     def resetZoom(self, dataMargins=None):
@@ -2494,6 +2456,7 @@ class MatplotlibBackend(PlotBackend.PlotBackend):
         else:
             picker = False
         shape = data.shape
+        __THOUGHTS__ = """
         if 0:
             # this supports non regularly spaced coordenates!!!!
 
@@ -2516,108 +2479,109 @@ class MatplotlibBackend(PlotBackend.PlotBackend):
             self.ax.images.append(image)
             self.ax.set_xlim(xmin, xmax)
             self.ax.set_ylim(ymin, ymax)
-        elif 1:
-            #the normalization can be a source of time waste
-            # Two possibilities, we receive data or a ready to show image
-            if len(data.shape) == 3:
-                if data.shape[-1] == 4:
-                    # force alpha(?)
-                    # data[:,:,3] = 255
-                    pass
-            if len(shape) == 3:
-                # RGBA image
-                # TODO: Possibility to mirror the image
-                # in case of pixmaps just setting
-                # extend = (xmin, xmax, ymax, ymin)
-                # instead of (xmin, xmax, ymin, ymax)
-                extent = (xmin, xmax, ymin, ymax)
-                if tuple(xScale) != (0., 1.) or tuple(yScale) != (0., 1.):
-                    # for the time being not properly handled
-                    imageClass = AxesImage
-                elif (shape[0] * shape[1]) > 5.0e5:
-                    imageClass = ModestImage
-                else:
-                    imageClass = AxesImage
-                image = imageClass(self.ax,
-                              label="__IMAGE__"+legend,
-                              interpolation='nearest',
-                              picker=picker,
-                              zorder=z)
-                if image.origin == 'upper':
-                    image.set_extent((xmin, xmax, ymax, ymin))
-                else:
-                    image.set_extent((xmin, xmax, ymin, ymax))
-                image.set_data(data)
+        """
+
+        #the normalization can be a source of time waste
+        # Two possibilities, we receive data or a ready to show image
+        if len(data.shape) == 3:
+            if data.shape[-1] == 4:
+                # force alpha(?)
+                # data[:,:,3] = 255
+                pass
+        if len(shape) == 3:
+            # RGBA image
+            # TODO: Possibility to mirror the image
+            # in case of pixmaps just setting
+            # extend = (xmin, xmax, ymax, ymin)
+            # instead of (xmin, xmax, ymin, ymax)
+            extent = (xmin, xmax, ymin, ymax)
+            if tuple(xScale) != (0., 1.) or tuple(yScale) != (0., 1.):
+                # for the time being not properly handled
+                imageClass = AxesImage
+            elif (shape[0] * shape[1]) > 5.0e5:
+                imageClass = ModestImage
             else:
-                if colormap is None:
-                    colormap = self.getDefaultColormap()
-                cmap = self.__getColormap(colormap['name'])
-                if colormap['normalization'].startswith('log'):
-                    vmin, vmax = None, None
-                    if not colormap['autoscale']:
-                        if colormap['vmin'] > 0.:
-                            vmin = colormap['vmin']
-                        if colormap['vmax'] > 0.:
-                            vmax = colormap['vmax']
-
-                        if vmin is None or vmax is None:
-                            print('Warning: ' +
-                                  'Log colormap with negative bounds, ' +
-                                  'changing bounds to positive ones.')
-                        elif vmin > vmax:
-                            print('Warning: Colormap bounds are inverted.')
-                            vmin, vmax = vmax, vmin
-
-                    # Set unset/negative bounds to positive bounds
-                    if vmin is None or vmax is None:
-                        posData = data[data > 0]
-                        if vmax is None:
-                            # 1. as an ultimate fallback
-                            vmax = posData.max() if posData.size > 0 else 1.
-                        if vmin is None:
-                            vmin = posData.min() if posData.size > 0 else vmax
-                        if vmin > vmax:
-                            vmin = vmax
-
-                    norm = LogNorm(vmin, vmax)
-
-                else:  # Linear normalization
-                    if colormap['autoscale']:
-                        vmin = data.min()
-                        vmax = data.max()
-                    else:
+                imageClass = AxesImage
+            image = imageClass(self.ax,
+                            label="__IMAGE__"+legend,
+                            interpolation='nearest',
+                            picker=picker,
+                            zorder=z)
+            if image.origin == 'upper':
+                image.set_extent((xmin, xmax, ymax, ymin))
+            else:
+                image.set_extent((xmin, xmax, ymin, ymax))
+            image.set_data(data)
+        else:
+            if colormap is None:
+                colormap = self.getDefaultColormap()
+            cmap = self.__getColormap(colormap['name'])
+            if colormap['normalization'].startswith('log'):
+                vmin, vmax = None, None
+                if not colormap['autoscale']:
+                    if colormap['vmin'] > 0.:
                         vmin = colormap['vmin']
+                    if colormap['vmax'] > 0.:
                         vmax = colormap['vmax']
-                        if vmin > vmax:
-                            print('Warning: Colormap bounds are inverted.')
-                            vmin, vmax = vmax, vmin
 
-                    norm = Normalize(vmin, vmax)
+                    if vmin is None or vmax is None:
+                        print('Warning: ' +
+                                'Log colormap with negative bounds, ' +
+                                'changing bounds to positive ones.')
+                    elif vmin > vmax:
+                        print('Warning: Colormap bounds are inverted.')
+                        vmin, vmax = vmax, vmin
 
-                # try as data
-                if tuple(xScale) != (0., 1.) or tuple(yScale) != (0., 1.):
-                    # for the time being not properly handled
-                    imageClass = AxesImage
-                elif (shape[0] * shape[1]) > 5.0e5:
-                    imageClass = ModestImage
+                # Set unset/negative bounds to positive bounds
+                if vmin is None or vmax is None:
+                    posData = data[data > 0]
+                    if vmax is None:
+                        # 1. as an ultimate fallback
+                        vmax = posData.max() if posData.size > 0 else 1.
+                    if vmin is None:
+                        vmin = posData.min() if posData.size > 0 else vmax
+                    if vmin > vmax:
+                        vmin = vmax
+
+                norm = LogNorm(vmin, vmax)
+
+            else:  # Linear normalization
+                if colormap['autoscale']:
+                    vmin = data.min()
+                    vmax = data.max()
                 else:
-                    imageClass = AxesImage
-                image = imageClass(self.ax,
-                              label="__IMAGE__"+legend,
-                              interpolation='nearest',
-                              #origin=
-                              cmap=cmap,
-                              extent=extent,
-                              picker=picker,
-                              zorder=z,
-                              norm=norm)
-                if image.origin == 'upper':
-                    image.set_extent((xmin, xmax, ymax, ymin))
-                else:
-                    image.set_extent((xmin, xmax, ymin, ymax))
-                image.set_data(data)
-            self.ax.add_artist(image)
-            #self.ax.draw_artist(image)
+                    vmin = colormap['vmin']
+                    vmax = colormap['vmax']
+                    if vmin > vmax:
+                        print('Warning: Colormap bounds are inverted.')
+                        vmin, vmax = vmax, vmin
+
+                norm = Normalize(vmin, vmax)
+
+            # try as data
+            if tuple(xScale) != (0., 1.) or tuple(yScale) != (0., 1.):
+                # for the time being not properly handled
+                imageClass = AxesImage
+            elif (shape[0] * shape[1]) > 5.0e5:
+                imageClass = ModestImage
+            else:
+                imageClass = AxesImage
+            image = imageClass(self.ax,
+                            label="__IMAGE__"+legend,
+                            interpolation='nearest',
+                            #origin=
+                            cmap=cmap,
+                            extent=extent,
+                            picker=picker,
+                            zorder=z,
+                            norm=norm)
+            if image.origin == 'upper':
+                image.set_extent((xmin, xmax, ymax, ymin))
+            else:
+                image.set_extent((xmin, xmax, ymin, ymax))
+            image.set_data(data)
+        self.ax.add_artist(image)
+        #self.ax.draw_artist(image)
         image._plot_info = {'label':legend,
                             'type':'image',
                             'xScale':xScale,

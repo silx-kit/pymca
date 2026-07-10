@@ -477,17 +477,6 @@ def parseHeader(line0, line1):
     ddict.update(parseHeader1(line1))
     return ddict
 
-if 0:
-    ddict = parseHeader0(EPDL97_DATA[0])
-    for key in ddict.keys():
-        _logger.info("%s: %s", key, ddict[key])
-
-if 0:
-    ddict = parseHeader1(EPDL97_DATA[1])
-    for key in ddict.keys():
-        _logger.info("%s: %s", key, ddict[key])
-
-
 def getDataLineIndex(lines, z, Yi, C, S, X1, Yo, I, getmode=True):
     global LAST_INDEX
     if (z < 1) or (z>100):
@@ -507,15 +496,6 @@ def getDataLineIndex(lines, z, Yi, C, S, X1, Yo, I, getmode=True):
             _logger.error(lines[i+1])
             _logger.error(sys.exc_info())
             raise
-        if 0:
-            _logger.info("%s, %s", ddict['Z'], z)
-            _logger.info("%s, %s", ddict['Yi'], Yi)
-            _logger.info("%s, %s", ddict['C'], C)
-            _logger.info("%s, %s", ddict['S'], S)
-            _logger.info("%s, %s", ddict['X1'], X1)
-            _logger.info("%s, %s", ddict['Yo'], Yo)
-            _logger.info("%s, %s", ddict['I'], I)
-
         if ddict['Z'] == z:
             _logger.debug("Z found")
             if ddict['Yi'] == Yi:

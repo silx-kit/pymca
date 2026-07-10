@@ -331,15 +331,11 @@ class QPyMcaMatplotlibSaveDialog(qt.QDialog):
 
     def _xLabelSlot(self):
         label = self.xLabelLine.text()
-        if sys.version < '3.0':
-            label = str(label)
         self.plot.setXLabel(label)
         self.plot.draw()
 
     def _yLabelSlot(self):
         label = self.yLabelLine.text()
-        if sys.version < '3.0':
-            label = str(label)
         self.plot.setYLabel(label)
         self.plot.draw()
 
@@ -610,10 +606,7 @@ class QPyMcaMatplotlibSave(FigureCanvas):
             y = self.curveDict[legend]['y']
             alias = ddict['curvedict'][legend]['alias']
             linestyle = self.curveDict[legend]['linestyle']
-            if 0:
-                color = self.curveDict[legend]['color']
-            else:
-                color = ddict['curvedict'][legend]['color']
+            color = ddict['curvedict'][legend]['color']
             linewidth = self.curveDict[legend]['linewidth']
             linestyle = ddict['curvedict'][legend]['linestyle']
             linemarker = ddict['curvedict'][legend]['linemarker']

@@ -122,19 +122,6 @@ class EDFStack(DataObject.DataObject):
                 #be ready for specfile stack?
                 self.onEnd()
                 raise IOError("Not implemented yet")
-                self.data = numpy.zeros((arrRet.shape[0],
-                                           nImages,
-                                           self.nbFiles),
-                                           self.__dtype)
-                self.incrProgressBar=0
-                for tempEdfFileName in filelist:
-                    tempEdf=EdfFile.EdfFile(tempEdfFileName, 'rb')
-                    for i in range(nImages):
-                        pieceOfStack=tempEdf.GetData(i)
-                        self.data[:,i, self.incrProgressBar] = pieceOfStack[:]
-                    self.incrProgressBar += 1
-                    self.onProgress(self.incrProgressBar)
-                self.onEnd()
             else:
                 if nImages > 1:
                     #this is not the common case
@@ -262,19 +249,6 @@ class EDFStack(DataObject.DataObject):
                 #single line
                 #be ready for specfile stack?
                 raise IOError("Not implemented yet")
-                self.data = numpy.zeros((self.nbFiles,
-                                           arrRet.shape[0],
-                                           nImages),
-                                           self.__dtype)
-                self.incrProgressBar=0
-                for tempEdfFileName in filelist:
-                    tempEdf=EdfFile.EdfFile(tempEdfFileName, 'rb')
-                    for i in range(nImages):
-                        pieceOfStack=tempEdf.GetData(i)
-                        self.data[self.incrProgressBar, :,i] = pieceOfStack[:]
-                    self.incrProgressBar += 1
-                    self.onProgress(self.incrProgressBar)
-                self.onEnd()
             else:
                 if nImages > 1:
                     #this is not the common case
@@ -367,64 +341,35 @@ class EDFStack(DataObject.DataObject):
                                                    self.__dtype)
                         except Exception:
                             text = "Memory Error: Attempt subsampling or convert to HDF5"
-                            if 1:
-                                if 'PyMca5.PyMcaGui.PyMcaQt' in sys.modules:
-                                    from PyMca5.PyMcaGui import PyMcaQt as qt
-                                    msg=qt.QMessageBox.information( None,
-                                      "Memory error\n",
-                                      "Do you want to subsample your data?\n",
-                                    qt.QMessageBox.Yes,qt.QMessageBox.No)
-                                    if msg == qt.QMessageBox.No:
-                                        raise MemoryError(text)
-                                self.data = None
-                                self.__dtype = numpy.float32
-                                nTry = 0
-                                while self.data is None:
-                                    try:
-                                        self.data = numpy.zeros((len(numpy.arange(self.nbFiles)[::fileSampling]),
-                                                           len(numpy.arange(arrRet.shape[0])[::mcaSampling]),
-                                                           arrRet.shape[1]),
-                                                           self.__dtype)
-                                        _logger.warning("Subsampling data by %d x %d " % (fileSampling, mcaSampling))
-                                        _logger.warning("Data shape %d x %d x %d " % (self.data.shape[0],
-                                                                                      self.data.shape[1],
-                                                                                      self.data.shape[2]))
-                                    except Exception:
-                                        if 10 * fileSampling < self.nbFiles:
-                                            fileSampling += 1
-                                        if 10 * mcaSampling < arrRet.shape[0]:
-                                            mcaSampling += 1
-                                        nTry += 1
-                                        if nTry > 100:
-                                            raise MemoryError("Memory Error and I could not subsample")
-                            elif HDF5 and ('PyMca5.PyMcaGui.PyMcaQt' in sys.modules):
+                            if 'PyMca5.PyMcaGui.PyMcaQt' in sys.modules:
                                 from PyMca5.PyMcaGui import PyMcaQt as qt
-                                from PyMca5.PyMcaGui.io import PyMcaFileDialogs
-                                from PyMca5.PyMcaIO import ArraySave
                                 msg=qt.QMessageBox.information( None,
                                   "Memory error\n",
-                                  "Do you want to convert your data to HDF5?\n",
-                                  qt.QMessageBox.Yes,qt.QMessageBox.No)
+                                  "Do you want to subsample your data?\n",
+                                qt.QMessageBox.Yes,qt.QMessageBox.No)
                                 if msg == qt.QMessageBox.No:
                                     raise MemoryError(text)
-                                hdf5file = PyMcaFileDialogs.getFileList(parent=None,
-                                                        message="Please select output file name",
-                                                        currentdir=os.path.dirname(filelist[0]),
-                                                        mode="SAVE",
-                                                        single=True,
-                                                        filetypelist=["HDF5 files *.h5"])
-                                if not len(hdf5file):
-                                    raise IOError(\
-                                        "Invalid output file")
-                                hdf5file = qt.safe_str(hdf5file[0])
-                                if not hdf5file.endswith(".h5"):
-                                    hdf5file += ".h5"
-                                hdf, self.data =  ArraySave.getHDF5FileInstanceAndBuffer(hdf5file,
-                                              (self.nbFiles,
-                                               arrRet.shape[0],
-                                               arrRet.shape[1]))
-                            else:
-                                raise MemoryError("Memory Error")
+                            self.data = None
+                            self.__dtype = numpy.float32
+                            nTry = 0
+                            while self.data is None:
+                                try:
+                                    self.data = numpy.zeros((len(numpy.arange(self.nbFiles)[::fileSampling]),
+                                                       len(numpy.arange(arrRet.shape[0])[::mcaSampling]),
+                                                       arrRet.shape[1]),
+                                                       self.__dtype)
+                                    _logger.warning("Subsampling data by %d x %d " % (fileSampling, mcaSampling))
+                                    _logger.warning("Data shape %d x %d x %d " % (self.data.shape[0],
+                                                                                  self.data.shape[1],
+                                                                                  self.data.shape[2]))
+                                except Exception:
+                                    if 10 * fileSampling < self.nbFiles:
+                                        fileSampling += 1
+                                    if 10 * mcaSampling < arrRet.shape[0]:
+                                        mcaSampling += 1
+                                    nTry += 1
+                                    if nTry > 100:
+                                        raise MemoryError("Memory Error and I could not subsample")
                     filelist = filelist[::fileSampling]
                     self.sourceName = self.sourceName[::fileSampling]
                     self.nbFiles = len(filelist)

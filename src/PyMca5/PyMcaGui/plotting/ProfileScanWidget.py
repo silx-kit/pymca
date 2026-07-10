@@ -29,12 +29,8 @@ __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 import sys
 from PyMca5.PyMcaGui import PyMcaQt as qt
-if 1:
-    # Should profileScanWidget depend on ScanWindow???
-    # if not, we miss profile fitting ...
-    from PyMca5.PyMcaGui.pymca.ScanWindow import ScanWindow as Window
-else:
-    from .PlotWindow import PlotWindow as Window
+# if not, we miss profile fitting ...
+from PyMca5.PyMcaGui.pymca.ScanWindow import ScanWindow as Window
 DEBUG = 0
 
 class ProfileScanWidget(Window):
@@ -105,8 +101,6 @@ class ProfileScanWidget(Window):
         if curveList in [None, []]:
             return
         text = self.label.text()
-        if sys.version < '3.0':
-            text = str(text)
 
         ddict = {}
         ddict['event']   = action

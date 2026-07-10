@@ -300,10 +300,7 @@ if __name__ == "__main__":
         else:
             factor = 1.0
         text += labels
-        if 0:
-            fformat = "%g %g %g %g %g"
-        else:
-            fformat = "%.7E %.6E %.6E %.6E %.6E"
+        fformat = "%.7E %.6E %.6E %.6E %.6E"
         outfile.write(text)
         cohe   *= factor
         incohe *= factor

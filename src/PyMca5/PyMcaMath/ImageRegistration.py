@@ -120,15 +120,14 @@ def measure_offset(img1, img2, method="fft", withLog=False):
     method = str(method)
     shape = img1.shape
     assert img2.shape == shape
-    if 1:
-        #use numpy fftpack
-        if img1.dtype not in [numpy.float32, numpy.float64, numpy.float]:
-            i1f = fft2(img1.astype(numpy.float32))
-            i2f = fft2(img2.astype(numpy.float32))
-        else:
-            i1f = fft2(img1)
-            i2f = fft2(img2)
-        return measure_offset_from_ffts(i1f, i2f, withLog=withLog)
+    #use numpy fftpack
+    if img1.dtype not in [numpy.float32, numpy.float64, numpy.float]:
+        i1f = fft2(img1.astype(numpy.float32))
+        i2f = fft2(img2.astype(numpy.float32))
+    else:
+        i1f = fft2(img1)
+        i2f = fft2(img2)
+    return measure_offset_from_ffts(i1f, i2f, withLog=withLog)
 
 def measure_offset_from_ffts(img0_fft2, img1_fft2, withLog=False):
     """
@@ -147,23 +146,12 @@ def measure_offset_from_ffts(img0_fft2, img1_fft2, withLog=False):
     t0 = time.time()
     absf0 = abs(f0)
     absf1 = abs(f1)
-    if 0:
-        # one way to deal with zeros
-        if (absf0 < 1.0e-20).any() or (absf1 < 1.0e-20).any():
-            offset = [0.0, 0.0]
-            logs.append("MeasureOffset: empty or uniform image?")
-            if withLog:
-                return offset, logs
-            else:
-                return offset
-    else:
-        # this one seems better because numerator is expected to be zero
-        idx = absf0 < 1.0e-20
-        if idx.any():
-            absf0[idx] = 1.0
-        idx = absf1 < 1.0e-20
-        if idx.any():
-            absf1[idx] = 1.0
+    idx = absf0 < 1.0e-20
+    if idx.any():
+        absf0[idx] = 1.0
+    idx = absf1 < 1.0e-20
+    if idx.any():
+        absf1[idx] = 1.0
     res = abs(fftshift(ifft2((f0 * f1.conjugate()) / (absf0 * absf1))))
     t1 = time.time()
     a0, a1 = numpy.unravel_index(numpy.argmax(res), shape)

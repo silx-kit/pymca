@@ -62,10 +62,7 @@ except Exception:
 from PyMca5.PyMcaGui.pymca import PyMcaMdi
 IconDict = PyMcaMdi.IconDict
 IconDict0 = PyMcaMdi.IconDict0
-if hasattr(qt, "QString"):
-    QString = qt.QString
-else:
-    QString = qt.safe_str
+QString = qt.safe_str
 
 try:
     from PyMca5.PyMcaGui.physics.xrf import XRFMCPyMca
@@ -100,9 +97,7 @@ try:
     #and that Object3D is fully supported
     import OpenGL.GL
     OBJECT3D = False
-    if ("PyQt4.QtOpenGL" in sys.modules) or \
-       ("PySide.QtOpenGL") in sys.modules or \
-       ("PySide6.QtOpenGL") in sys.modules or \
+    if ("PySide6.QtOpenGL") in sys.modules or \
        ("PySide2.QtOpenGL") in sys.modules or \
        ("PyQt5.QtOpenGL") in sys.modules:
         OBJECT3D = True
@@ -253,31 +248,19 @@ class PyMcaMain(PyMcaMdi.PyMcaMdi):
                 #self.mainTabWidget.show()
                 #print "end Markus patch"
                 self.mainTabWidget.showMaximized()
-                if False:
-                    self.connectDispatcher(self.mcaWindow, self.sourceWidget)
-                    self.connectDispatcher(self.scanWindow, self.sourceWidget)
-                else:
-                    self.imageWindowDict = {}
-                    self.imageWindowCorrelator = None
-                    self.sourceWidget.sigAddSelection.connect( \
-                             self.dispatcherAddSelectionSlot)
-                    self.sourceWidget.sigRemoveSelection.connect( \
-                             self.dispatcherRemoveSelectionSlot)
-                    self.sourceWidget.sigReplaceSelection.connect( \
-                             self.dispatcherReplaceSelectionSlot)
-                    self.mainTabWidget.currentChanged[int].connect( \
-                        self.currentTabIndexChanged)
+                self.imageWindowDict = {}
+                self.imageWindowCorrelator = None
+                self.sourceWidget.sigAddSelection.connect( \
+                         self.dispatcherAddSelectionSlot)
+                self.sourceWidget.sigRemoveSelection.connect( \
+                         self.dispatcherRemoveSelectionSlot)
+                self.sourceWidget.sigReplaceSelection.connect( \
+                         self.dispatcherReplaceSelectionSlot)
+                self.mainTabWidget.currentChanged[int].connect( \
+                    self.currentTabIndexChanged)
 
             self.sourceWidget.sigOtherSignals.connect( \
                          self.dispatcherOtherSignalsSlot)
-            if 0:
-                if shm:
-                    if len(shm) >= 8:
-                        if shm[0:8] in ['MCA_DATA', 'XIA_DATA']:
-                            self.mcaWindow.showMaximized()
-                            self.toggleSource()
-                else:
-                    self.mcaWindow.showMaximized()
             currentConfigDict = ConfigDict.ConfigDict()
             try:
                 defaultFileName = PyMca5.getDefaultSettingsFile()
@@ -820,16 +803,6 @@ class PyMcaMain(PyMcaMdi.PyMcaMdi):
                                     continue
                                 self.sourceWidget.sourceSelector.openFile(SourceName, justloaded =1)
                                 continue
-                                #This event is not needed
-                                ndict = {}
-                                ndict["event"] = "NewSourceSelected"
-                                ndict["sourcelist"] = [SourceName]
-                                self.sourceWidget._sourceSelectorSlot(ndict)
-                                continue
-                                if source == "EdfFile":
-                                    self.sourceWidget.selectorWidget[source].openFile(SourceName, justloaded=1)
-                                else:
-                                    self.sourceWidget.selectorWidget[source].openFile(SourceName)
                             except Exception:
                                 msg = qt.QMessageBox(self)
                                 msg.setIcon(qt.QMessageBox.Critical)
@@ -1599,64 +1572,6 @@ class PyMcaMain(PyMcaMdi.PyMcaMdi):
             self.mainTabWidget.setCurrentWidget(self.mcaWindow)
         self.mcaWindow.printGraph()
 
-if 0:
-
-    #
-    # GraphWindow operations
-    #
-    def openGraph(self,name="MCA Graph"):
-            """
-            Creates a new GraphWindow on the MDI
-            """
-            self.setFollowActiveWindow(0)
-
-            #name= self.__getNewGraphName()
-            if name == "MCA Graph":
-                graph = McaWindow.McaWindow(self.mdi, name=name)
-            graph.windowClosed[()].connect(self.closeGraph)
-            graph.show()
-
-            if len(self.mdi.windowList())==1:
-                    graph.showMaximized()
-            else:   self.windowTile()
-
-            self.setFollowActiveWindow(1)
-
-    def getActiveGraph(self):
-            """
-            Return active GraphWindow instance or a new one
-            """
-            graph= self.mdi.activeWindow()
-            if graph is None:
-                    graph= self.openGraph()
-            return graph
-
-    def getGraph(self, name):
-            """
-            Return GraphWindow instance indexed by name
-            Or None if not found
-            """
-            for graph in self.mdi.windowList():
-                if qt.safe_str(graph.caption())== name:
-                    return graph
-            return None
-
-    def closeGraph(self, name):
-            """
-            Called after a graph is closed
-            """
-            _logger.info("closeGraph", name)
-
-    def __getGraphNames(self):
-            return [ str(window.caption()) for window in self.mdi.windowList() ]
-
-
-    def __getNewGraphName(self):
-            names= self.__getGraphNames()
-            idx= 0
-            while "Graph %d"%idx in names:
-                    idx += 1
-            return "Graph %d"%(idx)
 
 class MyQTextBrowser(qt.QTextBrowser):
     def myWrappedSource(self, name, ignored=None):

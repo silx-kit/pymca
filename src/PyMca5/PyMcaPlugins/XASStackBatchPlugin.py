@@ -212,7 +212,6 @@ class XASStackBatchPlugin(StackPluginBase.StackPluginBase):
                 if isinstance(result[0], str) and result[0] == "Exception":
                     # somehow this exception is not caught
                     raise Exception(result[1], result[2])#, result[3])
-                    return
         imageNames = result['names']
         images = result["images"]
         nImages = images.shape[0]

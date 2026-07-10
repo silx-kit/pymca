@@ -42,10 +42,7 @@ from PyMca5.PyMcaGui import PyMcaQt as qt
 from PyMca5.PyMcaMath import SimpleMath
 from PyMca5.PyMcaGui.plotting.PyMca_Icons import IconDict
 
-if hasattr(qt, 'QString'):
-    QString = qt.QString
-else:
-    QString = qt.safe_str
+QString = qt.safe_str
 
 _simpleMath = SimpleMath.SimpleMath()
 

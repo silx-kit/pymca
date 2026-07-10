@@ -1242,7 +1242,6 @@ class PlotWindow(PlotWidget.PlotWidget):
                 # create again the ICR
                 ddict = {"event":"AddROI"}
                 return self._roiSignal(ddict)
-                currentroi = None
             self.roiWidget.fillFromROIDict(roilist=roiList,
                                            roidict=roiDict,
                                            currentroi=currentroi)
@@ -1572,10 +1571,7 @@ class PlotWindow(PlotWidget.PlotWidget):
                 msg.exec()
             return
         try:
-            if sys.version_info.major >= 3:
-                ffile = open(filename, 'w', newline='\n')
-            else:
-                ffile = open(filename,'wb')
+            ffile = open(filename, 'w', newline='\n')
         except IOError:
             msg = qt.QMessageBox(self)
             msg.setIcon(qt.QMessageBox.Critical)

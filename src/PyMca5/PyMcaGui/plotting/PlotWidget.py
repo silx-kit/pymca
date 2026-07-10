@@ -31,11 +31,7 @@ import sys
 import logging
 import traceback
 
-if sys.version_info < (3,0):
-    import cStringIO as _StringIO
-    BytesIO = _StringIO.StringIO
-else:
-    from io import BytesIO
+from io import BytesIO
 
 from PyMca5.PyMcaGui import PyMcaQt as qt
 from PyMca5.PyMcaGraph import Plot
@@ -117,13 +113,8 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
     def getSvgRenderer(self, printer=None):
         if not SVG:
             raise RuntimeError("QtSvg module missing. Please compile Qt with SVG support")
-            return
-        if sys.version < '3.0':
-            import cStringIO as StringIO
-            imgData = StringIO.StringIO()
-        else:
-            from io import BytesIO
-            imgData = BytesIO()
+        from io import BytesIO
+        imgData = BytesIO()
         self.saveGraph(imgData, fileFormat='svg')
         imgData.flush()
         imgData.seek(0)
@@ -321,37 +312,18 @@ if __name__ == "__main__":
     plot = PlotWidget(None, backend=backend, legends=True)
     plot.setPanWithArrowKeys(True)
     plot.show()
-    if 1:
-        plot.addCurve(x, y, "dummy")
-        plot.addCurve(x+100, x*x)
-        plot.addCurve(x, -y, "dummy 2")
-        print("Active curve = ", plot.getActiveCurve())
-        print("X Limits = ",     plot.getGraphXLimits())
-        print("Y Limits = ",     plot.getGraphYLimits())
-        print("All curves = ",   plot.getAllCurves())
-        #print("REMOVING dummy")
-        #plot.removeCurve("dummy")
-        plot.insertXMarker(50., legend="X", text="X", draggable=True)
-        #plot.insertYMarker(50., draggable=True)
-        plot.setYAxisLogarithmic(True)
-    else:
-        # insert a few curves
-        cSin={}
-        cCos={}
-        nplots=50
-        for i in range(nplots):
-            # calculate 3 NumPy arrays
-            x = numpy.arange(0.0, 10.0, 0.1)
-            y = 10*numpy.sin(x+(i/10.0) * 3.14)
-            z = numpy.cos(x+(i/10.0) * 3.14)
-            #build a key
-            a="%d" % i
-            #plot the data
-            cSin[a] = plot.addCurve(x, y, 'y = sin(x)' + a, replot=False)
-            cCos[a] = plot.addCurve(x, z, 'y = cos(x)' + a, replot=False)
-        cCos[a] = plot.addCurve(x, z, 'y = cos(x)' + a, replot=True)
-        plot.insertXMarker(5., legend="X", text="X", draggable=True)
-        plot.insertYMarker(5., legend="Y", text="Y", draggable=True)
+    plot.addCurve(x, y, "dummy")
+    plot.addCurve(x+100, x*x)
+    plot.addCurve(x, -y, "dummy 2")
+    print("Active curve = ", plot.getActiveCurve())
+    print("X Limits = ",     plot.getGraphXLimits())
+    print("Y Limits = ",     plot.getGraphYLimits())
+    print("All curves = ",   plot.getAllCurves())
+    #print("REMOVING dummy")
+    #plot.removeCurve("dummy")
+    plot.insertXMarker(50., legend="X", text="X", draggable=True)
+    #plot.insertYMarker(50., draggable=True)
+    plot.setYAxisLogarithmic(True)
     print("All curves = ", plot.getAllCurves(just_legend=True))
     app.exec()
     app = None

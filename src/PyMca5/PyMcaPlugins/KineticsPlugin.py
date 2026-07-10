@@ -99,7 +99,6 @@ class KineticsPlugin(Plugin1DBase.Plugin1DBase):
         activeCurve = self.getActiveCurve()
         if activeCurve is None:
             raise ValueError("Please select an active curve")
-            return
         x, y, legend0, info = activeCurve[:4]
         xmin, xmax = self.getGraphXLimits()
         idx = (x >= xmin) & (x <= xmax)
@@ -120,7 +119,6 @@ class KineticsPlugin(Plugin1DBase.Plugin1DBase):
         nCurves = len(curves)
         if nCurves < 1:
             raise ValueError("At least one curve needed")
-            return
 
         # get legend of active curve
         try:

@@ -259,26 +259,13 @@ class  EdfFile(object):
                     self.File.seek(0, 0)
                     twoChars = self.File.read(2)
                     tiff = False
-                    if sys.version < '3.0':
-                        if twoChars in ["II", "MM"]:
-                            tiff = True
-                    elif twoChars in [eval('b"II"'), eval('b"MM"')]:
-                            tiff = True
+                    if twoChars in [b"II", b"MM"]:
+                        tiff = True
                     if tiff:
-                        fileExtension = os.path.splitext(self.FileName)[-1]
-                        if fileExtension.lower() in [".tif", ".tiff"] or\
-                           sys.version > '2.9':
-                            if not TIFF_SUPPORT:
-                                raise IOError("TIFF support not implemented")
-                            else:
-                                self.TIFF = True
-                        elif not MARCCD_SUPPORT:
-                            if not TIFF_SUPPORT:
-                                raise IOError("MarCCD support not implemented")
-                            else:
-                                self.TIFF = True
+                        if not TIFF_SUPPORT:
+                            raise IOError("TIFF support not implemented")
                         else:
-                            self.MARCCD = True
+                            self.TIFF = True
                     if os.path.basename(FileName).upper().endswith('.CBF'):
                         if not PILATUS_CBF_SUPPORT:
                             raise IOError("CBF support not implemented")
@@ -318,26 +305,20 @@ class  EdfFile(object):
         Index = 0
         line = self.File.readline()
         selectedLines = [""]
-        if sys.version > '2.6':
-            selectedLines.append(eval('b""'))
+        selectedLines.append(b"")
         parsingHeader = False
         while line not in selectedLines:
             #decode to make sure I have character string
-            #str to make sure python 2.x sees it as string and not unicode
-            if sys.version < '3.0':
-                if type(line) != type(str("")):
-                    line = "%s" % line
-            else:
+            try:
+                line = str(line.decode())
+            except UnicodeDecodeError:
                 try:
-                    line = str(line.decode())
+                    line = str(line.decode('utf-8'))
                 except UnicodeDecodeError:
                     try:
-                        line = str(line.decode('utf-8'))
+                        line = str(line.decode('latin-1'))
                     except UnicodeDecodeError:
-                        try:
-                            line = str(line.decode('latin-1'))
-                        except UnicodeDecodeError:
-                            line = "%s" % line
+                        line = "%s" % line
             if (line.count("{\n") >= 1) or (line.count("{\r\n") >= 1):
                 parsingHeader = True
                 Index = self.NumImages
@@ -543,21 +524,13 @@ class  EdfFile(object):
         self.Images[Index].Header.update(self.__info)
 
     def _wrapSPE(self):
-        if 0 and sys.version < '3.0':
-            self.File.seek(42)
-            xdim = numpy.int64(numpy.fromfile(self.File, numpy.int16, 1)[0])
-            self.File.seek(656)
-            ydim = numpy.int64(numpy.fromfile(self.File, numpy.int16, 1))
-            self.File.seek(4100)
-            self.__data = numpy.fromfile(self.File, numpy.uint16, int(xdim * ydim))
-        else:
-            import struct
-            self.File.seek(0)
-            a = self.File.read()
-            xdim = numpy.int64(struct.unpack('<h', a[42:44])[0])
-            ydim = numpy.int64(struct.unpack('<h', a[656:658])[0])
-            fmt = '<%dH' % int(xdim * ydim)
-            self.__data = numpy.array(struct.unpack(fmt, a[4100:int(4100+ int(2 * xdim * ydim))])).astype(numpy.uint16)
+        import struct
+        self.File.seek(0)
+        a = self.File.read()
+        xdim = numpy.int64(struct.unpack('<h', a[42:44])[0])
+        ydim = numpy.int64(struct.unpack('<h', a[656:658])[0])
+        fmt = '<%dH' % int(xdim * ydim)
+        self.__data = numpy.array(struct.unpack(fmt, a[4100:int(4100+ int(2 * xdim * ydim))])).astype(numpy.uint16)
         self.__data = self.__data.reshape(ydim, xdim)
         Index = 0
         self.Images.append(Image())
@@ -1184,48 +1157,47 @@ def GetRegion(Arr, Pos, Size):
 
 #EXAMPLE CODE:
 if __name__ == "__main__":
-    if 1:
-#        import os
-        a = numpy.zeros((5, 10))
-        for i in range(5):
-            for j in range(10):
-                a[i, j] = 10 * i + j
-        edf = EdfFile("armando.edf", access="ab+")
-        edf.WriteImage({}, a)
-        del edf #force to close the file
-        inp = EdfFile("armando.edf")
-        b = inp.GetData(0)
-        out = EdfFile("armando2.edf")
-        out.WriteImage({}, b)
-        del out #force to close the file
-        inp2 = EdfFile("armando2.edf")
-        c = inp2.GetData(0)
-        print("A SHAPE = ", a.shape)
-        print("B SHAPE = ", b.shape)
-        print("C SHAPE = ", c.shape)
-        for i in range(5):
-            print("A", a[i, :])
-            print("B", b[i, :])
-            print("C", c[i, :])
+    a = numpy.zeros((5, 10))
+    for i in range(5):
+        for j in range(10):
+            a[i, j] = 10 * i + j
+    edf = EdfFile("armando.edf", access="ab+")
+    edf.WriteImage({}, a)
+    del edf #force to close the file
+    inp = EdfFile("armando.edf")
+    b = inp.GetData(0)
+    out = EdfFile("armando2.edf")
+    out.WriteImage({}, b)
+    del out #force to close the file
+    inp2 = EdfFile("armando2.edf")
+    c = inp2.GetData(0)
+    print("A SHAPE = ", a.shape)
+    print("B SHAPE = ", b.shape)
+    print("C SHAPE = ", c.shape)
+    for i in range(5):
+        print("A", a[i, :])
+        print("B", b[i, :])
+        print("C", c[i, :])
 
-        x = numpy.arange(100)
-        x = x.reshape(5, 20)
-        for item in ["SignedByte", "UnsignedByte",
-                     "SignedShort", "UnsignedShort",
-                     "SignedLong", "UnsignedLong",
-                     "Signed64", "Unsigned64",
-                     "FloatValue", "DoubleValue"]:
-            fname = item + ".edf"
-            if os.path.exists(fname):
-                os.remove(fname)
-            towrite = EdfFile(fname)
-            towrite.WriteImage({}, x, DataType=item, Append=0)
-        sys.exit(0)
+    x = numpy.arange(100)
+    x = x.reshape(5, 20)
+    for item in ["SignedByte", "UnsignedByte",
+                 "SignedShort", "UnsignedShort",
+                 "SignedLong", "UnsignedLong",
+                 "Signed64", "Unsigned64",
+                 "FloatValue", "DoubleValue"]:
+        fname = item + ".edf"
+        if os.path.exists(fname):
+            os.remove(fname)
+        towrite = EdfFile(fname)
+        towrite.WriteImage({}, x, DataType=item, Append=0)
+    sys.exit(0)
 
-    #Creates object based on file exe.edf
+    __THOUGHTS__ = """
+    # Creates object based on file exe.edf
     exe = EdfFile("images/test_image.edf")
     x = EdfFile("images/test_getdata.edf")
-    #Gets unsigned short data, storing in an signed long
+    # Gets unsigned short data, storing in an signed long
     arr = exe.GetData(0, Pos=(100, 200), Size=(200, 400))
     x.WriteImage({}, arr, 0)
 
@@ -1240,43 +1212,44 @@ if __name__ == "__main__":
 
     sys.exit()
 
-    #Creates object based on file exe.edf
+    # Creates object based on file exe.edf
     exe = EdfFile("images/.edf")
 
-    #Creates long array , filled with 0xFFFFFFFF(-1)
+    # Creates long array , filled with 0xFFFFFFFF(-1)
     la = numpy.zeros((100, 100))
     la = la - 1
 
-    #Creates a short array, filled with 0xFFFF
+    # Creates a short array, filled with 0xFFFF
     sa = numpy.zeros((100, 100))
     sa = sa + 0xFFFF
     sa = sa.astype("s")
 
-    #Writes long array, initializing file (append=0)
+    # Writes long array, initializing file (append=0)
     exe.WriteImage({}, la, 0, "")
 
-    #Appends short array with new header items
+    # Appends short array with new header items
     exe.WriteImage({'Name': 'Alexandre', 'Date': '16/07/2001'}, sa)
 
-    #Appends short array, in Edf type unsigned
+    # Appends short array, in Edf type unsigned
     exe.WriteImage({}, sa, DataType="UnsignedShort")
 
-    #Appends short array, in Edf type unsigned
+    # Appends short array, in Edf type unsigned
     exe.WriteImage({}, sa, DataType="UnsignedLong")
 
-    #Appends long array as a double, considering unsigned
+    # Appends long array as a double, considering unsigned
     exe.WriteImage({}, la, DataType="DoubleValue", WriteAsUnsigened=1)
 
-    #Gets unsigned short data, storing in an signed long
+    # Gets unsigned short data, storing in an signed long
     ushort = exe.GetData(2, "SignedLong")
 
-    #Makes an operation
+    # Makes an operation
     ushort = ushort - 0x10
 
-    #Saves Result as signed long
+    # Saves Result as signed long
     exe.WriteImage({}, ushort)
 
-    #Saves in the original format (unsigned short)
+    # Saves in the original format (unsigned short)
     OldHeader = exe.GetStaticHeader(2)
     exe.WriteImage({}, ushort, 1, OldHeader["DataType"])
+    """
 

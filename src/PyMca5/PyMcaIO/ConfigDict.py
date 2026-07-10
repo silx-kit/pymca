@@ -33,12 +33,8 @@ __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 
 import os
 import sys
-if sys.version_info < (3,):
-    import ConfigParser
-    from StringIO import StringIO
-else:
-    import configparser as ConfigParser
-    from io import StringIO
+import configparser as ConfigParser
+from io import StringIO
 try:
     import numpy
     USE_NUMPY = True
@@ -262,7 +258,7 @@ class ConfigDict(dict):
                              ' ]\n')
                     continue
             txt = '%s = %s\n' % (key, ddict[key])
-            if sys.version_info > (2, 9) and ("%" in txt):
+            if "%" in txt:
                 # when reading configparser needs to see % characters in pairs
                 fp.write(txt.replace("%", "%%"))
             else:
@@ -282,11 +278,6 @@ class ConfigDict(dict):
                 else:
                     llist.append(str(item))
             fp.write('%s\n' % (sep.join(llist)))
-        if 0:
-            # this optimization method does not pass the tests.
-            # disable it for the time being.
-            if sections is not None:
-                dictkey= [ key for key in dictkey if key in sections ]
         for key in dictkey:
             if secthead is None:
                 newsecthead = key.replace(".", "_|_")

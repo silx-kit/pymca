@@ -549,15 +549,12 @@ class McaAdvancedFit(qt.QWidget):
 
     def _updateTop(self):
         config = {}
-        if 0:
-            config.update(self.mcafit.config['fit'])
-        else:
-            config['stripflag']    = self.mcafit.config['fit'].get('stripflag',0)
-            config['fitfunction'] = self.mcafit.config['fit'].get('fitfunction',0)
-            config['hypermetflag'] = self.mcafit.config['fit'].get('hypermetflag',1)
-            config['sumflag']      = self.mcafit.config['fit'].get('sumflag',0)
-            config['escapeflag']   = self.mcafit.config['fit'].get('escapeflag',0)
-            config['continuum']    = self.mcafit.config['fit'].get('continuum',0)
+        config['stripflag']    = self.mcafit.config['fit'].get('stripflag',0)
+        config['fitfunction'] = self.mcafit.config['fit'].get('fitfunction',0)
+        config['hypermetflag'] = self.mcafit.config['fit'].get('hypermetflag',1)
+        config['sumflag']      = self.mcafit.config['fit'].get('sumflag',0)
+        config['escapeflag']   = self.mcafit.config['fit'].get('escapeflag',0)
+        config['continuum']    = self.mcafit.config['fit'].get('continuum',0)
         self.top.setParameters(config)
 
     def __updatefromtop(self,ndict):
@@ -899,12 +896,11 @@ class McaAdvancedFit(qt.QWidget):
                 self.mainTab.setCurrentIndex(0)
             return
         fitresult = self.dict
-        if False:
-            #from the fit, it misses any update from concentrations
+        __THOUGHTS__ = """
+            # from the fit, it misses any update from concentrations
             config = fitresult['result']['config']
-        else:
-            #from current, it should be up to date
-            config = self.mcafit.configure()
+            """
+        config = self.mcafit.configure()
         #tool = ConcentrationsWidget.Concentrations(fl=qt.Qt.WDestructiveClose)
         if self.concentrationsWidget is None:
            self.concentrationsWidget = ConcentrationsWidget.Concentrations()
@@ -1331,13 +1327,6 @@ class McaAdvancedFit(qt.QWidget):
             self.plot()
             ddict=copy.deepcopy(self.dict)
             ddict['event'] = "McaAdvancedFitXRFMCMatrixFinished"
-            if 0:
-                # this for later
-                try:
-                    self.__anasignal(ddict)
-                except Exception:
-                    _logger.warning("Error generating Monte Carlo matrix output. ")
-                    _logger.warning(sys.exc_info())
 
     def peaksSpectrum(self):
         if not self.__fitdone:
@@ -1431,12 +1420,8 @@ class McaAdvancedFit(qt.QWidget):
                     fitresult=self.dict,
                     concentrations=self._concentrationsDict,
                     plotdict={'logy': self.graph.isYAxisLogarithmic()})
-        if 0:
-            #this forces to open and read the file
-            self.__lastreport = report.writeReport()
-        else:
-            text = report.getText()
-            self.__lastreport = report.writeReport(text=text)
+        text = report.getText()
+        self.__lastreport = report.writeReport(text=text) # if used with empty argument it will force to open and read the file
         if self.browser is None:
             self.browser= qt.QWidget()
             self.browser.setWindowTitle(QString(self.__lastreport))
@@ -1602,21 +1587,6 @@ class McaAdvancedFit(qt.QWidget):
     def __print(self, text):
         _logger.info("__print not working yet")
         return
-        printer = qt.QPrinter()
-        printDialog = qt.QPrintDialog(printer, self)
-        if printDialog.exec():
-            if 0:
-                #this was crashing in Qt 4.2.2
-                #with the PyQt snapshot of 20061203
-                editor = qt.QTextEdit()
-                cursor = editor.textCursor()
-                cursor.movePosition(qt.QTextCursor.Start)
-                editor.insertHtml(text)
-                document = editor.document()
-            else:
-                document = qt.QTextDocument()
-                document.setHtml(text)
-            document.print_(printer)
 
     def setdata(self, *var, **kw):
         _logger.debug("McaAdvancedFit.setdata deprecated, use setData instead.")
@@ -2042,18 +2012,12 @@ class McaAdvancedFit(qt.QWidget):
         if not len(curves):
             return
         if not self.__fitdone:
-            if False:
-                # just save the data ?
-                # just save data plus strip background if any?
-                # for the time being just force to have the fit
-                pass
-            else:
-                msg = qt.QMessageBox(self)
-                msg.setIcon(qt.QMessageBox.Critical)
-                text = "Sorry, You need to perform a fit first.\n"
-                msg.setText(text)
-                msg.exec()
-                return
+            msg = qt.QMessageBox(self)
+            msg.setIcon(qt.QMessageBox.Critical)
+            text = "Sorry, You need to perform a fit first.\n"
+            msg.setText(text)
+            msg.exec()
+            return
         if dict is None:
             #everything
             fitresult = self.dict
@@ -2252,10 +2216,7 @@ class McaAdvancedFit(qt.QWidget):
             msg.exec()
             return
         try:
-            if sys.version < "3.0":
-                file = open(specFile, 'wb')
-            else:
-                file = open(specFile, 'w', newline='')
+            file = open(specFile, 'w', newline='')
         except IOError:
             msg = qt.QMessageBox(self)
             msg.setIcon(qt.QMessageBox.Critical)
@@ -2514,13 +2475,7 @@ class Top(qt.QWidget):
         self.mainLayout.addWidget(dummy)
         self.mainLayout.addWidget(qt.HorizontalSpacer(self))
 
-        #the checkboxes
-        if 0:
-             w1 = qt.QVBox(self)
-             self.WeightCheckBox = qt.QCheckBox(w1)
-             self.WeightCheckBox.setText(str("Weight"))
-             self.McaModeCheckBox = qt.QCheckBox(w1)
-             self.McaModeCheckBox.setText(str("Mca Mode"))
+
 
         # Flags
         f       = qt.QWidget(self)

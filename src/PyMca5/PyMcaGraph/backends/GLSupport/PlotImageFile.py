@@ -39,7 +39,6 @@ Function to save an image to a file.
 
 import base64
 import struct
-import sys
 import zlib
 
 
@@ -105,10 +104,7 @@ def saveImageToFile(data, fileNameOrObj, fileFormat):
     assert fileFormat in ('png', 'ppm', 'svg', 'tiff')
 
     if not hasattr(fileNameOrObj, 'write'):
-        if sys.version < "3.0":
-            fileObj=open(fileNameOrObj, "wb")
-        else:
-            fileObj=open(fileNameOrObj, "w", newline='')
+        fileObj=open(fileNameOrObj, "w", newline='')
     else:  # Use as a file-like object
         fileObj = fileNameOrObj
 

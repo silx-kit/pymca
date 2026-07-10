@@ -817,10 +817,7 @@ class ScanWindow(PlotWindow.PlotWindow):
         systemline = os.linesep
         os.linesep = '\n'
         try:
-            if sys.version < "3.0":
-                ffile=open(filename, "wb")
-            else:
-                ffile=open(filename, "w", newline='')
+            ffile=open(filename, "w", newline='')
         except IOError:
             msg = qt.QMessageBox(self)
             msg.setIcon(qt.QMessageBox.Critical)
@@ -830,19 +827,6 @@ class ScanWindow(PlotWindow.PlotWindow):
         x, y, legend, info = self.getActiveCurve()
         xlabel = info.get("xlabel", "X")
         ylabel = info.get("ylabel", "Y")
-        if 0:
-            if "selection" in info:
-                if type(info['selection']) == type({}):
-                    if 'x' in info['selection']:
-                        #proper scan selection
-                        ilabel = info['selection']['y'][0]
-                        ylegend = info['LabelNames'][ilabel]
-                        ylabel = ylegend
-                        if info['selection']['x'] is not None:
-                            if len(info['selection']['x']):
-                                xlabel = info['LabelNames'] [info['selection']['x'][0]]
-                            else:
-                                xlabel = "Point number"
         try:
             if filetype in ['Scan', 'MultiScan']:
                 ffile.write("#F %s\n" % filename)
@@ -864,19 +848,6 @@ class ScanWindow(PlotWindow.PlotWindow):
                             continue
                         xlabel = info.get("xlabel", "X")
                         ylabel = info.get("ylabel", "Y")
-                        if 0:
-                            if "selection" in info:
-                                if type(info['selection']) == type({}):
-                                    if 'x' in info['selection']:
-                                        #proper scan selection
-                                        ilabel = info['selection']['y'][0]
-                                        ylegend = info['LabelNames'][ilabel]
-                                        ylabel = ylegend
-                                        if info['selection']['x'] is not None:
-                                            if len(info['selection']['x']):
-                                                xlabel = info['LabelNames'] [info['selection']['x'][0]]
-                                            else:
-                                                xlabel = "Point number"
                         scan_n += 1
                         ffile.write("#S %d %s\n" % (scan_n, key))
                         ffile.write(savingDate)
@@ -1172,12 +1143,8 @@ class ScanWindow(PlotWindow.PlotWindow):
             alias = "%c" % (96+dataCounter)
             mtplt.addDataToPlot( xdata, ydata, legend=legend, alias=alias )
 
-        if sys.version < '3.0':
-            self.matplotlibDialog.setXLabel(qt.safe_str(self.getGraphXLabel()))
-            self.matplotlibDialog.setYLabel(qt.safe_str(self.getGraphYLabel()))
-        else:
-            self.matplotlibDialog.setXLabel(self.getGraphXLabel())
-            self.matplotlibDialog.setYLabel(self.getGraphYLabel())
+        self.matplotlibDialog.setXLabel(self.getGraphXLabel())
+        self.matplotlibDialog.setYLabel(self.getGraphYLabel())
 
         if legends:
             mtplt.plotLegends()
@@ -1299,14 +1266,9 @@ class ScanWindow(PlotWindow.PlotWindow):
                 #sel['selection']['y'] = [ilabel]
                 sel['selectiontype'] = "1D"
                 sel_list.append(sel)
-        if True:
-            #The legend menu was not working with the next line
-            #but if works if I add the list
-            self._replaceSelection(sel_list)
-        else:
-            oldlist = list(self.dataObjectsDict)
-            self._addSelection(sel_list)
-            self.removeCurves(oldlist)
+        #The legend menu was not working with the next line
+        #but it works if I add the list
+        self._replaceSelection(sel_list)
 
     #The plugins interface
     def getGraphYLimits(self):
@@ -1506,12 +1468,8 @@ class ScanWindow(PlotWindow.PlotWindow):
             return svgRenderer
 
         # we have what is to be printed
-        if sys.version < '3.0':
-            import cStringIO as StringIO
-            imgData = StringIO.StringIO()
-        else:
-            from io import StringIO
-            imgData = StringIO()
+        from io import StringIO
+        imgData = StringIO()
         self.saveGraph(imgData, fileFormat='svg')
         imgData.flush()
         imgData.seek(0)
@@ -1609,9 +1567,8 @@ class ScanWindow(PlotWindow.PlotWindow):
         # this does not work if I set the svgData before
         svgRenderer.setViewBox(body)
         svgRenderer._viewBox = body
-        if not sys.version.startswith("2"):
-            svgData = svgData.encode(encoding="utf-8",
-                                     errors="replace")
+        svgData = svgData.encode(encoding="utf-8",
+                                 errors="replace")
         svgRenderer._svgRawData = svgData
         svgRenderer._svgRendererData = qt.QXmlStreamReader(svgData)
 

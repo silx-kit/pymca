@@ -33,10 +33,7 @@ import logging
 
 from PyMca5.PyMcaGui import PyMcaQt as qt
 QTVERSION = qt.qVersion()
-if hasattr(qt, "QString"):
-    QString = qt.QString
-else:
-    QString = qt.safe_str
+QString = qt.safe_str
 
 from PyMca5 import PyMcaDirs
 from PyMca5.PyMcaGui.io import PyMcaFileDialogs

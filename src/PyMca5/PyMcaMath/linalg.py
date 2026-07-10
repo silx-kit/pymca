@@ -385,7 +385,7 @@ def lstsq(a, b, rcond=None, sigma_b=None, weight=False,
                     sigmapar[:, i] = numpy.sqrt(numpy.diag(_covariance))
                     if covariances:
                         covarianceMatrix[i] = _covariance
-        elif 1:
+        else:
             # Pure matrix inversion (faster than SVD)
             # I do not seem to gain anything by re-using the storage
             #alpha = numpy.empty((n, n), numpy.float64)
@@ -405,31 +405,6 @@ def lstsq(a, b, rcond=None, sigma_b=None, weight=False,
                     print("Exception", sys.exc_info()[1])
                     continue
                 parameters[:, i:i+1] = numpy.dot(_covariance, beta)
-                if uncertainties:
-                    sigmapar[:, i] = numpy.sqrt(numpy.diag(_covariance))
-                if covariances:
-                    covarianceMatrix[i] = covariances
-        else:
-            # Matrix inversion with buffers does not improve
-            bufferProduct = numpy.empty((n, n + 1), numpy.float64)
-            bufferAB = numpy.empty((b_shape[0], n+1), numpy.float64)
-            alpha = numpy.empty((n, n), numpy.float64)
-            for i in range(b_shape[1]):
-                tmpWeight = w[:, i:i+1]
-                A = a / tmpWeight
-                tmpData =  b[:, i:i+1] / tmpWeight
-                bufferAB [:, :n] = A
-                bufferAB [:, n:n+1] = tmpData
-                numpy.dot(A.T, bufferAB, bufferProduct)
-                alpha[:, :]  = bufferProduct[:n, :n]
-                beta = bufferProduct[:,n]
-                try:
-                    _covariance = numpy.linalg.inv(alpha)
-                except Exception:
-                    print("Exception")
-                    print("Exception", sys.exc_inf())
-                    continue
-                parameters[:, i] = numpy.dot(_covariance, beta)
                 if uncertainties:
                     sigmapar[:, i] = numpy.sqrt(numpy.diag(_covariance))
                 if covariances:

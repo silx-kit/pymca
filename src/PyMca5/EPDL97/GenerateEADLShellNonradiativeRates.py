@@ -75,10 +75,7 @@ if __name__ == "__main__":
             nscan = 0
             outfile = open(fname, 'wb')
             tmpText = getHeader(fname)
-            if sys.version < '3.0':
-                outfile.write(tmpText)
-            else:
-                outfile.write(tmpText.encode('UTF-8'))
+            outfile.write(tmpText.encode('UTF-8'))
         nscan += 1
         for i in range(1,101):
             print("Z = %d, Element = %s" % (i, Elements[i-1]))
@@ -162,16 +159,7 @@ if __name__ == "__main__":
                     else:
                         text += '  %.7E' % valueToWrite
             text += '\n'
-            if sys.version < '3.0':
-                outfile.write(text)
-            else:
-                outfile.write(text.encode('UTF-8'))
-        if sys.version < '3.0':
-            outfile.write('\n')
-        else:
-            outfile.write('\n'.encode('UTF-8'))
-    if sys.version < '3.0':
-        outfile.write('\n')
-    else:
+            outfile.write(text.encode('UTF-8'))
         outfile.write('\n'.encode('UTF-8'))
+    outfile.write('\n'.encode('UTF-8'))
     outfile.close()

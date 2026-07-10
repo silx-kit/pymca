@@ -346,7 +346,8 @@ class MaskScatterWidget(PlotWindow.PlotWindow):
         if replot:
             self.replot()
 
-        if 0 :#or self._plotViewMode == "density":
+        __THOUGHTS__ = """
+            # if self._plotViewMode == "density"
             # get the binned data
             imageData = self.getDensityData()
             # get the associated pixmap
@@ -371,7 +372,8 @@ class MaskScatterWidget(PlotWindow.PlotWindow):
                 _logger.debug("CLOSE PIXMAP = %s", numpy.allclose(pixmap, self._pixmap))
             self._imageData = imageData
             self._pixmap = pixmap
-        #self._updatePlot()
+            self._updatePlot()
+            """
 
     def setSelectionMask(self, mask=None, plot=True):
         if self._selectionCurve is not None:
@@ -418,55 +420,41 @@ class MaskScatterWidget(PlotWindow.PlotWindow):
         y = y0[:]
         x = numpy.ravel(x)
         y = numpy.ravel(y)
-        if 0:
-            colors = numpy.zeros((y.size, 4), dtype=numpy.uint8)
-            colors[:, 3] = 255
-            if self._selectionMask is not None:
-                tmpMask = self._selectionMask[:]
-                tmpMask = numpy.ravel(tmpMask)
-                for i in range(0, self._maxNRois + 1):
-                    colors[tmpMask == i, :] = self._selectionColors[i]
-                self.setSelectionCurveData(x, y, legend=legend, info=info,
-                                           #color=colors,
-                                           color="k",
-                                           linestyle=" ",
-                                           replot=replot, replace=replace)
+        if self._selectionMask is None:
+            for i in range(1, self._maxNRois + 1):
+                self.removeCurve(legend=legend + " %02d" % i, replot=False)
         else:
-            if self._selectionMask is None:
-                for i in range(1, self._maxNRois + 1):
-                    self.removeCurve(legend=legend + " %02d" % i, replot=False)
+            tmpMask = self._selectionMask[:]
+            tmpMask = numpy.ravel(tmpMask)
+            if self._plotViewMode == "density":
+                useAlpha = True
+                if self._alphaLevel is None:
+                    self._initializeAlpha()
             else:
-                tmpMask = self._selectionMask[:]
-                tmpMask = numpy.ravel(tmpMask)
-                if self._plotViewMode == "density":
-                    useAlpha = True
-                    if self._alphaLevel is None:
-                        self._initializeAlpha()
-                else:
-                    useAlpha = False
-                for i in range(1, self._maxNRois + 1):
-                    xMask = x[tmpMask == i]
-                    yMask = y[tmpMask == i]
-                    if xMask.size < 1:
-                        self.removeCurve(legend=legend + " %02d" % i,
-                                         replot=False)
-                        continue
-                    color = self._selectionColors[i].copy()
-                    if useAlpha:
-                        if len(color) == 4:
-                            if type(color[3]) in [numpy.uint8,
-                                                  numpy.int32,
-                                                  numpy.int64]:
-                                color[3] = self._alphaLevel
-                    # a copy of the input info is needed in order not
-                    # to set the main curve to that color
-                    self.addCurve(xMask, yMask, legend=legend + " %02d" % i,
-                                  info=info.copy(), color=color, linestyle=" ",
-                                  selectable=False,
-                                  z=1,
-                                  replot=False, replace=False)
-                if replot:
-                    self.replot()
+                useAlpha = False
+            for i in range(1, self._maxNRois + 1):
+                xMask = x[tmpMask == i]
+                yMask = y[tmpMask == i]
+                if xMask.size < 1:
+                    self.removeCurve(legend=legend + " %02d" % i,
+                                     replot=False)
+                    continue
+                color = self._selectionColors[i].copy()
+                if useAlpha:
+                    if len(color) == 4:
+                        if type(color[3]) in [numpy.uint8,
+                                              numpy.int32,
+                                              numpy.int64]:
+                            color[3] = self._alphaLevel
+                # a copy of the input info is needed in order not
+                # to set the main curve to that color
+                self.addCurve(xMask, yMask, legend=legend + " %02d" % i,
+                              info=info.copy(), color=color, linestyle=" ",
+                              selectable=False,
+                              z=1,
+                              replot=False, replace=False)
+            if replot:
+                self.replot()
                     #self.resetZoom()
 
     def setActiveRoiNumber(self, intValue):

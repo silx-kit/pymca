@@ -1047,6 +1047,7 @@ class QSpsWidget(qt.QWidget):
 
     def __refreshSelection(self):
         return
+        __THOUGHTS__ = """
         _logger.debug("__refreshSelection(self) called")
         _logger.debug(self.selection)
         if self.selection is not None:
@@ -1068,6 +1069,7 @@ class QSpsWidget(qt.QWidget):
                 self.cntTable.markCntSelected(scandict['scan'])
             else:
                 self.cntTable.markCntSelected({})
+        """
 
     def isSelectionUpdated(self,sellist):
         outsel = []

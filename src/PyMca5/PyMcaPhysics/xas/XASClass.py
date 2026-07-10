@@ -674,11 +674,6 @@ def getFT(k, exafs, npoints=2048, rrange=(0.0, 7.0),
                                       window=window,
                                       windpar=apodization,
                                       wrange=krange)
-    if 0:
-        set3 = numpy.zeros((k.size, 2), dtype=numpy.float64)
-        set3[:, 0] = k
-        set3[:, 1] = exafs * wweights
-        setFT = exex.fastftr(set3,npoint=npoints,rrange=[0.,7.],kstep=0.02)
 
 
     # ;
@@ -895,7 +890,6 @@ class XASClass(object):
             config = configuration["DefaultBackend"]
         else:
             raise ValueError("Only default backend supported")
-            config = configuration[backend]
 
         # normalization
         # E0 and pre-edge will be used for EXAFS extraction
@@ -1120,20 +1114,13 @@ class XASClass(object):
 
         # FT
         # window
-        if 0:
-            set2 = exex.window_ftr(set2,window=8,windpar=3)
-            setFT = exex.fastftr(set2,npoint=4096,rrange=[0.,7.],kstep=0.02)
-        else:
-            #setFT = getFT(set2[:,0], set2[:, 1], npoints=2048,
-            #                    krange=(ddict["KMin"], ddict["KMax"]),\
-            #                    rrange=[0.,7.],kstep=0.02)
-            setFT = self.fourierTransform(set2[:,0], set2[:, 1], kMin=ddict["KMin"], kMax=ddict["KMax"])
+        setFT = self.fourierTransform(set2[:,0], set2[:, 1], kMin=ddict["KMin"], kMax=ddict["KMax"])
         ddict["FT"] = setFT
-
-        if 0:
-            # BFT
+        __THOUGHTS__ = """
+            # for BFT
             setBFT = getBackFT(setFT["Set"],rmin=1.0,rmax=3.0,krange=[2.0,20.0])
             ddict["BFT"] = setBFT
+            """
         return ddict
 
 
@@ -1476,14 +1463,9 @@ if __name__ == "__main__":
         config.read(cfg)
         exafs.setConfiguration(config['XASParameters'])
     exafs.setSpectrum(energy, mu)
-    if 0:
-        print("exafs.calculateE0 = ", exafs.calculateE0())
-        ddict = exafs.normalize()
-        print("Jump = ", ddict["Jump"])
-    else:
-        t0 = time.time()
-        ddict = exafs.processSpectrum()
-        print("Elapsed = ", time.time() - t0)
+    t0 = time.time()
+    ddict = exafs.processSpectrum()
+    print("Elapsed = ", time.time() - t0)
     #sys.exit()
     from PyMca5.PyMca import PyMcaQt as qt
     app = qt.QApplication([])

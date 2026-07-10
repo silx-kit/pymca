@@ -42,10 +42,7 @@ try:
     HAS_H5PY = True
 except Exception:
     HAS_H5PY = None
-if sys.version_info < (3,):
-    from StringIO import StringIO
-else:
-    from io import StringIO
+from io import StringIO
 
 DEBUG = 0
 
@@ -185,50 +182,6 @@ class testStackInfo(unittest.TestCase):
         # TODO: this is done in PyMcaBatchTest on multiple input formats
         # so not needed here
         return
-        from PyMca5.PyMcaIO import specfilewrapper as specfile
-        from PyMca5.PyMcaIO import ConfigDict
-        from PyMca5.PyMcaCore import DataObject
-        spe = os.path.join(self.dataDir, "Steel.spe")
-        cfg = os.path.join(self.dataDir, "Steel.cfg")
-        sf = specfile.Specfile(spe)
-        self.assertTrue(len(sf) == 1, "File %s cannot be read" % spe)
-        self.assertTrue(sf[0].nbmca() == 1,
-                        "Spe file should contain MCA data")
-
-        counts = sf[0].mca(1)
-        channels = numpy.arange(counts.size)
-        sf = None
-        configuration = ConfigDict.ConfigDict()
-        configuration.read(cfg)
-        calibration = configuration["detector"]["zero"], \
-                      configuration["detector"]["gain"], 0.0
-        initialTime = configuration["concentrations"]["time"]
-
-        # Fit MCA data with different dimensions: vector, image, stack
-        for ndim in [1, 2, 3]:
-            # create the data
-            imgShape = tuple(range(3, 3+ndim))
-            data = numpy.tile(counts, imgShape+(1,))
-            nTimes = 3
-            live_time = numpy.arange(numpy.prod(imgShape), dtype=int)
-            live_time = initialTime + (live_time % nTimes)*initialTime
-
-            # create the stack data object
-            stack = DataObject.DataObject()
-            stack.data = data
-            stack.info = {}
-            stack.info["McaCalib"] = calibration
-            stack.info["McaLiveTime"] = live_time
-            stack.x = [channels]
-
-            # Test the fast XRF
-            # we need to make sure we use fundamental parameters and
-            # the time read from the file
-            configuration["concentrations"]["usematrix"] = 0
-            configuration["concentrations"]["useautotime"] = 1
-            # make sure we use the SNIP background
-            configuration['fit']['stripalgorithm'] = 1
-            self._verifyFastFit(stack, configuration, live_time, nTimes)
 
     def _verifyFastFit(self, stack, configuration, live_time, nTimes):
         from PyMca5.PyMcaPhysics.xrf import FastXRFLinearFit
@@ -441,54 +394,6 @@ class testStackInfo(unittest.TestCase):
         # TODO: this is done in PyMcaBatchTest on multiple input formats
         # so not needed here
         return
-
-        # perform the batch fit
-        self._outputDir = os.path.join(tempfile.gettempdir(), "SteelTestDir")
-        if not os.path.exists(self._outputDir):
-            os.mkdir(self._outputDir)
-        cfgFile = os.path.join(tempfile.gettempdir(), "SteelNew.cfg")
-        if os.path.exists(cfgFile):
-            try:
-                os.remove(cfgFile)
-            except Exception:
-                print("Cannot remove file %s" % cfgFile)
-        # we need to make sure we use fundamental parameters and
-        # the time read from the file
-        configuration["concentrations"]["usematrix"] = 0
-        configuration["concentrations"]["useautotime"] = 1
-        if not os.path.exists(cfgFile):
-            configuration.write(cfgFile)
-            os.chmod(cfgFile, 0o777)
-
-        # Test batch fitting (legacy)
-        batch = LegacyMcaAdvancedFitBatch.McaAdvancedFitBatch(cfgFile,
-                                        filelist=[self._h5File],
-                                        outputdir=self._outputDir,
-                                        concentrations=True,
-                                        selection=selection,
-                                        quiet=True)
-        batch.processList()
-        imageFile = os.path.join(self._outputDir, "IMAGES", "Steel.dat")
-        self._verifyBatchFitResult(imageFile, nRows, nColumns, live_time, nTimes, legacy=True)
-
-        # Test batch fitting
-        batch = McaAdvancedFitBatch.McaAdvancedFitBatch(cfgFile,
-                                                        filelist=[self._h5File],
-                                                        outputdir=self._outputDir,
-                                                        concentrations=True,
-                                                        selection=selection,
-                                                        quiet=True)
-        batch.outbuffer.extensions = ['.dat']
-        batch.processList()
-        imageFile = batch.outbuffer.filename('.dat')
-        self._verifyBatchFitResult(imageFile, nRows, nColumns, live_time, nTimes)
-    
-        # Batch fitting went well
-        # Test the fast XRF
-        configuration["concentrations"]["usematrix"] = 0
-        configuration["concentrations"]["useautotime"] = 1
-        configuration['fit']['stripalgorithm'] = 1
-        self._verifyFastFit(stack, configuration, live_time, nTimes)
 
     def _verifyBatchFitResult(self, imageFile, nRows, nColumns, live_time, nTimes, legacy=False):
         from PyMca5.PyMcaIO import specfilewrapper as specfile

@@ -144,17 +144,6 @@ class FitParamWidget(FitParamForm):
         #end concentrations tab
 
         #self.matrixGeometry = self.tabAttenuators.matrixGeometry
-        if 0:
-            #The compound fit tab
-            self.tabCompoundFit =  qt.QWidget()
-            tabCompoundFitLayout = qt.QGridLayout(self.tabCompoundFit)
-            tabCompoundFitLayout.setContentsMargins(11, 11, 11, 11)
-            tabCompoundFitLayout.setSpacing(6)
-            self.compoundFitWidget   = AttenuatorsTable.CompoundFittingTab(self.tabCompoundFit,
-                                                                           "tabCompound_fit")
-            tabCompoundFitLayout.addWidget(self.compoundFitWidget,0,0)
-            self.mainTab.addTab(self.tabCompoundFit, str("COMPOUND FIT"))
-            #end compound fit tab
 
         if XRFMC_FLAG:
             self.tabXRFMC =  qt.QWidget()
@@ -168,12 +157,7 @@ class FitParamWidget(FitParamForm):
 
         self.layout().setContentsMargins(0, 0, 0, 0)
 
-        if "PyQt4" in sys.modules:
-            #I had to add this line to prevent a crash. Why?
-            qApp = qt.QApplication.instance()
-            qApp.processEvents()
-        else:
-            qt.QApplication.instance().processEvents()
+        qt.QApplication.instance().processEvents()
         self.attTable.verticalHeader().hide()
         #The beam energies tab
         beamlayout= qt.QGridLayout(self.TabBeam)
@@ -186,17 +170,12 @@ class FitParamWidget(FitParamForm):
 
         #The peak select tab
         layout= qt.QGridLayout(self.TabPeaks)
-        if 0:
-            self.peakTable= FitPeakSelect(self.TabPeaks)
-            layout.addWidget(self.peakTable, 0, 0)
-            self.peakTable.setMaximumSize(self.tabDetector.sizeHint())
-        else:
-            self.peakTable= FitPeakSelect(self.TabPeaks,
-                                          energyTable=self.energyTable)
-            self.peakTable.energy.setToolTip("Energy is set in the BEAM tab")
-            maxWidth = int(min(900, 0.8*qt.QDesktopWidget().width()))
-            self.peakTable.setMaximumWidth(maxWidth)
-            layout.addWidget(self.peakTable, 0, 0)
+        self.peakTable= FitPeakSelect(self.TabPeaks,
+                                      energyTable=self.energyTable)
+        self.peakTable.energy.setToolTip("Energy is set in the BEAM tab")
+        maxWidth = int(min(900, 0.8*qt.QDesktopWidget().width()))
+        self.peakTable.setMaximumWidth(maxWidth)
+        layout.addWidget(self.peakTable, 0, 0)
             #self.peakTable.setMaximumSize(self.tabDetector.sizeHint())
         #self.energyTable = self.peakTable.energyTable
         self._inputParameters = None
@@ -1060,11 +1039,6 @@ class SectionFileDialog(qt.QFileDialog):
                     self.setDir(qt.safe_str(initdir))
 
         _logger.debug("right to be added")
-        if 0:
-            self.sectionWidget= SectionFileWidget(self,
-                                              sections=sections,
-                                              labels=labels)
-            self.layout().addWidget(self.sectionWidget)
         if mode is not None:
             self.setFileMode(mode)
 

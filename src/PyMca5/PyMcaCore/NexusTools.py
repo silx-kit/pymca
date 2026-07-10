@@ -620,7 +620,7 @@ def getScannedPositioners(h5file, path):
                                                 (key in tokens)]
 
         # provide proper sorting
-        if len(scanned) > 1 and sys.version_info > (3, 3):
+        if len(scanned) > 1:
             # sort irrespective of capital or lower case
             scanned.sort(key=str.casefold)
             if len(title) and hasattr(title, "split"):

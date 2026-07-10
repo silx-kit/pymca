@@ -408,24 +408,17 @@ class Specfit(object):
         #print "nb = ",nb
         #treat differently user and built in functions
         #if self.selected_th in self.conf.theory_list:
-        if (0):
-            if (nb>0):
-                result = self.bkgfun(pars[0:nb],t) + \
-                         self.theoryfun(pars[nb:len(pars)],t)
-            else:
-                result = self.theoryfun(pars,t)
+        nu=len(self.theorydict[self.fitconfig['fittheory']][1])
+        niter=int((len(pars)-nb)/nu)
+        u_term=numpy.zeros(numpy.shape(t),numpy.float64)
+        if niter > 0:
+            for i in range(niter):
+                u_term= u_term+ \
+                        self.theoryfun(pars[(nb+i*nu):(nb+(i+1)*nu)],t)
+        if (nb>0):
+            result = self.bkgfun(pars[0:nb],t) + u_term
         else:
-            nu=len(self.theorydict[self.fitconfig['fittheory']][1])
-            niter=int((len(pars)-nb)/nu)
-            u_term=numpy.zeros(numpy.shape(t),numpy.float64)
-            if niter > 0:
-                for i in range(niter):
-                    u_term= u_term+ \
-                            self.theoryfun(pars[(nb+i*nu):(nb+(i+1)*nu)],t)
-            if (nb>0):
-                result = self.bkgfun(pars[0:nb],t) + u_term
-            else:
-                result = u_term
+            result = u_term
 
         if self.fitconfig['fitbkg'] == "Square Filter":
             result=result-pars[1]
@@ -1023,35 +1016,14 @@ class Specfit(object):
         xmin0 = self.xdata[0]
         xmax0 = self.xdata[-1]
         for region in regions:
-            if(0):
-                idx=numpy.argsort(self.xdata0)
-                self.xdata=numpy.take(self.xdata0,idx)
-                self.ydata=numpy.take(self.ydata0,idx)
-                #self.sigmay=numpy.take(self.sigmay0,idx)
-                idx = numpy.nonzero((self.xdata>=region[0]) &\
-                                    (self.xdata<=region[1]))[0]
-                self.xdata=numpy.take(self.xdata,idx)
-                self.ydata=numpy.take(self.ydata,idx)
             self.setdata(self.xdata0,self.ydata0,self.sigmay0,xmin=region[0],xmax=region[1])
             #SimplePlot.plot([self.xdata,self.ydata],yname='region to fit')
-            if 0:
-                #the calling program shoudl take care of sigma
-                self.sigmay=numpy.sqrt(self.ydata/yscaling)
-                self.sigmay=self.sigmay+numpy.equal(self.sigmay,0)
             self.estimate(mcafit=1)
             if self.state == 'Ready to Fit':
               self.startfit(mcafit=1)
               if self.chisq is not None:
                if self.fitconfig['ResidualsFlag']:
                 while(self.chisq > 2.5):
-                #awful fit, simple residuals search adding a gaussian(?)
-                  if (0):
-                    error=self.mcaresidualssearch_old()
-                    print("error = ",error)
-                    if not error:
-                        for param in self.paramlist:
-                            param['estimation']=param['fitresult']
-                        self.startfit()
                   newpar,newcons=self.mcaresidualssearch()
                   if newpar != []:
                     newg=1
@@ -1179,13 +1151,9 @@ class Specfit(object):
             x_around=numpy.take(x,idx)
             y_around=numpy.take(y,idx)
             ybkg_around=numpy.take(self.fitfunction(noigno,x),idx)
-            if 0:
-                #only valid for MCA's!!!
-                area=(numpy.sum(y_around-ybkg_around))
-            else:
-                neto = y_around-ybkg_around
-                deltax = x_around[1:] - x_around[0:-1]
-                area=numpy.sum(neto[0:-1]*deltax)
+            neto = y_around-ybkg_around
+            deltax = x_around[1:] - x_around[0:-1]
+            area=numpy.sum(neto[0:-1]*deltax)
             sigma_area=(numpy.sqrt(numpy.sum(y_around)))
             result.append([pos,area,sigma_area,fwhm])
             #import SimplePlot
@@ -1203,20 +1171,12 @@ class Specfit(object):
             y=self.ydata
 
         zz=SpecfitFuns.subac(y,1.0,10)
-        if 0:
-            idx=numpy.nonzero(zz>(min(y/100.)))[0]
-            yy=numpy.take(y,idx)
-            yfit=numpy.take(zz,idx)
-        elif 1:
-                zz=numpy.convolve(y,[1.,1.,1.])/3.0
-                yy=y[1:-1]
-                yfit=zz
-                idx=numpy.nonzero(numpy.fabs(yy)>0.0)[0]
-                yy=numpy.take(yy,idx)
-                yfit=numpy.take(yfit,idx)
-        else:
-            yy=y
-            yfit=zz
+        zz=numpy.convolve(y,[1.,1.,1.])/3.0
+        yy=y[1:-1]
+        yfit=zz
+        idx=numpy.nonzero(numpy.fabs(yy)>0.0)[0]
+        yy=numpy.take(yy,idx)
+        yfit=numpy.take(yfit,idx)
         #avoid case of dividing by 0
         try:
             chisq=numpy.sum(((yy-yfit)*(yy-yfit))/(numpy.fabs(yy)*len(yy)))
@@ -1596,15 +1556,15 @@ class Specfit(object):
 
     def squarefilter(self,*vars):
         if len(vars) > 0:
-      	    y=vars[0]
+            y=vars[0]
         else:
-       	    y=self.y
+            y=self.y
         if len(vars) > 1:
             width=vars[1]
         elif 'FwhmPoints' in self.fitconfig:
-        	width=self.fitconfig['FwhmPoints']
+            width=self.fitconfig['FwhmPoints']
         else:
-         	width=5
+            width=5
         w = int(width) + ((int(width)+1) % 2)
         u = int(w/2)
         coef=numpy.zeros((2*u+w),numpy.float64)
@@ -1613,12 +1573,12 @@ class Specfit(object):
         coef[(u+w):len(coef)]=-0.5/float(u)
         if len(y) == 0:
             if type(y) == type([]):
-        	    return []
+                return []
             else:
-         	    return numpy.array([])
+                return numpy.array([])
         else:
             if len(y) < len(coef):
-          	    return y
+                return y
             else:
                 result=numpy.zeros(len(y),numpy.float64)
                 result[(w-1):-(w-1)]=numpy.convolve(y,coef,0)
@@ -1626,7 +1586,7 @@ class Specfit(object):
                 result[-(w-1):]=result[-(w+1)]
                 #import SimplePlot
                 #SimplePlot.plot([self.xdata,y,result],yname='filter')
-       	        return result
+                return result
 
 
 def test():
@@ -1643,11 +1603,8 @@ def test():
     fit.settheory('Gaussians')
     #print fit.configure()
     fit.setbackground('Constant')
-    if 1:
-        fit.estimate()
-        fit.startfit()
-    else:
-        fit.mcafit()
+    fit.estimate()
+    fit.startfit()
     print("Searched parameters = ",[1,1500,100.,50.0,1500,700.,50.0])
     print("Obtained parameters : ")
     for param in fit.paramlist:

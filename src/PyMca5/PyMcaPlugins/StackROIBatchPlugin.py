@@ -212,7 +212,6 @@ class StackROIBatchPlugin(StackPluginBase.StackPluginBase):
                 if isinstance(result[0], str) and result[0] == "Exception":
                     # somehow this exception is not caught
                     raise Exception(result[1], result[2])#, result[3])
-                    return
 
         # Show results
         with result.bufferContext(update=True):

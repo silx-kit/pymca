@@ -190,10 +190,7 @@ if not os.path.exists(EADL):
     EADL = os.path.join(PyMcaDataDir.PYMCA_DATA_DIR, 'EPDL97', 'EADL.DAT')
 
 infile = open(EADL, 'rb')
-if sys.version < '3.0':
-    EADL97_DATA = infile.read()
-else:
-    EADL97_DATA = infile.read().decode('UTF-8')
+EADL97_DATA = infile.read().decode('UTF-8')
 infile.close()
 
 #speed up sequential access
@@ -428,17 +425,6 @@ def parseHeader(line0, line1):
     ddict.update(parseHeader1(line1))
     return ddict
 
-if 0:
-    ddict = parseHeader0(EADL97_DATA[0])
-    for key in ddict.keys():
-        _logger.info("%s: %s", key, ddict[key])
-
-if 0:
-    ddict = parseHeader1(EADL97_DATA[1])
-    for key in ddict.keys():
-        _logger.info("%s: %s", key, ddict[key])
-
-
 def getDataLineIndex(lines, z, Yi, C, S, X1, Yo, I):
     global LAST_INDEX
     if (z < 1) or (z>100):
@@ -467,15 +453,6 @@ def getDataLineIndex(lines, z, Yi, C, S, X1, Yo, I):
             _logger.error(lines[i+1])
             _logger.error(sys.exc_info())
             raise
-        if 0:
-            _logger.info("%s, %s", ddict['Z'], z)
-            _logger.info("%s, %s", ddict['Yi'], Yi)
-            _logger.info("%s, %s", ddict['C'], C)
-            _logger.info("%s, %s", ddict['S'], S)
-            _logger.info("%s, %s", ddict['X1'], X1)
-            _logger.info("%s, %s", ddict['Yo'], Yo)
-            _logger.info("%s, %s", ddict['I'], I)
-
         if ddict['Z'] == z:
             _logger.debug("Z found")
             if ddict['Yi'] == Yi:

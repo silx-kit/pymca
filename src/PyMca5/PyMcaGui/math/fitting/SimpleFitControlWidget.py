@@ -308,18 +308,12 @@ class FitControl(qt.QGroupBox):
         #chi square handling
         self.chi2Label = qt.QLabel(self)
         self.chi2Label.setText(str("Minimum chi^2 difference (%)"))
-        if 0:
-            self.chi2Value = qt.QLineEdit(self)
-            self.chi2Value._v = qt.CLocaleQDoubleValidator(self.chi2Value)
-            self.chi2Value.setValidator(self.chi2Value._v)
-            self.chi2Value.setText(str("0.001"))
-        else:
-            self.chi2Value = qt.QDoubleSpinBox(self)
-            self.chi2Value.setDecimals(4)
-            self.chi2Value.setMinimum(0.0001)
-            self.chi2Value.setMaximum(100.)
-            self.chi2Value.setSingleStep(0.0001)
-            self.chi2Value.setValue(0.001)
+        self.chi2Value = qt.QDoubleSpinBox(self)
+        self.chi2Value.setDecimals(4)
+        self.chi2Value.setMinimum(0.0001)
+        self.chi2Value.setMaximum(100.)
+        self.chi2Value.setSingleStep(0.0001)
+        self.chi2Value.setValue(0.001)
 
         self.mainLayout.addWidget(self.chi2Label,         row, 0)
         self.mainLayout.addWidget(qt.HorizontalSpacer(self), row, 1)

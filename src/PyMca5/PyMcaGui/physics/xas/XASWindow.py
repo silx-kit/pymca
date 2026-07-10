@@ -233,25 +233,13 @@ class XASMdiArea(qt.QMdiArea):
                       ylabel="Normalized Units",
                       color="blue",
                       replot=False)
-        if 0:
-            plot.clearMarkers()
-            for i in range(len(ddict["KnotsX"])):
-                plot.insertMarker(ddict["KnotsX"][i],
-                                  ddict["KnotsY"][i],
-                          legend="Knot %d" % (i+1),
-                          text="Knot %d" % (i+1),
-                          replot=False,
-                          draggable=False,
-                          selectable=False,
-                          color="orange")
-        else:
-            plot.addCurve(ddict["KnotsX"],
-                          ddict["KnotsY"],
-                          legend="Knots",
-                          replot=False,
-                          linestyle="",
-                          symbol="o",
-                          color="orange")
+        plot.addCurve(ddict["KnotsX"],
+                      ddict["KnotsY"],
+                      legend="Knots",
+                      replot=False,
+                      linestyle="",
+                      symbol="o",
+                      color="orange")
         plot.resetZoom()
         plot = self._windowDict["Signal"]
         if ddict["KWeight"]:
@@ -319,21 +307,14 @@ if __name__ == "__main__":
     data = specfile.Specfile(fileName)[0].data()[-2:, :]
     energy = data[0, :]
     mu = data[1, :]
-    if 0:
-        w = XASWindow()
-        w.show()
-        w.setSpectrum(energy, mu)
-        w.update()
-        app.exec()
+    from PyMca5.PyMca import XASClass
+    ownAnalyzer = XASClass.XASClass()
+    configuration = ownAnalyzer.getConfiguration()
+    w = XASDialog()
+    w.setSpectrum(energy, mu)
+    w.setConfiguration(configuration)
+    print("SENT CONFIGURATION", configuration["Normalization"])
+    if w.exec():
+        print("PARAMETERS = ", w.getConfiguration())
     else:
-        from PyMca5.PyMca import XASClass
-        ownAnalyzer = XASClass.XASClass()
-        configuration = ownAnalyzer.getConfiguration()
-        w = XASDialog()
-        w.setSpectrum(energy, mu)
-        w.setConfiguration(configuration)
-        print("SENT CONFIGURATION", configuration["Normalization"])
-        if w.exec():
-            print("PARAMETERS = ", w.getConfiguration())
-        else:
-            print("PARAMETERS = ", configuration)
+        print("PARAMETERS = ", configuration)

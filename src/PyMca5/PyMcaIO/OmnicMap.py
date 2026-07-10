@@ -72,14 +72,10 @@ class OmnicMap(DataObject.DataObject):
         except Exception:
             omnicInfo = None
         self.sourceName = [filename]
-        if sys.version < '3.0':
-            searchedChain = "Spectrum "
-        else:
-            searchedChain = bytes("Spectrum ", 'utf-8')
+        searchedChain = bytes("Spectrum ", 'utf-8')
         firstByte = data.index(searchedChain)
         s = data[firstByte:(firstByte + 100 - 16)]
-        if sys.version >= '3.0':
-            s = str(s)
+        s = str(s)
         _logger.debug("firstByte = %d", firstByte)
         _logger.debug("s1 = %s ", s)
         exp = re.compile(r'(-?[0-9]+\.?[0-9]*)')
@@ -94,10 +90,7 @@ class OmnicMap(DataObject.DataObject):
             xPosition, yPosition = self.getPositionFromIndexAndInfo(0, omnicInfo)
         _logger.debug("spectrumIndex, nSpectra, xPosition, yPosition = %d %d %f %f",
                       spectrumIndex, self.nSpectra, xPosition, yPosition)
-        if sys.version < '3.0':
-            chain = "Spectrum"
-        else:
-            chain = bytes("Spectrum", 'utf-8')
+        chain = bytes("Spectrum", 'utf-8')
         secondByte = data[(firstByte + 1):].index(chain)
         secondByte += firstByte + 1
         _logger.debug("secondByte = %s", secondByte)
@@ -115,10 +108,7 @@ class OmnicMap(DataObject.DataObject):
         calculating = True
         for i in range(self.nSpectra):
             offset = int(firstByte + i * (100 + self.nChannels * 4))
-            if sys.version < '3.0':
-                s = data[offset:(offset + 100 - 16)]
-            else:
-                s = str(data[offset:(offset + 100 - 16)])
+            s = str(data[offset:(offset + 100 - 16)])
             tmpValues = exp.findall(s)
             spectrumIndex = int(tmpValues[0])
             if "X = " in s:
@@ -248,10 +238,7 @@ class OmnicMap(DataObject.DataObject):
             Dictionary with map gemoetrical acquisition parameters
         '''
         #look for the chain 'Position'
-        if sys.version < '3.0':
-            chain = 'Position'
-        else:
-            chain = bytes('Position', 'utf-8')
+        chain = bytes('Position', 'utf-8')
         offset = data.index(chain)
         positions = [offset]
         while True:

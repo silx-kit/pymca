@@ -269,13 +269,11 @@ class NormalizationPlugins(Plugin1DBase.Plugin1DBase):
         nCurves = len(curves)
         if nCurves < 2:
             raise ValueError("At least two curves needed")
-            return
 
         #get active curve
         activeCurve = self.getActiveCurve()
         if activeCurve is None:
             raise ValueError("Please select an active curve")
-            return
 
         x, y, legend0, info = activeCurve
         xmin, xmax = self.getGraphXLimits()

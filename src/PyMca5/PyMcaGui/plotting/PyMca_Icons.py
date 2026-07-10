@@ -32,10 +32,7 @@ import logging
 import re
 import sys
 
-if sys.version_info < (3, ):
-    from collections import MutableMapping
-else:
-    from collections.abc import MutableMapping
+from collections.abc import MutableMapping
 
 _logger = logging.getLogger(__name__)
 

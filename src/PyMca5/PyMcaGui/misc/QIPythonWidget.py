@@ -37,20 +37,14 @@ import os
 import sys
 
 from PyMca5.PyMcaGui.PyMcaQt import QApplication, QWidget, \
-                                    QPushButton, QVBoxLayout, QMessageBox, \
-                                    BINDING
+                                    QPushButton, QVBoxLayout, QMessageBox
 
 QTCONSOLE = True
-if sys.version_info < (3,):
+try:
+    import qtconsole
+except ImportError:
+    QTCONSOLE = False
     import IPython
-    if IPython.__version__.startswith("2"):
-        QTCONSOLE = False
-else:
-    try:
-        import qtconsole
-    except ImportError:
-        QTCONSOLE = False
-        import IPython
 
 if QTCONSOLE:
     try:
@@ -89,8 +83,6 @@ class QIPythonWidget(RichIPythonWidget):
                 kernel_manager.kernel._abort_queues = _abort_queues
         except Exception:
             pass
-        if BINDING in ["PySide", "PyQt4"]:
-            kernel_manager.kernel.gui = 'qt4'
         self.kernel_client = kernel_client = self._kernel_manager.client()
         kernel_client.start_channels()
 

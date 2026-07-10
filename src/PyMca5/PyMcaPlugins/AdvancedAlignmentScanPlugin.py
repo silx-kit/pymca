@@ -670,7 +670,6 @@ class AdvancedAlignmentScanPlugin(Plugin1DBase.Plugin1DBase):
 
         if nCurves < 2:
             raise ValueError("At least 2 curves needed")
-            return
 
         # Check if plotwindow is zoomed in
         xmin, xmax = self.getGraphXLimits()
@@ -989,7 +988,6 @@ class AdvancedAlignmentScanPlugin(Plugin1DBase.Plugin1DBase):
         if len(curves) < 1:
             _logger.debug('interpolate -- no curves present')
             raise ValueError("At least 1 curve needed")
-            return
 
         activeCurve = self.getActiveCurve()
         if not activeCurve:

@@ -40,12 +40,11 @@ from PyMca5 import PyMcaDirs
 from PyMca5.PyMcaGui.io import PyMcaFileDialogs
 
 BLISS = False
-if sys.version_info > (3, 5):
-    try:
-        from PyMca5.PyMcaCore import RedisTools
-        BLISS = True
-    except Exception:
-        _logger.info("Bliss data file direct support not available")
+try:
+    from PyMca5.PyMcaCore import RedisTools
+    BLISS = True
+except Exception:
+    _logger.info("Bliss data file direct support not available")
 
 
 class QSourceSelector(qt.QWidget):

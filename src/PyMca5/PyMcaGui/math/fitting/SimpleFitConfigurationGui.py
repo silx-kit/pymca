@@ -33,10 +33,7 @@ import os.path
 import logging
 from . import SimpleFitControlWidget
 
-if sys.version_info < (3,):
-    from StringIO import StringIO
-else:
-    from io import StringIO
+from io import StringIO
 
 try:
     import h5py

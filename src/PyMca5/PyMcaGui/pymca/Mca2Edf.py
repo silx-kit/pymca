@@ -301,17 +301,14 @@ class Mca2EdfBatch(QThread):
                                     title = "%s to %s" % (key0, key1)
                                 else:
                                     title = key0
-                                if 1:
-                                    ddict={}
-                                    if 'Channel0' in mcainfo:
-                                        ddict['MCA start ch'] =\
-                                                   int(mcainfo['Channel0'])
-                                    if 'McaCalib' in mcainfo:
-                                        ddict['MCA a'] = mcainfo['McaCalib'][0]
-                                        ddict['MCA b'] = mcainfo['McaCalib'][1]
-                                        ddict['MCA c'] = mcainfo['McaCalib'][2]
-                                else:
-                                    ddict = mcainfo
+                                ddict={}
+                                if 'Channel0' in mcainfo:
+                                    ddict['MCA start ch'] =\
+                                               int(mcainfo['Channel0'])
+                                if 'McaCalib' in mcainfo:
+                                    ddict['MCA a'] = mcainfo['McaCalib'][0]
+                                    ddict['MCA b'] = mcainfo['McaCalib'][1]
+                                    ddict['MCA c'] = mcainfo['McaCalib'][2]
                                 ddict['Title'] = title
                                 edfname = os.path.join(self.outputdir,title.replace(" ","_")+".edf")
                                 edfout  = EdfFile.EdfFile(edfname)

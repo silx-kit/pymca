@@ -1010,12 +1010,8 @@ class CalibrationParameters(qt.QWidget):
         self.CFixed.hide()
         layout.addWidget(self.CText)
 
-        if 0:
-            self.savebut= qt.QPushButton(parw)
-            self.savebut.setText("Add as")
-        else:
-            lab = qt.QLabel("Add as", parw)
-            layout.addWidget(lab)
+        lab = qt.QLabel("Add as", parw)
+        layout.addWidget(lab)
         self.savebox = SimpleComboBox(parw,
                                        options=self.caldict.keys())
         layout.addWidget(self.savebox)

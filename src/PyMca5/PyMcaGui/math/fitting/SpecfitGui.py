@@ -218,40 +218,40 @@ class SpecfitGui(qt.QWidget):
         #it should give back a new dictionary
         newconfiguration={}
         newconfiguration.update(oldconfiguration)
-        if (0):
-        #example to force a given default configuration
+        
+        __THOUGHTS__ = """
+            # example to force a given default configuration
             newconfiguration['FitTheory']="Pseudo-Voigt Line"
             newconfiguration['AutoFwhm']=1
             newconfiguration['AutoScaling']=1
-
+            """
         #example script options like
-        if (1):
-            sheet1={'notetitle':'Restrains',
-                'fields':(["CheckField",'HeightAreaFlag','Force positive Height/Area'],
-                          ["CheckField",'PositionFlag','Force position in interval'],
-                          ["CheckField",'PosFwhmFlag','Force positive FWHM'],
-                          ["CheckField",'SameFwhmFlag','Force same FWHM'],
-                          ["CheckField",'EtaFlag','Force Eta between 0 and 1'],
-                          ["CheckField",'NoConstrainsFlag','Ignore Restrains'])}
+        sheet1={'notetitle':'Restrains',
+            'fields':(["CheckField",'HeightAreaFlag','Force positive Height/Area'],
+                      ["CheckField",'PositionFlag','Force position in interval'],
+                      ["CheckField",'PosFwhmFlag','Force positive FWHM'],
+                      ["CheckField",'SameFwhmFlag','Force same FWHM'],
+                      ["CheckField",'EtaFlag','Force Eta between 0 and 1'],
+                      ["CheckField",'NoConstrainsFlag','Ignore Restrains'])}
 
-            sheet2={'notetitle':'Search',
-                'fields':(["EntryField",'FwhmPoints', 'Fwhm Points: '],
-                          ["EntryField",'Sensitivity','Sensitivity: '],
-                          ["EntryField",'Yscaling',   'Y Factor   : '],
-                          ["CheckField",'ForcePeakPresence',   'Force peak presence '])}
-            w=QScriptOption.QScriptOption(self,name='Fit Configuration',
-                            sheets=(sheet1,sheet2),
-                            default=oldconfiguration)
+        sheet2={'notetitle':'Search',
+            'fields':(["EntryField",'FwhmPoints', 'Fwhm Points: '],
+                      ["EntryField",'Sensitivity','Sensitivity: '],
+                      ["EntryField",'Yscaling',   'Y Factor   : '],
+                      ["CheckField",'ForcePeakPresence',   'Force peak presence '])}
+        w=QScriptOption.QScriptOption(self,name='Fit Configuration',
+                        sheets=(sheet1,sheet2),
+                        default=oldconfiguration)
 
-            w.show()
-            w.exec()
-            if w.result():
-                newconfiguration.update(w.output)
-            #we do not need the dialog any longer
-            del w
-            newconfiguration['FwhmPoints']=int(float(newconfiguration['FwhmPoints']))
-            newconfiguration['Sensitivity']=float(newconfiguration['Sensitivity'])
-            newconfiguration['Yscaling']=float(newconfiguration['Yscaling'])
+        w.show()
+        w.exec()
+        if w.result():
+            newconfiguration.update(w.output)
+        #we do not need the dialog any longer
+        del w
+        newconfiguration['FwhmPoints']=int(float(newconfiguration['FwhmPoints']))
+        newconfiguration['Sensitivity']=float(newconfiguration['Sensitivity'])
+        newconfiguration['Yscaling']=float(newconfiguration['Yscaling'])
         return newconfiguration
 
     def estimate(self):
@@ -416,8 +416,6 @@ class SpecfitGui(qt.QWidget):
         else:
             qt.QMessageBox.information(self, "Info", "Function not implemented")
             return
-            i=1+self.specfit.bkgdict.keys().index(self.specfit.fitconfig['fitbkg'])
-            self.guiconfig.BkgComBox.setCurrentIndex(i)
         self.__initialparameters()
         return
 

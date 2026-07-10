@@ -260,19 +260,7 @@ class RGBImageCalculator(qt.QWidget):
             item = "{%d}" % i
             replacingChain ="self.imageDict[self.imageList[%d]]['image']" % (i-1)
             expression = expression.replace(item, replacingChain)
-            if sys.version < '3.0':
-                try:
-                    tmpLabel = label.decode()
-                except UnicodeDecodeError:
-                    try:
-                        tmpLabel = label.decode('utf-8')
-                    except UnicodeDecodeError:
-                        try:
-                            tmpLabel = label.decode('latin-1')
-                        except UnicodeDecodeError:
-                            tmpLabel = "image_%0d" % i
-            else:
-                tmpLabel = label
+            tmpLabel = label
             name = name.replace(item, tmpLabel)
             i = i + 1
         try:

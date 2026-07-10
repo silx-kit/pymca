@@ -140,12 +140,9 @@ if __name__ == "__main__":
     from ..Plot import Plot
 
     try:
-        from PyQt4.QtGui import QApplication
+        from PyQt5.QtWidgets import QApplication
     except ImportError:
-        try:
-            from PyQt5.QtWidgets import QApplication
-        except ImportError:
-            from PySide.QtGui import QApplication
+        from PySide6.QtGui import QApplication
 
     app = QApplication([])
     w = Plot(None, backend=OpenGLBackend)

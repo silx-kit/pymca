@@ -201,21 +201,13 @@ class BlissSpecScan(object):
         pure_counters = [item for item in counters if not (item in scanned)]
         # sort the pure counters
         if len(pure_counters) > 1:
-            if sys.version_info > (3, 3):
-                # sort irrespective of capital or lower case
-                pure_counters.sort(key=str.casefold)
-            else:
-                # sort (capital letters first)
-                pure_counters.sort()
+            # sort irrespective of capital or lower case
+            pure_counters.sort(key=str.casefold)
 
         # sort the scanned motors
         if len(scanned) > 1:
-            if sys.version_info > (3, 3):
-                # sort irrespective of capital or lower case
-                scanned.sort(key=str.casefold)
-            else:
-                # sort (capital letters first)
-                scanned.sort()
+            # sort irrespective of capital or lower case
+            scanned.sort(key=str.casefold)
             indices = []
             offset = len(tokens) + len(scanned)
             for item in scanned:

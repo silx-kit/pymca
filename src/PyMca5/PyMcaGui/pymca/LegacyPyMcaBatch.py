@@ -251,20 +251,6 @@ class McaBatchGUI(qt.QWidget):
         vBox.l.setSpacing(2)
         bigbox.l.addWidget(vBox)
 
-        if 0:
-            #These options are obsolete now
-            self.__overwrite = qt.QCheckBox(vBox)
-            self.__overwrite.setText('Overwrite Fit Files')
-            self.__overwrite.setChecked(True)
-            vBox.l.addWidget(self.__overwrite)
-
-            self.__useExisting = qt.QCheckBox(vBox)
-            self.__useExisting.setText('Use Existing Fit Files')
-            self.__useExisting.setChecked(False)
-            vBox.l.addWidget(self.__useExisting)
-
-            self.__overwrite.clicked.connect(self.__clickSignal0)
-            self.__useExisting.clicked.connect(self.__clickSignal1)
         self.__concentrationsBox.clicked.connect(self.__clickSignal2)
         self.__htmlBox.clicked.connect(self.__clickSignal3)
 
@@ -277,39 +263,6 @@ class McaBatchGUI(qt.QWidget):
         boxStep0.l.addWidget(boxStep)
         bigbox.l.addWidget(boxStep0)
 
-        if 0:
-            self.__boxFStep   = qt.QWidget(boxStep)
-            boxFStep = self.__boxFStep
-            boxFStep.l = qt.QHBoxLayout(boxFStep)
-            boxFStep.l.setContentsMargins(0, 0, 0, 0)
-            boxFStep.l.setSpacing(0)
-            boxStep.l.addWidget(boxFStep)
-            label= qt.QLabel(boxFStep)
-            label.setText("File Step:")
-            self.__fileSpin = qt.QSpinBox(boxFStep)
-            self.__fileSpin.setMinimum(1)
-            self.__fileSpin.setMaximum(10)
-            self.__fileSpin.setValue(1)
-            boxFStep.l.addWidget(label)
-            boxFStep.l.addWidget(self.__fileSpin)
-
-
-            self.__boxMStep   = qt.QWidget(boxStep0)
-            boxMStep = self.__boxMStep
-            boxMStep.l = qt.QHBoxLayout(boxMStep)
-            boxMStep.l.setContentsMargins(0, 0, 0, 0)
-            boxMStep.l.setSpacing(0)
-            boxStep0.l.addWidget(boxMStep)
-
-            label= qt.QLabel(boxMStep)
-            label.setText("MCA Step:")
-            self.__mcaSpin = qt.QSpinBox(boxMStep)
-            self.__mcaSpin.setMinimum(1)
-            self.__mcaSpin.setMaximum(10)
-            self.__mcaSpin.setValue(1)
-
-            boxMStep.l.addWidget(label)
-            boxMStep.l.addWidget(self.__mcaSpin)
 
 
 
@@ -716,18 +669,13 @@ class McaBatchGUI(qt.QWidget):
             if htmlindex[-5:] != "html":
                 htmlindex+=".html"
         roiwidth = float(qt.safe_str(self.__roiSpin.text()))
-        if 0:
-            overwrite= self.__overwrite.isChecked()
-            filestep = int(qt.safe_str(self.__fileSpin.text()))
-            mcastep  = int(qt.safe_str(self.__mcaSpin.text()))
-        else:
-            overwrite= 1
-            filestep = 1
-            mcastep = 1
-            if len(self.fileList) == 1:
-                if self.__splitBox.isChecked():
-                    nbatches = int(qt.safe_str(self.__splitSpin.text()))
-                    mcastep = nbatches
+        overwrite= 1
+        filestep = 1
+        mcastep = 1
+        if len(self.fileList) == 1:
+            if self.__splitBox.isChecked():
+                nbatches = int(qt.safe_str(self.__splitSpin.text()))
+                mcastep = nbatches
 
         fitfiles = self.__fitBox.isChecked()
         selection = self._selection
@@ -1499,12 +1447,8 @@ class McaBatchWindow(qt.QWidget):
                 a = HtmlIndex.HtmlIndex(directory)
                 a.buildRecursiveIndex()
         if dict['chunk'] is not None:
-            if 0:
-                #this was giving troubles using HDF5 files as input
-                sys.exit(0)
-            else:
-                #this seems to work properly
-                self.close()
+            # sys.exit(0) produces a problem using HDF5 as input
+            self.close()
         if self.actions:
             if hasattr(self.abortButton, "animateClick"):
                 if self.abortButton.text() == "OK":

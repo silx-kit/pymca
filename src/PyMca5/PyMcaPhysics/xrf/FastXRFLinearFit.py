@@ -1005,10 +1005,6 @@ def getFileListFromPattern(pattern, begin, end, increment=None):
                 fileList.append(pattern % (j, k))
     elif len(begin) == 3:
         raise ValueError("Cannot handle three indices yet.")
-        for j in range(begin[0], end[0] + increment[0], increment[0]):
-            for k in range(begin[1], end[1] + increment[1], increment[1]):
-                for l in range(begin[2], end[2] + increment[2], increment[2]):
-                    fileList.append(pattern % (j, k, l))
     else:
         raise ValueError("Cannot handle more than three indices.")
     return fileList
@@ -1021,29 +1017,23 @@ def prepareDataStack(fileList):
         fname, dataPath = fileList[0].split("::")
         # compared to the ROI imaging tool, this way of reading puts data
         # into memory while with the ROI imaging tool, there is a check.
-        if 0:
-            import h5py
-            h5 = h5py.File(fname, "r")
-            dataStack = h5[dataPath][:]
-            h5.close()
+        from PyMca5.PyMcaIO import HDF5Stack1D
+        # this way reads information associated to the dataset (if present)
+        if dataPath.startswith("/"):
+            pathItems = dataPath[1:].split("/")
         else:
-            from PyMca5.PyMcaIO import HDF5Stack1D
-            # this way reads information associated to the dataset (if present)
-            if dataPath.startswith("/"):
-                pathItems = dataPath[1:].split("/")
-            else:
-                pathItems = dataPath.split("/")
-            if len(pathItems) > 1:
-                scanlist = ["/" + pathItems[0]]
-                selection = {"y":"/" + "/".join(pathItems[1:])}
-            else:
-                selection = {"y":dataPath}
-                scanlist = None
-            print(selection)
-            print("scanlist = ", scanlist)
-            dataStack = HDF5Stack1D.HDF5Stack1D([fname],
-                                                selection,
-                                                scanlist=scanlist)
+            pathItems = dataPath.split("/")
+        if len(pathItems) > 1:
+            scanlist = ["/" + pathItems[0]]
+            selection = {"y":"/" + "/".join(pathItems[1:])}
+        else:
+            selection = {"y":dataPath}
+            scanlist = None
+        print(selection)
+        print("scanlist = ", scanlist)
+        dataStack = HDF5Stack1D.HDF5Stack1D([fname],
+                                            selection,
+                                            scanlist=scanlist)
     else:
         from PyMca5.PyMca import EDFStack
         dataStack = EDFStack.EDFStack(fileList, dtype=numpy.float32)

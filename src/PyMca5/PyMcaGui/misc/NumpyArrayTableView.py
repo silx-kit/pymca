@@ -28,11 +28,8 @@ __contact__ = "sole@esrf.fr"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 from PyMca5.PyMcaGui import PyMcaQt as qt
-if hasattr(qt, 'QStringList'):
-    MyQVariant = qt.QVariant
-else:
-    def MyQVariant(x=None):
-        return x
+def MyQVariant(x=None):
+    return x
 from . import NumpyArrayTableModel
 import sys
 

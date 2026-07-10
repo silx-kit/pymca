@@ -344,16 +344,6 @@ class XRFMCParameters(qt.QGroupBox):
         self.mainLayout.addWidget(self.slitsVWidth, i, 1)
         i += 1
 
-        # Detector acceptance angle
-        if 0:
-            # this was used in previous versions of the code
-            self.acceptanceAngle = qt.QDoubleSpinBox(self)
-            self.acceptanceAngle.setDecimals(5)
-            self.acceptanceAngle.setRange(0.0001, 3.14159)
-            self.__widgetList.append(self.acceptanceAngle)
-            self.mainLayout.addWidget(self.acceptanceAngle, i, 1)
-            i += 1
-
         # Maximum number of interactions
         self.maxInteractions = qt.QSpinBox(self)
         self.maxInteractions.setMinimum(1)
@@ -403,9 +393,6 @@ class XRFMCParameters(qt.QGroupBox):
         self.sourceHSize.setValue(current[key])
         key = 'source_size_y'
         self.sourceVSize.setValue(current[key])
-        if 0:
-            key = 'detector_acceptance_angle'
-            self.acceptanceAngle.setValue(current[key])
         key = 'nmax_interaction'
         self.maxInteractions.setValue(current[key])
         key = 'layer'
@@ -431,10 +418,6 @@ class XRFMCParameters(qt.QGroupBox):
         current[key] = self.sourceHSize.value()
         key = 'source_size_y'
         current[key] = self.sourceVSize.value()
-        if 0:
-            # used in older versions
-            key = 'detector_acceptance_angle'
-            current[key] = self.acceptanceAngle.value()
         key = 'nmax_interaction'
         current[key] = self.maxInteractions.value()
         key = 'layer'
@@ -463,16 +446,6 @@ class XRFMCSimulationControl(qt.QGroupBox):
         self.mainLayout.setSpacing(2)
 
         i = 0
-        if 0:
-            label = qt.QLabel(self)
-            label.setText("Run Number (0 for first run):")
-            self.__runNumber = qt.QSpinBox(self)
-            self.__runNumber.setMinimum(0)
-            self.__runNumber.setValue(0)
-
-            self.mainLayout.addWidget(label, i, 0)
-            self.mainLayout.addWidget(self.__runNumber, i, 1)
-            i += 1
 
         if self._fit:
             label = qt.QLabel(self)
@@ -486,23 +459,20 @@ class XRFMCSimulationControl(qt.QGroupBox):
             self.mainLayout.addWidget(self._simulationMode, i, 1)
             i += 1
 
-        if 1:
-            label = qt.QLabel(self)
-            label.setText("Number of histories:")
-            self.__nHistories = qt.QSpinBox(self)
-            self.__nHistories.setMinimum(1000)
-            self.__nHistories.setMaximum(10000000)
-            self.__nHistories.setValue(100000)
-            self.__nHistories.setSingleStep(50000)
+        label = qt.QLabel(self)
+        label.setText("Number of histories:")
+        self.__nHistories = qt.QSpinBox(self)
+        self.__nHistories.setMinimum(1000)
+        self.__nHistories.setMaximum(10000000)
+        self.__nHistories.setValue(100000)
+        self.__nHistories.setSingleStep(50000)
 
-            self.mainLayout.addWidget(label, i, 0)
-            self.mainLayout.addWidget(self.__nHistories, i, 1)
-            i += 1
+        self.mainLayout.addWidget(label, i, 0)
+        self.mainLayout.addWidget(self.__nHistories, i, 1)
+        i += 1
 
     def getParameters(self):
         ddict = {}
-        if 0:
-            ddict['run'] = self.__runNumber.value()
         ddict['histories'] = self.__nHistories.value()
         return ddict
 
@@ -774,8 +744,8 @@ class XRFMCPyMca(qt.QWidget):
             # but this does not work
             newFile=ConfigDict.ConfigDict()
             newFile.read(pymcaFitFile)
-            #perform a dummy fit till xmimsim-pymca is upgraded
-            if 0:
+            __THOUGHTS__ = """
+                # perform a dummy fit till xmimsim-pymca is upgraded
                 import numpy
                 from PyMca import ClassMcaTheory
                 newFile['fit']['linearfitflag']=1
@@ -795,9 +765,9 @@ class XRFMCPyMca(qt.QWidget):
                 nfile=ConfigDict.ConfigDict()
                 nfile['result'] = result
                 #nfile.write("tmpFitFileFromConfig.fit")
-            else:
-                nfile = ConfigDict.ConfigDict()
-                nfile.read(pymcaFitFile)
+                """
+            nfile = ConfigDict.ConfigDict()
+            nfile.read(pymcaFitFile)
             nfile.update(ddict)
             newFile = os.path.join(outputDir[0],\
                                    os.path.basename(pymcaFitFile[:-4] + ".fit"))

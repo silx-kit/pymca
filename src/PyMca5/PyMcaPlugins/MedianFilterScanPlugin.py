@@ -118,7 +118,6 @@ class MedianFilterScanPlugin(Plugin1DBase.Plugin1DBase):
         nCurves = len(curves)
         if nCurves < width:
             raise ValueError("At least %d curves needed" % width)
-            return
 
         if self.__randomization:
             indices = numpy.random.permutation(nCurves)

@@ -26,7 +26,6 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-from __future__ import with_statement
 
 __author__ = "T. Vincent - ESRF Data Analysis"
 __contact__ = "thomas.vincent@esrf.fr"

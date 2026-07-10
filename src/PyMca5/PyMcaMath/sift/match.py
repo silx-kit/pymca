@@ -9,8 +9,6 @@
 Contains a class for creating a matching plan, allocating arrays, compiling kernels and other things like that
 """
 
-from __future__ import division
-
 __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"

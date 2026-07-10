@@ -82,12 +82,7 @@ class BackgroundScanPlugin(Plugin1DBase.Plugin1DBase):
 
         Plot type can be "SCAN", "MCA", None, ...
         """
-        if 0:
-            names = self.methodDict.keys()
-            names.sort()
-            return names
-        else:
-            return self.__methodKeys
+        return self.__methodKeys
 
     def getMethodToolTip(self, name):
         """

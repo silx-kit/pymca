@@ -33,10 +33,7 @@ import os
 import numpy
 
 from PyMca5.PyMcaGui import PyMcaQt as qt
-if hasattr(qt, "QString"):
-    QString = qt.QString
-else:
-    QString = str
+QString = str
 from PyMca5.PyMcaGui.plotting.PyMca_Icons import IconDict
 from PyMca5.PyMcaGui.plotting import MaskImageWidget
 from PyMca5.PyMcaIO import EdfFile

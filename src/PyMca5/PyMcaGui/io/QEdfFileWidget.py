@@ -858,25 +858,10 @@ class QEdfFileWidget(qt.QWidget):
             raise IOError("File %s does not exist" % filename[0])
         if (justloaded) and (filename in self.mapComboName.keys()):
             self.selectFile(filename,justloaded=justloaded)
-        elif 1:
+        else:
             combokey = os.path.basename(filename[0])
             self.mapComboName[combokey]= filename
             self.selectFile(combokey,justloaded=justloaded)
-        else:
-            if not self.data.SetSource(filename):
-                qt.QMessageBox.critical(self, "ERROR opening EdfFile",
-                        "Cannot open following EdfFile:\n%s"%(filename))
-            else:
-                filename= self.data.SourceName.split("|")
-                if len(filename) > 1:
-                    combokey = 'EDF Stack'
-                    self._edfstack = filename
-                else:
-                    combokey = os.path.basename(filename[0])
-                if combokey not in self.mapComboName.keys():
-                    self.mapComboName[combokey]= filename[0]
-                    self.fileCombo.insertItem(combokey)
-                self.selectFile(combokey,justloaded=justloaded)
 
     def selectFile(self, filename=None, justloaded=None):
         if justloaded is None:justloaded=0
@@ -1387,14 +1372,11 @@ class QEdfFileWidget(qt.QWidget):
             for sel in parwid.getSelection():
                 sel["SourceName"]= self.currentFile
                 sel['SourceType'] = SOURCE_TYPE
-                if 0:
-                    sel["Key"]= "%d" % self.currentArray
+                keylist = self.data.getSourceInfo()['KeyList']
+                if self.currentArray == len(keylist):
+                    sel["Key"]= "0.0"
                 else:
-                    keylist = self.data.getSourceInfo()['KeyList']
-                    if self.currentArray == len(keylist):
-                        sel["Key"]= "0.0"
-                    else:
-                        sel["Key"]= keylist[self.currentArray]
+                    sel["Key"]= keylist[self.currentArray]
                 selkeys.append(sel)
         return selkeys
 

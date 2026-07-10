@@ -433,24 +433,14 @@ def test():
     p2 = numpy.array([1500,700.,50.0])
     y = a.gauss(p1, x)
     y = y + a.gauss(p2,x) + x * 5.
-    if 0:
-        fit = SimpleFitModule.SimpleFit()
-        fit.importFunctions(SpecfitFunctions)
-        fit.setFitFunction('Gaussians')
-        #fit.setBackgroundFunction('Gaussians')
-        #fit.setBackgroundFunction('Constant')
-        fit.setData(x, y)
-        w = SimpleFitGui(fit=fit)
-        w.show()
-    else:
-        fit=None
-        w = SimpleFitGui(fit=fit)
-        w.setData(x, y, xmin=x[0], xmax=x[-1])
-        w.show()
-        from PyMca5.PyMca import SimpleFitUserEstimatedFunctions
-        fname = SimpleFitUserEstimatedFunctions.__file__
-        w.importFunctions(fname)
-        w.setFitFunction('User Estimated Gaussians')
+    fit=None
+    w = SimpleFitGui(fit=fit)
+    w.setData(x, y, xmin=x[0], xmax=x[-1])
+    w.show()
+    from PyMca5.PyMca import SimpleFitUserEstimatedFunctions
+    fname = SimpleFitUserEstimatedFunctions.__file__
+    w.importFunctions(fname)
+    w.setFitFunction('User Estimated Gaussians')
     return w
 
 if __name__=="__main__":

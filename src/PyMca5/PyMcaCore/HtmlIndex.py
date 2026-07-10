@@ -183,10 +183,7 @@ class HtmlIndex(object):
         for ffile in filelist:
             text +="<a href=""%s"">%s</a><BR>" % (ffile, ffile.split(".html")[0])
         text += self.getFooter()
-        if sys.version_info < (3,):
-            fformat = 'wb'
-        else:
-            fformat = 'w'
+        fformat = 'w'
         ffile = open(index, fformat)
         ffile.write(text)
         ffile.close()
@@ -211,10 +208,7 @@ class HtmlIndex(object):
             link     = "./" + ffile + "/index.html"
             text +="<a href=""%s"">%s</a><BR>" % (link, fileroot)
         text += self.getFooter()
-        if sys.version_info < (3,):
-            fformat = 'wb'
-        else:
-            fformat = 'w'
+        fformat = 'w'
         ffile = open(index, fformat)
         ffile.write(text)
         ffile.close()

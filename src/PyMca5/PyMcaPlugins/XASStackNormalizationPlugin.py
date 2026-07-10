@@ -304,14 +304,6 @@ class XASStackNormalizationPlugin(StackPluginBase.StackPluginBase):
                     edges[i] = 0.0
                     # perhaps the case of large jump should be kept ...
                     jumps[i] = 0.0
-                elif 0:
-                    # this approach removed
-                    data[i,:c0] = spe[c0]
-                    data[i, c0:c1] = spe[c0:c1]
-                    if c1 < data.shape[1]:
-                        data[i, c1:] = spe[c1]
-                    edges[i] = ed
-                    jumps[i] = jmp
                 else:
                     # it seems more appropriate to set the channels below and
                     # above limits to 0 than to the corresponding limits of the region

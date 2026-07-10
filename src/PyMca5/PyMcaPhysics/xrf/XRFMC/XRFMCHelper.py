@@ -46,10 +46,7 @@ XMIMSIM_PYMCA = None
 if sys.platform == "win32":
     try:
         # try to get the installation directory from the registry
-        if sys.version < '3.0':
-            import _winreg as winreg
-        else:
-            import winreg
+        import winreg
         HKLM = winreg.ConnectRegistry(None, winreg.HKEY_LOCAL_MACHINE)
         try:
             # 32 bit
@@ -140,10 +137,7 @@ def getScriptFile(pathToExecutable=None, args=None, name=None):
             fullPath = name
             if not fullPath.endswith(".bat"):
                 fullPath = name + ".bat"
-            if sys.version < '3.0':
-                f = open(fullPath, "wb")
-            else:
-                f = open(fullPath, "w", newline='')
+            f = open(fullPath, "w", newline='')
             f.write(txt)
             f.close()
     elif sys.platform == "darwin":

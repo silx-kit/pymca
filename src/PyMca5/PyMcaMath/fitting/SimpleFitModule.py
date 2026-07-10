@@ -494,7 +494,6 @@ class SimpleFit(object):
         except Exception:
             err = sys.exc_info()[1]
             raise ValueError("Unsuccessful Savitsky-Golay smoothing: %s" % err)
-            result=numpy.array(y).astype(numpy.float64)
         if len(result) > 1:
             result[1:-1]=numpy.convolve(result,f,mode=0)
             result[0]=0.5*(result[0]+result[1])

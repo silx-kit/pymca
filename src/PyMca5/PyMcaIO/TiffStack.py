@@ -30,13 +30,10 @@ __author__ = "V.A. Sole - ESRF"
 __contact__ = "sole@esrf.fr"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-import sys
 import os
 import numpy
 from PyMca5 import DataObject
 from PyMca5.PyMcaIO import TiffIO
-if sys.version > '2.9':
-    long = int
 
 SOURCE_TYPE = "TiffStack"
 
@@ -92,7 +89,7 @@ class TiffArray(object):
                     indices.append([int(x) for x in args[i]])
                 else:
                     standardSlice = False
-            elif type(args[i]) in [type(1), type(long(1))]:
+            elif type(args[i]) in [type(1), type(int(1))]:
                 start = args[i]
                 if start < 0:
                     start = self.__shape[i] - start
@@ -354,7 +351,6 @@ class TiffStack(DataObject.DataObject):
         pass
 
 def test():
-    from PyMca5 import StackBase
     testFileName = "TiffTest.tif"
     nrows = 2000
     ncols = 2000
@@ -377,35 +373,14 @@ def test():
     stackData = TiffStack(imagestack=imagestack)
     stackData.loadFileList([testFileName], dynamic=True)
 
-    if 0:
-        stack = StackBase.StackBase()
-        stack.setStack(stackData)
-        print("This should be 0 = %f" %  stack.calculateROIImages(0, 0)['ROI'].sum())
-        print("This should be %f = %f" %\
-              (a.sum(),stack.calculateROIImages(1, 2)['ROI'].sum()))
-        if imagestack:
-            print("%f should be = %f" %\
-                  (stackData.data[0:10,:,:].sum(),
-                   stack.calculateROIImages(0, 10)['ROI'].sum()))
-            print("Test small ROI 10 should be = %f" %\
-                  stackData.data[10:11,[10],11].sum())
-            print("Test small ROI 40 should be = %f" %\
-                  stackData.data[10:11,[10,12,14,16],11].sum())
-        else:
-            print("%f should be = %f" %\
-                  (stackData.data[:,:, 0:10].sum(),
-                   stack.calculateROIImages(0, 10)['ROI'].sum()))
-            print("Test small ROI %f" %\
-                  stackData.data[10:11,[29],:].sum())
-    else:
-        from PyMca5.PyMca import PyMcaQt as qt
-        from PyMca5.PyMca import QStackWidget
-        app = qt.QApplication([])
-        w = QStackWidget.QStackWidget()
-        print("Setting stack")
-        w.setStack(stackData)
-        w.show()
-        app.exec()
+    from PyMca5.PyMca import PyMcaQt as qt
+    from PyMca5.PyMca import QStackWidget
+    app = qt.QApplication([])
+    w = QStackWidget.QStackWidget()
+    print("Setting stack")
+    w.setStack(stackData)
+    w.show()
+    app.exec()
 
 if __name__ == "__main__":
     test()

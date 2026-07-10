@@ -82,14 +82,9 @@ try:
     from PyMca5.PyMcaGui.PyMcaQt import pyqtSignal, QCursor, QSize, Qt, QLabel
     from PyMca5.PyMcaGui.PyMcaQt import QPixmap, QImage
 except ImportError:
-    try:
-        from PyQt4.QtCore import pyqtSignal, QSize, Qt
-        from PyQt4.QtGui import QLabel, QPixmap, QImage
-        from PyQt4.Qt import QCursor
-    except ImportError:
-        from PyQt5.QtCore import pyqtSignal, QSize, Qt
-        from PyQt5.QtGui import QLabel, QPixmap
-        from PyQt5.Qt import QCursor
+    from PyQt5.QtCore import pyqtSignal, QSize, Qt
+    from PyQt5.QtGui import QLabel, QPixmap
+    from PyQt5.Qt import QCursor
 
 from ._OpenGLPlotCanvas import OpenGLPlotCanvas
 from ._OpenGLPlotCanvas import CURSOR_DEFAULT, CURSOR_POINTING, \
@@ -239,10 +234,7 @@ setGLContextGetter(OSMesaGLBackend.getCurrentContext)
 
 if __name__ == "__main__":
     import sys
-    try:
-        from PyQt4.QtGui import QApplication
-    except ImportError:
-        from PyQt5.QtWidgets import QApplication
+    from PyQt5.QtWidgets import QApplication
 
     from PyMca5.PyMcaGraph.Plot import Plot
 

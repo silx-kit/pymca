@@ -143,7 +143,6 @@ class NNMAStackPlugin(StackPluginBase.StackPluginBase):
         stack = None
         if mcaIndex not in [0, -1, len(shape) - 1]:
             raise IndexError("NNMA only support stacks of images or spectra")
-            return
         if self.configurationWidget is None:
             self.configurationWidget = NNMAParametersDialog(None, regions=True)
             self._status = qt.QLabel(self.configurationWidget)
@@ -157,7 +156,6 @@ class NNMAStackPlugin(StackPluginBase.StackPluginBase):
         if activeCurve is None:
             #I could get some defaults from the stack itslef
             raise ValueError("Please select an active curve")
-            return
         x, spectrum, legend, info = activeCurve
         spectrumLength = int(max(spectrum.shape))
         oldValue = self.configurationWidget.nPC.value()
@@ -285,7 +283,6 @@ class NNMAStackPlugin(StackPluginBase.StackPluginBase):
                     self._status.setText("Ready after calculation error")
                     self.configurationWidget.setEnabled(True)
                     raise Exception(result[1], result[2])
-                    return
         self._status.setText("Ready")
         curve = self.configurationWidget.getSpectrum(binned=True)
 

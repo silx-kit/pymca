@@ -97,7 +97,6 @@ class XASScanNormalizationPlugin(Plugin1DBase.Plugin1DBase):
         activeCurve = self.getActiveCurve()
         if activeCurve is None:
             raise ValueError("Please select an active curve")
-            return
         x, y, legend0, info = activeCurve
         if self.widget is None:
             self._createWidget(y, energy=x)
@@ -128,13 +127,11 @@ class XASScanNormalizationPlugin(Plugin1DBase.Plugin1DBase):
         nCurves = len(curves)
         if nCurves < 1:
             raise ValueError("At least one curve needed")
-            return
 
         #get active curve
         activeCurve = self.getActiveCurve()
         if activeCurve is None:
             raise ValueError("Please select an active curve")
-            return
 
         x, y, legend0, info = activeCurve
 
