@@ -211,6 +211,8 @@ elif BINDING.lower() == 'pyside6':
 
     try:
         from PySide6.QtSvg import *  # noqa
+        # In Qt6 QGraphicsSvgItem moved from QtSvg to QtSvgWidgets
+        from PySide6.QtSvgWidgets import *  # noqa
     except ImportError:
         _logger.info("PySide6.QtSvg not available")
         HAS_SVG = False
@@ -292,6 +294,8 @@ elif BINDING.lower() == 'pyqt6':
 
     try:
         from PyQt6.QtSvg import *  # noqa
+        # In Qt6 QGraphicsSvgItem moved from QtSvg to QtSvgWidgets
+        from PyQt6.QtSvgWidgets import *  # noqa
     except ImportError:
         _logger.info("PyQt6.QtSvg not available")
         HAS_SVG = False
