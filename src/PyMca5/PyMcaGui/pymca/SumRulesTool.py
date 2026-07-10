@@ -1683,8 +1683,8 @@ class SumRulesWindow(qt.QMainWindow):
                       (xasIntX,  xasIntY,  'xas Int', {})]
             self.xmcdInt = xmcdIntX, xmcdIntY
             self.xasInt = xasIntX, xasIntY
-        xmin, xmax = numpy.infty, -numpy.infty
-        ymin, ymax = numpy.infty, -numpy.infty
+        xmin, xmax = numpy.inf, -numpy.inf
+        ymin, ymax = numpy.inf, -numpy.inf
         for x,y,legend,info in xyList:
             xmin = min(xmin, x.min())
             xmax = max(xmax, x.max())

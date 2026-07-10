@@ -116,7 +116,7 @@ class _TestColormap(unittest.TestCase):
 
         if start == end:
             indices = np.asarray((len(colormap) - 1) * (data >= max_),
-                                 dtype=np.int)
+                                 dtype=np.int64)
         else:
             clipData = np.clip(data, min_, max_)  # Clip first avoid overflow
             scale = len(colormap) / (end - start)

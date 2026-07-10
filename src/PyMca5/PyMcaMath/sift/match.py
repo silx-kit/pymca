@@ -203,11 +203,11 @@ class MatchPlan(object):
         """
         assert len(nkp1.shape) == 1  # Nota: nkp1.ndim is not valid for gpu_arrays
         assert len(nkp2.shape) == 1
-        assert type(nkp1) in [numpy.core.records.recarray, pyopencl.array.Array]
-        assert type(nkp2) in [numpy.core.records.recarray, pyopencl.array.Array]
+        assert type(nkp1) in [numpy.recarray, pyopencl.array.Array]
+        assert type(nkp2) in [numpy.recarray, pyopencl.array.Array]
         result = None
         with self._sem:
-            if type(nkp1) == numpy.core.records.recarray:
+            if type(nkp1) == numpy.recarray:
                 if nkp1.size > self.buffers[ "Kp_1" ].size:
                     logger.warning("increasing size of keypoint vector 1 to %i" % nkp1.size)
                     self.buffers[ "Kp_1" ] = pyopencl.array.empty(self.queue, (nkp1.size,), dtype=self.dtype_kp)
@@ -218,7 +218,7 @@ class MatchPlan(object):
                     self.events.append(("copy H->D KP_1", evt1))
             else:
                 kpt1_gpu = nkp1
-            if type(nkp2) == numpy.core.records.recarray:
+            if type(nkp2) == numpy.recarray:
                 if nkp2.size > self.buffers[ "Kp_2" ].size:
                     logger.warning("increasing size of keypoint vector 2 to %i" % nkp2.size)
                     self.buffers[ "Kp_2" ] = pyopencl.array.empty(self.queue, (nkp2.size,), dtype=self.dtype_kp)

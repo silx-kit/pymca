@@ -121,7 +121,7 @@ def measure_offset(img1, img2, method="fft", withLog=False):
     shape = img1.shape
     assert img2.shape == shape
     #use numpy fftpack
-    if img1.dtype not in [numpy.float32, numpy.float64, numpy.float]:
+    if img1.dtype not in [numpy.float32, numpy.float64]:
         i1f = fft2(img1.astype(numpy.float32))
         i2f = fft2(img2.astype(numpy.float32))
     else:

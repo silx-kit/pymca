@@ -238,7 +238,11 @@ class NormalizationPlugins(Plugin1DBase.Plugin1DBase):
             try:
                 ymin = numpy.nanmin(y)
                 y = y - ymin
-                y = y / numpy.trapz(y, x)
+                # numpy.trapz was renamed numpy.trapezoid in numpy 2.0
+                if hasattr(numpy, "trapezoid"):
+                    y = y / numpy.trapezoid(y, x)
+                else: 
+                    y = y / numpy.trapz(y, x)
             except Exception:
                 print(sys.exc_info())
                 continue

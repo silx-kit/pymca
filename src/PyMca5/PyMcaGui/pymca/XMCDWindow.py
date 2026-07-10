@@ -526,7 +526,11 @@ class XMCDScanWindow(ScanWindow.ScanWindow):
 
     def NormOffsetAndArea(self, x, y):
         ynorm = y - numpy.min(y)
-        ymax = numpy.trapz(ynorm, x)
+        # numpy.trapz was renamed numpy.trapezoid in numpy 2.0
+        if hasattr(numpy, "trapezoid"):
+            ymax = numpy.trapezoid(ynorm, x)
+        else:
+            ymax = numpy.trapz(ynorm, x)
         ynorm /= ymax
         return ynorm
 

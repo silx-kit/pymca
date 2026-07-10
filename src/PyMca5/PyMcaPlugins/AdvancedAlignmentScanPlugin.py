@@ -861,7 +861,7 @@ class AdvancedAlignmentScanPlugin(Plugin1DBase.Plugin1DBase):
     # BEGIN Shift Methods
     def fftShift(self, shift, x, y):
         yShifted = numpy.fft.ifft(
-             numpy.exp(-2.0*numpy.pi*numpy.sqrt(numpy.complex(-1))*\
+             numpy.exp(-2.0*numpy.pi*numpy.sqrt(numpy.complex128(-1))*\
                 numpy.fft.fftfreq(len(x), d=x[1]-x[0])*shift)*numpy.fft.fft(y))
         return x, yShifted.real
 
