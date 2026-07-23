@@ -1325,8 +1325,10 @@ class QStackWidget(StackBase.StackBase,
                     self._scatterStackView = MaskScatterViewWidget(parent=self.stackWindow, backend="mpl")
                 except:
                     self._scatterStackView = MaskScatterViewWidget(parent=self.stackWindow, backend="gl")
-                irregular = silx_items.Scatter.Visualization.IRREGULAR_GRID
-                self._scatterStackView.setVisualizationMode(irregular)
+                # Always start by displaying the data at the true motor positions
+                # without requiring a guessable grid.
+                solid = silx_items.Scatter.Visualization.SOLID
+                self._scatterStackView.setVisualizationMode(solid)
                 self._scatterStackView.setSelectionReadOnly()
                 # insert the scatter view in the origin
                 sidx = self.stackWindow.mainLayout.indexOf(self.stackWidget)
@@ -1336,7 +1338,7 @@ class QStackWidget(StackBase.StackBase,
                     self._scatterRoiView = MaskScatterViewWidget(parent=self.roiWindow, backend="mpl")
                 except:
                     self._scatterRoiView = MaskScatterViewWidget(parent=self.roiWindow, backend="gl")
-                self._scatterRoiView.setVisualizationMode(irregular)
+                self._scatterRoiView.setVisualizationMode(solid)
                 # show mask tool on start
                 self._scatterRoiView.setMaskToolsVisible(True)
                 # insert the scatter view in the roi
@@ -1415,12 +1417,35 @@ class QStackWidget(StackBase.StackBase,
 
     def _scatterRegularGridImage(self):
         item = self._scatterRoiView.getScatterView().getScatterItem()
-        guess = _guess_grid(item.getXData(copy=False), item.getYData(copy=False))
+        x = item.getXData(copy=False)
+        y = item.getYData(copy=False)
+        values = numpy.asarray(item.getValueData(copy=False), dtype=numpy.float64)
+        # Try as is
+        image = self._reshapeOnGuessedGrid(x, y, values)
+        if image is not None:
+            return image
+        # Try if it is a mosaic map.
+        # Try both axes as primary.
+        for keys in ((y, x), (x, y)):
+            order = numpy.lexsort(keys)
+            image = self._reshapeOnGuessedGrid(x[order], y[order],
+                                               values[order], require2D=True)
+            if image is not None:
+                return image
+        return None
+
+    def _reshapeOnGuessedGrid(self, x, y, values, require2D=False):
+        """
+        Reshape ``values`` onto the regular grid by silx guess.
+        ``require2D`` reject 1xN grid.
+        """
+        guess = _guess_grid(x, y)
         if guess is None:
             return None
         order, (height, width) = guess
+        if require2D and (height < 2 or width < 2):
+            return None
         # nan padding (before padding was done only for the visualisation)
-        values = numpy.asarray(item.getValueData(copy=False), dtype=numpy.float64)
         image = numpy.full(height * width, numpy.nan, dtype=numpy.float64)
         image[:values.size] = values
         if order == "row":
