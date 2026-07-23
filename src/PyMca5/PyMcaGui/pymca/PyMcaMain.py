@@ -270,8 +270,18 @@ class PyMcaMain(PyMcaMdi.PyMcaMdi):
                     raise
             if not fresh:
                 if os.path.exists(defaultFileName):
-                    currentConfigDict.read(defaultFileName)
-                    self.setConfig(currentConfigDict)
+                    try:
+                        currentConfigDict.read(defaultFileName)
+                        self.setConfig(currentConfigDict)
+                    except Exception as e:
+                        _logger.warning(
+                            "Could not apply default settings from '%s': %s\n"
+                            "Ignoring them and starting with built-in defaults. "
+                            "Use 'File -> Purge Default Settings' or "
+                            "'pymca --clean_ini' to remove the file, or "
+                            "'pymca -f' to bypass it.",
+                            defaultFileName, e)
+                        _logger.debug("Default settings traceback:", exc_info=True)
             if spec and shm:
                 if len(shm) >= 8:
                     #if shm[0:8] in ['MCA_DATA', 'XIA_DATA']:
@@ -1760,6 +1770,10 @@ def main(args):
     splash = _splash_screen()
 
     # Launch main PyMca GUI
+    if not args.fresh:
+        print("If PyMca hangs on start, run 'pymca --fresh' to skip the saved "
+              "default settings. If that helps, run 'pymca --clean_ini' to "
+              "remove the corrupted settings file for good.")
     main_widget = PyMcaMain(spec=args.spec, shm=args.shm, fresh=args.fresh, backend=args.backend)
     if args.debug:
         main_widget.onDebug()
