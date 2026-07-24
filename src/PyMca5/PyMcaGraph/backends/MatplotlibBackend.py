@@ -2064,7 +2064,7 @@ class MatplotlibBackend(PlotBackend.PlotBackend):
             if xmin > xmax:
                 xmax = xmin
             xmax -= 0.005 * delta
-            line._infoText = self.ax.text(y, xmax, text,
+            line._infoText = self.ax.text(xmax, y, text,
                                           color=color,
                                           horizontalalignment='left',
                                           verticalalignment='top')
