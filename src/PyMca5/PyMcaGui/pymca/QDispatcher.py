@@ -365,23 +365,30 @@ class QDispatcher(qt.QWidget):
             if not found:
                 _logger.debug("WARNING: source not found")
                 return
-            sourceType = source.sourceType
-            del self.sourceList[self.sourceList.index(source)]
-            for source in self.sourceList:
-                if sourceType == source.sourceType:
+            closedSource = source
+            sourceType = closedSource.sourceType
+            del self.sourceList[self.sourceList.index(closedSource)]
+            try:
+                for source in self.sourceList:
+                    if sourceType == source.sourceType:
+                        self.selectorWidget[sourceType].setDataSource(source)
+                        self.tabWidget.setCurrentWidget(self.selectorWidget[sourceType])
+                        return
+                #there is no other selection of that type
+                if len(self.sourceList):
+                    source = self.sourceList[0]
+                    sourceType = source.sourceType
                     self.selectorWidget[sourceType].setDataSource(source)
-                    self.tabWidget.setCurrentWidget(self.selectorWidget[sourceType])
-                    return
-            #there is no other selection of that type
-            if len(self.sourceList):
-                source = self.sourceList[0]
-                sourceType = source.sourceType
-                self.selectorWidget[sourceType].setDataSource(source)
-            else:
-                self.selectorWidget[sourceType].setDataSource(None)
-            self.tabWidget.setCurrentWidget(self.selectorWidget[sourceType])
-        elif ddict["event"] == "SourceClosed":
-            _logger.debug("not implemented yet")
+                else:
+                    self.selectorWidget[sourceType].setDataSource(None)
+                self.tabWidget.setCurrentWidget(self.selectorWidget[sourceType])
+            finally:
+                # Without this the file stays "open" in the process
+                # and could not be reopened until PyMca restarted.
+                try:
+                    closedSource.close()
+                except Exception as e:
+                    _logger.debug("Error closing source: %s", e)
 
     def _selectionUpdatedSlot(self, ddict):
         _logger.debug("_selectionUpdatedSlot(self, dict=%s)", ddict)

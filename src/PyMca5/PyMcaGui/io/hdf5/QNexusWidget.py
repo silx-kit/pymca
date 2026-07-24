@@ -492,6 +492,7 @@ class QNexusWidget(qt.QWidget):
         # stays visible and the tree does not collapse.
         try:
             newModel = HDF5Widget.FileModel()
+            newModel.sigReadError.connect(self._hdf5ReadError)
             for source in self.data._sourceObjectList:
                 newModel.appendPhynxFile(source, weakreference=True)
             self._modelDict[ref] = newModel
@@ -514,6 +515,19 @@ class QNexusWidget(qt.QWidget):
         if len(self.data._sourceObjectList) == 1:
             if hasattr(self.hdf5Widget, "expandToDepth"):
                 self.hdf5Widget.expandToDepth(0)
+
+    def _hdf5ReadError(self, ddict):
+        def _show():
+            msg = qt.QMessageBox(self)
+            msg.setIcon(qt.QMessageBox.Warning)
+            msg.setWindowTitle("Cannot read HDF5 file")
+            msg.setText("The selected file could not be read.")
+            msg.setInformativeText(
+                "It may be being written now. Refresh (F5) it later; "
+                "if that does not help, close and open the file again.")
+            msg.exec()
+
+        qt.QTimer.singleShot(0, _show)
 
     def _autoRefreshDatasets(self, source=None, moveToLastSlice=True):
         """
