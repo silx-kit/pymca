@@ -270,8 +270,18 @@ class PyMcaMain(PyMcaMdi.PyMcaMdi):
                     raise
             if not fresh:
                 if os.path.exists(defaultFileName):
-                    currentConfigDict.read(defaultFileName)
-                    self.setConfig(currentConfigDict)
+                    try:
+                        currentConfigDict.read(defaultFileName)
+                        self.setConfig(currentConfigDict)
+                    except Exception as e:
+                        _logger.warning(
+                            "Could not apply default settings from '%s': %s\n"
+                            "Ignoring them and starting with built-in defaults. "
+                            "Use 'File -> Purge Default Settings' or "
+                            "'pymca --clean_ini' to remove the file, or "
+                            "'pymca -f' to bypass it.",
+                            defaultFileName, e)
+                        _logger.debug("Default settings traceback:", exc_info=True)
             if spec and shm:
                 if len(shm) >= 8:
                     #if shm[0:8] in ['MCA_DATA', 'XIA_DATA']:
@@ -923,6 +933,11 @@ class PyMcaMain(PyMcaMdi.PyMcaMdi):
             #self.actionSave.setShortcut(qt.Qt.CTRL|qt.Qt.Key_S)
             self.actionSave.triggered[bool].connect(self.onSave)
 
+            #filepurge
+            self.actionPurge = qt.QAction(self)
+            self.actionPurge.setText(QString("Purge Default Settings"))
+            self.actionPurge.triggered[bool].connect(self.onPurge)
+
             #fileprint
             self.actionPrint = qt.QAction(self)
             self.actionPrint.setText(QString("&Print"))
@@ -945,6 +960,7 @@ class PyMcaMain(PyMcaMdi.PyMcaMdi):
             self.menuFile.addAction(self.actionOpen)
             self.menuFile.addAction(self.actionSaveAs)
             self.menuFile.addAction(self.actionSave)
+            self.menuFile.addAction(self.actionPurge)
             self.menuFile.addSeparator()
             self.menuFile.addAction(self.actionPrint)
             self.menuFile.addSeparator()
@@ -1318,7 +1334,46 @@ class PyMcaMain(PyMcaMdi.PyMcaMdi):
         self.openMenu.exec(self.cursor().pos())
 
     def onSave(self):
-        self._saveAs()
+        filename = PyMca5.getDefaultSettingsFile()
+        msg = qt.QMessageBox(self)
+        msg.setIcon(qt.QMessageBox.Question)
+        msg.setWindowTitle("Save Default Settings")
+        msg.setText("Save the current configuration as the default "
+                    "settings to be used on the next launches?")
+        msg.setInformativeText("File: %s" % filename)
+        msg.setStandardButtons(qt.QMessageBox.Yes | qt.QMessageBox.No)
+        msg.setDefaultButton(qt.QMessageBox.Yes)
+        if msg.exec() != qt.QMessageBox.Yes:
+            return
+        self._saveAs(filename)
+
+    def onPurge(self):
+        filename = PyMca5.getDefaultSettingsFile()
+        msg = qt.QMessageBox(self)
+        msg.setIcon(qt.QMessageBox.Warning)
+        msg.setWindowTitle("Purge Default Settings")
+        msg.setText("Remove the saved default settings? PyMca will start "
+                    "with the built-in defaults on the next launches.")
+        msg.setInformativeText("File: %s" % filename)
+        msg.setStandardButtons(qt.QMessageBox.Yes | qt.QMessageBox.No)
+        msg.setDefaultButton(qt.QMessageBox.No)
+        if msg.exec() != qt.QMessageBox.Yes:
+            return
+        if not os.path.exists(filename):
+            msg = qt.QMessageBox(self)
+            msg.setIcon(qt.QMessageBox.Information)
+            msg.setWindowTitle("Purge Default Settings")
+            msg.setText("There are no default settings to remove.")
+            msg.exec()
+            return
+        try:
+            os.remove(filename)
+        except Exception as e:
+            msg = qt.QMessageBox(self)
+            msg.setIcon(qt.QMessageBox.Critical)
+            msg.setWindowTitle("Purge Default Settings")
+            msg.setText("Error removing default settings: %s" % e)
+            msg.exec()
 
     def onSaveAs(self):
         index = self.mainTabWidget.currentIndex()
@@ -1694,6 +1749,19 @@ def main(args):
     if args.test:
         return run_tests()
 
+    # Remove the default settings file (PyMca.ini) and exit
+    if args.clean_ini:
+        filename = PyMca5.getDefaultSettingsFile()
+        if os.path.exists(filename):
+            try:
+                os.remove(filename)
+                print("Removed PyMca settings file: %s" % filename)
+            except Exception as e:
+                print("Error removing PyMca settings file: %s" % e)
+        else:
+            print("No PyMca settings file to remove: %s" % filename)
+        return 0
+
     # Initialize Qt application
     app = qt.QApplication([])
     PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
@@ -1702,6 +1770,10 @@ def main(args):
     splash = _splash_screen()
 
     # Launch main PyMca GUI
+    if not args.fresh:
+        print("If PyMca hangs on start, run 'pymca --fresh' to skip the saved "
+              "default settings. If that helps, run 'pymca --clean_ini' to "
+              "remove the corrupted settings file for good.")
     main_widget = PyMcaMain(spec=args.spec, shm=args.shm, fresh=args.fresh, backend=args.backend)
     if args.debug:
         main_widget.onDebug()
@@ -1744,6 +1816,8 @@ def build_parser():
     parser.add_argument("--shm", type=str, default=None, help="Shared memory spec")
 
     parser.add_argument("--fresh", "-f", action="store_true", help="Clear configuration")
+    parser.add_argument("--clean_ini", action="store_true",
+                        help="Remove the PyMca default settings file (PyMca.ini) and exit")
     parser.add_argument("--profiling", action="store_true", help="Run main loop under profiler")
     parser.add_argument("--test", action="store_true", help="Run unit tests")
 
