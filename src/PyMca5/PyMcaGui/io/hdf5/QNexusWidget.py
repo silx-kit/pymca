@@ -492,7 +492,7 @@ class QNexusWidget(qt.QWidget):
         # stays visible and the tree does not collapse.
         try:
             newModel = HDF5Widget.FileModel()
-            newModel.sigReadError.connect(self._hdf5ReadError)
+            newModel.sigReadFailed.connect(self._hdf5ReadFailed)
             for source in self.data._sourceObjectList:
                 newModel.appendPhynxFile(source, weakreference=True)
             self._modelDict[ref] = newModel
@@ -516,7 +516,7 @@ class QNexusWidget(qt.QWidget):
             if hasattr(self.hdf5Widget, "expandToDepth"):
                 self.hdf5Widget.expandToDepth(0)
 
-    def _hdf5ReadError(self, ddict):
+    def _hdf5ReadFailed(self, ddict):
         def _show():
             msg = qt.QMessageBox(self)
             msg.setIcon(qt.QMessageBox.Warning)

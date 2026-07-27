@@ -425,7 +425,7 @@ class FileModel(qt.QAbstractItemModel):
     """
     sigFileUpdated = qt.pyqtSignal(object)
     sigFileAppended = qt.pyqtSignal(object)
-    sigReadError = qt.pyqtSignal(object)
+    sigReadFailed = qt.pyqtSignal(object)
 
     def __init__(self, parent=None):
         qt.QAbstractItemModel.__init__(self, parent)
@@ -581,7 +581,7 @@ class FileModel(qt.QAbstractItemModel):
         except Exception:
             if not self._readErrorReported:
                 self._readErrorReported = True
-                self.sigReadError.emit({"event": "readError"})
+                self.sigReadFailed.emit({"event": "readError"})
             return 0
 
     def openFile(self, filename, weakreference=False):
