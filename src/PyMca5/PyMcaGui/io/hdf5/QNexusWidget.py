@@ -517,17 +517,15 @@ class QNexusWidget(qt.QWidget):
                 self.hdf5Widget.expandToDepth(0)
 
     def _hdf5ReadFailed(self, ddict):
-        def _show():
-            msg = qt.QMessageBox(self)
-            msg.setIcon(qt.QMessageBox.Warning)
-            msg.setWindowTitle("Cannot read HDF5 file")
-            msg.setText("The selected file could not be read.")
-            msg.setInformativeText(
-                "It may be being written now. Refresh (F5) it later; "
-                "if that does not help, close and open the file again.")
-            msg.exec()
-
-        qt.QTimer.singleShot(0, _show)
+        msg = qt.QMessageBox(self)
+        msg.setIcon(qt.QMessageBox.Warning)
+        msg.setWindowTitle("Cannot read HDF5 file")
+        msg.setText("The selected file could not be read.")
+        msg.setInformativeText(
+            "It may be being written now. Refresh (F5) it later; "
+            "if that does not help, close and open the file again.")
+        msg.setAttribute(qt.Qt.WA_DeleteOnClose)
+        msg.open()
 
     def _autoRefreshDatasets(self, source=None, moveToLastSlice=True):
         """
