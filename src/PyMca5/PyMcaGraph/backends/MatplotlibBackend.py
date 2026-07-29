@@ -1237,14 +1237,16 @@ class MatplotlibGraph(FigureCanvas):
         self._callback(eventDict)
 
     def setLimits(self, xmin, xmax, ymin, ymax, y2min=None, y2max=None):
-        delta = 0.044
-        if xmin == xmax:
-            xmax += delta
-            xmin -= delta
+        def _expandIfSingular(vmin, vmax):
+            if vmin != vmax:
+                return vmin, vmax
+            # magnitude problem; necessary for matplotlib >= 3.11
+            delta = max(0.044, abs(vmin) * 0.05)
+            return vmin - delta, vmax + delta
+
+        xmin, xmax = _expandIfSingular(xmin, xmax)
         self.ax.set_xlim(xmin, xmax)
-        if ymin == ymax:
-            ymax += delta
-            ymin -= delta
+        ymin, ymax = _expandIfSingular(ymin, ymax)
         if ymax < ymin:
             ymin, ymax = ymax, ymin
         current = self.ax.get_ylim()
@@ -2062,7 +2064,7 @@ class MatplotlibBackend(PlotBackend.PlotBackend):
             if xmin > xmax:
                 xmax = xmin
             xmax -= 0.005 * delta
-            line._infoText = self.ax.text(y, xmax, text,
+            line._infoText = self.ax.text(xmax, y, text,
                                           color=color,
                                           horizontalalignment='left',
                                           verticalalignment='top')
