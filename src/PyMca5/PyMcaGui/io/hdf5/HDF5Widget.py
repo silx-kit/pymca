@@ -431,7 +431,7 @@ class FileModel(qt.QAbstractItemModel):
         qt.QAbstractItemModel.__init__(self, parent)
         self.rootItem = RootItem(['File/Group/Dataset', 'Description', 'Shape', 'DType'])
         self._idMap = {qt.QModelIndex().internalId(): self.rootItem}
-        # warn only once per instance
+        # to warn only once about read error, can be reset intentionally
         self._readErrorReported = False
 
     def sort(self, column, order):
@@ -581,7 +581,7 @@ class FileModel(qt.QAbstractItemModel):
         except Exception:
             if not self._readErrorReported:
                 self._readErrorReported = True
-                self.sigReadFailed.emit({"event": "readError"})
+                self.sigReadFailed.emit({"event": "readError", "index": index})
             return 0
 
     def openFile(self, filename, weakreference=False):

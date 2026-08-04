@@ -517,6 +517,19 @@ class QNexusWidget(qt.QWidget):
                 self.hdf5Widget.expandToDepth(0)
 
     def _hdf5ReadFailed(self, ddict):
+        self._recoverFromReadError(ddict.get("index"))
+        self._showReadFailedMessage()
+
+    def _recoverFromReadError(self, index):
+        model = self.hdf5Widget.model()
+        # Collapse the node that failed to be read
+        if index is not None and index.isValid():
+            self.hdf5Widget.collapse(index)
+        # A later failed expansion should warn again
+        if hasattr(model, "_readErrorReported"):
+            model._readErrorReported = False
+
+    def _showReadFailedMessage(self):
         msg = qt.QMessageBox(self)
         msg.setIcon(qt.QMessageBox.Warning)
         msg.setWindowTitle("Cannot read HDF5 file")
@@ -524,6 +537,8 @@ class QNexusWidget(qt.QWidget):
         msg.setInformativeText(
             "It may be being written now. Refresh (F5) it later; "
             "if that does not help, close and open the file again.")
+        # `open()` (not `exec()`) blocks the window but not the code
+        # `WA_DeleteOnClose` to delete itself on close (to avoid a leak)
         msg.setAttribute(qt.Qt.WA_DeleteOnClose)
         msg.open()
 
