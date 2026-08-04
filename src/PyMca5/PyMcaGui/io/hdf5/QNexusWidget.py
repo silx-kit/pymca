@@ -535,8 +535,8 @@ class QNexusWidget(qt.QWidget):
         msg.setWindowTitle("Cannot read HDF5 file")
         msg.setText("The selected file could not be read.")
         msg.setInformativeText(
-            "It may be being written now. Refresh (F5) it later; "
-            "if that does not help, close and open the file again.")
+            "It may be being written now. Try again later." \
+            "If it is stuck, try to refresh (F5) or close and open the file again.")
         # `open()` (not `exec()`) blocks the window but not the code
         # `WA_DeleteOnClose` to delete itself on close (to avoid a leak)
         msg.setAttribute(qt.Qt.WA_DeleteOnClose)
