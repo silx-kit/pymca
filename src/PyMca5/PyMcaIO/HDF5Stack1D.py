@@ -327,7 +327,7 @@ class HDF5Stack1D(DataObject.DataObject):
                 else:
                     raise MemoryError("Force dynamic loading")
             if (mcaIndex == 0) and ( nFiles == 1) and (nScans == 1) \
-                and (len(yDataset.shape) > 2):
+                and (len(yDataset.shape) > 2) and (not scatter):
                 #keep the original arrangement but in memory
                 self.data = numpy.zeros(yDataset.shape, self.__dtype)
                 considerAsImages = True
