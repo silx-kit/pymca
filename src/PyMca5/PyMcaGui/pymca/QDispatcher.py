@@ -51,6 +51,7 @@ class QDispatcher(qt.QWidget):
         self.mainLayout.setContentsMargins(0, 0, 0, 0)
         self.mainLayout.setSpacing(0)
         self.sourceList = []
+        self.compatibility = True
         fileTypeList = []
         if QDataSource.NEXUS:
             fileTypeList.append("HDF5 Files (*.nxs *.hdf *.h5 *.hdf5)")
@@ -123,7 +124,7 @@ class QDispatcher(qt.QWidget):
     def _addSelectionSlot(self, sel_list, event=None):
         _logger.debug("QDispatcher._addSelectionSlot")
         _logger.debug("sel_list = %s", sel_list)
-
+        self.compatibility = True
         if event is None:
             event = "addSelection"
         i = 0
@@ -183,6 +184,9 @@ class QDispatcher(qt.QWidget):
                             except Exception:
                                 if _logger.getEffectiveLevel() == logging.DEBUG:
                                     raise
+                                if len(sel_list) > 4:
+                                    self.compatibility = True
+                                    continue
                                 error = sys.exc_info()
                                 text = "Failed to read data source.\n"
                                 text += "Source: %s\n" % source.sourceName
@@ -196,7 +200,9 @@ class QDispatcher(qt.QWidget):
                                 msg.setDetailedText(\
                                     traceback.format_exc())
                                 msg.exec()
-                                continue
+                                # see QNexusWidget 
+                                self.compatibility = False
+                                return
                         else:
                             dataObject = source.getDataObject(sel['Key'],
                                                         selection=sel['selection'],
@@ -258,7 +264,8 @@ class QDispatcher(qt.QWidget):
             self._addSelectionSlot([sel_list[0]], event="replaceSelection")
         elif len(sel_list) > 1:
             self._addSelectionSlot([sel_list[0]], event="replaceSelection")
-            self._addSelectionSlot(sel_list[1:], event="addSelection")
+            if self.compatibility == True:
+                self._addSelectionSlot(sel_list[1:], event="addSelection")
 
     def _otherSignalsSlot(self, ddict):
         self.sigOtherSignals.emit(ddict)
