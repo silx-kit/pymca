@@ -526,8 +526,7 @@ class QNexusWidget(qt.QWidget):
         if index is not None and index.isValid():
             self.hdf5Widget.collapse(index)
         # A later failed expansion should warn again
-        if hasattr(model, "_readErrorReported"):
-            model._readErrorReported = False
+        model.allowErrorDialog()
 
     def _showReadFailedMessage(self):
         msg = qt.QMessageBox(self)

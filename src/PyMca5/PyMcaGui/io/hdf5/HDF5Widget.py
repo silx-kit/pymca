@@ -434,6 +434,10 @@ class FileModel(qt.QAbstractItemModel):
         # to warn only once about read error, can be reset intentionally
         self._readErrorReported = False
 
+    def allowErrorDialog(self):
+        """Allow the read error to appear (again)."""
+        self._readErrorReported = False
+
     def sort(self, column, order):
         #print("FileModel sort called with ", column, order)
         for item in self.rootItem:
