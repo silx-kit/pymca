@@ -380,7 +380,7 @@ class DatasetSelectionPage(qt.QWizardPage):
             rawShape = tuple(signalShapes[0])
             # a dataset is pure singleton - there is no image.
             if not any(d > 1 for d in rawShape):
-                self.showMessage("The selected dataset is all size-1; "
+                self.showMessage("The selected signal is all size-1; "
                                  "there is nothing to image.")
                 return False
             
@@ -502,7 +502,7 @@ class DatasetSelectionPage(qt.QWizardPage):
         msg.setIcon(qt.QMessageBox.Question)
         msg.setWindowTitle("Size-1 dimension")
         msg.setText(
-            "The selected dataset has a size-1 dimension.\n\n"
+            "The selected signal has a size-1 dimension.\n\n"
             "Keep it as a real dimension, or drop it?"
             )
         keepButton = msg.addButton("Keep",
@@ -537,14 +537,20 @@ class DatasetSelectionPage(qt.QWizardPage):
             if ndim > 2:
                 self.showMessage(
                     "Three dimensions could not represent an image. "
-                    "'No 1D data' supports only 2D and 1D datasets. "
+                    "'No 1D data' supports only 2D and 1D signals. "
                     )
                 return False
         else:
             if ndim < 2:
                 self.showMessage(
-                    "A 1D dataset could not represent an image with channels. "
+                    "A 1D signal could not represent an image with channels. "
                     "Use 'No 1D data' in case there are no channels.")
+                return False
+            if ndim > 3:
+                self.showMessage(
+                    "More than three dimensions could not represent a stack "
+                    "(two map dimensions plus the channels). "
+                    "Drop size-1 axes (e.g. via 'No 1D data') or reshape the signal.")
                 return False
         return True
 
@@ -616,17 +622,15 @@ class DatasetSelectionPage(qt.QWizardPage):
         if len(mapDims) == 1:
             # normal grid
             return self._validateGridGeometry(selection, spatial, nPoints)
-        if len(mapDims) == 2:
+        # at this moment len(mapDims) could be only 1 or 2
+        else:
             if sorted(spatial) != sorted(mapDims):
                 self.showMessage(
-                    "The two grid axes must match the map dimensions; " 
-                    "the image shape is fixed by the data. " 
+                    "The two grid axes must match the map dimensions; "
+                    "the image shape is fixed by the data. "
                     "Consider to drop singletons (if kept) or to select `No 1D data`.")
                 return False
             return True
-        self.showMessage(
-            "Grid mode needs a 1D or 2D map. This one (considering selected 1D data position) is bigger. ")
-        return False
 
     def _channelAxisAndMap(self, selection, effShape):
         if selection['noMca']:
