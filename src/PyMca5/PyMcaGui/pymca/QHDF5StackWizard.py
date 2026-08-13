@@ -544,7 +544,7 @@ class DatasetSelectionPage(qt.QWizardPage):
             if ndim < 2:
                 self.showMessage(
                     "A 1D dataset could not represent an image with channels. "
-                    "Use 'No 1D data (image)' in case there are no channels.")
+                    "Use 'No 1D data' in case there are no channels.")
                 return False
         return True
 
