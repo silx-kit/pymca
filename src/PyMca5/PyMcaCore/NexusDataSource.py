@@ -227,6 +227,15 @@ class NexusDataSource(object):
             phynxInstance._sourceName = pattern
         self.__lastKeyInfo = {}
 
+    def close(self):
+        """Close every open HDF5 handle held by this source."""
+        for instance in self._sourceObjectList:
+            try:
+                instance.close()
+            except Exception as e:
+                _logger.debug("Error closing HDF5 source: %s", e)
+        self._sourceObjectList = []
+
     def getSourceInfo(self):
         """
         Returns a dictionary with the key "KeyList" (list of all available keys

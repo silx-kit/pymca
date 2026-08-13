@@ -425,11 +425,18 @@ class FileModel(qt.QAbstractItemModel):
     """
     sigFileUpdated = qt.pyqtSignal(object)
     sigFileAppended = qt.pyqtSignal(object)
+    sigReadFailed = qt.pyqtSignal(object)
 
     def __init__(self, parent=None):
         qt.QAbstractItemModel.__init__(self, parent)
         self.rootItem = RootItem(['File/Group/Dataset', 'Description', 'Shape', 'DType'])
         self._idMap = {qt.QModelIndex().internalId(): self.rootItem}
+        # to warn only once about read error, can be reset intentionally
+        self._readErrorReported = False
+
+    def allowErrorDialog(self):
+        """Allow the read error to appear (again)."""
+        self._readErrorReported = False
 
     def sort(self, column, order):
         #print("FileModel sort called with ", column, order)
@@ -572,7 +579,14 @@ class FileModel(qt.QAbstractItemModel):
             return self.createIndex(parent.row, 0, parent)
 
     def rowCount(self, index):
-        return len(self.getProxyFromIndex(index))
+        try:
+            # the `len(self.children)` can fail.
+            return len(self.getProxyFromIndex(index))
+        except Exception:
+            if not self._readErrorReported:
+                self._readErrorReported = True
+                self.sigReadFailed.emit({"event": "readError", "index": index})
+            return 0
 
     def openFile(self, filename, weakreference=False):
         gc.collect()

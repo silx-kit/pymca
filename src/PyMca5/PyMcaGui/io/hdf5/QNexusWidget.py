@@ -492,6 +492,7 @@ class QNexusWidget(qt.QWidget):
         # stays visible and the tree does not collapse.
         try:
             newModel = HDF5Widget.FileModel()
+            newModel.sigReadFailed.connect(self._hdf5ReadFailed)
             for source in self.data._sourceObjectList:
                 newModel.appendPhynxFile(source, weakreference=True)
             self._modelDict[ref] = newModel
@@ -514,6 +515,31 @@ class QNexusWidget(qt.QWidget):
         if len(self.data._sourceObjectList) == 1:
             if hasattr(self.hdf5Widget, "expandToDepth"):
                 self.hdf5Widget.expandToDepth(0)
+
+    def _hdf5ReadFailed(self, ddict):
+        self._recoverFromReadError(ddict.get("index"))
+        self._showReadFailedMessage()
+
+    def _recoverFromReadError(self, index):
+        model = self.hdf5Widget.model()
+        # Collapse the node that failed to be read
+        if index is not None and index.isValid():
+            self.hdf5Widget.collapse(index)
+        # A later failed expansion should warn again
+        model.allowErrorDialog()
+
+    def _showReadFailedMessage(self):
+        msg = qt.QMessageBox(self)
+        msg.setIcon(qt.QMessageBox.Warning)
+        msg.setWindowTitle("Cannot read HDF5 file")
+        msg.setText("The selected file could not be read.")
+        msg.setInformativeText(
+            "It may be being written now. Try again later." \
+            "If it is stuck, try to refresh (F5) or close and open the file again.")
+        # `open()` (not `exec()`) blocks the window but not the code
+        # `WA_DeleteOnClose` to delete itself on close (to avoid a leak)
+        msg.setAttribute(qt.Qt.WA_DeleteOnClose)
+        msg.open()
 
     def _autoRefreshDatasets(self, source=None, moveToLastSlice=True):
         """
