@@ -894,7 +894,7 @@ class HDF5Stack1D(DataObject.DataObject):
             if _channels.size == self.data.shape[self.info["McaIndex"]]:
                 self.x = [_channels]
             else:
-                # if metadata do not match the data, ignore them
+                # if metadata does not match the data, ignore them
                 _logger.warning("Ignoring channels of size %d because it does not match seleced data size " % 
                                 _channels.size,)
         if _time is not None:

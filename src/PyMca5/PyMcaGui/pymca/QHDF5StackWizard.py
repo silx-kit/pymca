@@ -140,57 +140,57 @@ class StackIndexWidget(qt.QWidget):
         options = [
             ("1D data is first dimension",
              'The channel (1D-data) axis is always the first selected axis '
-             '("Axis X").'),
+             '("Axis X").',
+             self._setFirstDimension),
             ("1D data is last dimension",
              'The channel (1D-data) axis is the last selected axis: "Axis X" '
-             'if a single axis is selected, or "Axis Z" if three are.'),
+             'if a single axis is selected, or "Axis Z" if three are.',
+             self._setLastDimension),
             ("No 1D data",
              "No axis is used as the channel (1D-data) axis: the whole dataset is treated "
-             "as an image."),
+             "as an image.",
+             self._setNoMca),
         ]
         i = 0
-        for text, tip in options:
+        for text, tip, slot in options:
             rButton = qt.QRadioButton(self)
             rButton.setText(text)
             rButton.setToolTip(tip)
+            rButton.clicked.connect(slot)
             self.mainLayout.addWidget(rButton)
             self.buttonGroup.addButton(rButton, i)
             i += 1
         self.buttonGroup.button(1).setChecked(True)
         self._stackIndex = -1
         self._noMca = False
-        if hasattr(self.buttonGroup, "idClicked"):
-            self.buttonGroup.idClicked[int].connect(self._slot)
-        else:
-            # deprecated
-            _logger.debug("Using deprecated signal")
-            self.buttonGroup.buttonClicked[int].connect(self._slot)
 
-    def _slot(self, button):
-        if hasattr(button, "text"):
-            # received a button
-            pass
-        else:
-            # received an integer
-            button = self.buttonGroup.button(button)
-        text = safe_str(button.text()).lower()
-        if text.startswith("no"):
-            self._noMca = True
-            self._stackIndex = -1
-        elif "first" in text:
-            self._noMca = False
-            self._stackIndex = 0
-        else:
-            self._noMca = False
-            self._stackIndex = -1
+    def _setFirstDimension(self, checked=False):
+        self._stackIndex = 0
+        self._noMca = False
+
+    def _setLastDimension(self, checked=False):
+        self._stackIndex = -1
+        self._noMca = False
+
+    def _setNoMca(self, checked=False):
+        self._stackIndex = -1
+        self._noMca = True
 
     def setIndex(self, index):
         if index == 0:
             self._stackIndex = 0
-            self.buttonGroup.button(0).setChecked(True)
+            button_number = 0
+            self._noMca = False
+        elif index == -1:
+            self._stackIndex = -1
+            button_number = 1
+            self._noMca = False
         else:
             self._stackIndex = -1
-            self.buttonGroup.button(1).setChecked(True)
+            button_number = 2
+            self._noMca = True
+
+        self.buttonGroup.button(button_number).setChecked(True)
 
 
 class DatasetSelectionPage(qt.QWizardPage):
@@ -329,6 +329,10 @@ class DatasetSelectionPage(qt.QWizardPage):
 
         if interpretation in ["image", b"image"]:
             self.stackIndexWidget.setIndex(0)
+            # the typical image should not have 1D data
+            data = nxData[signalList[0]]
+            if hasattr(data, "shape") and len(data.shape) <= 2:
+                self.stackIndexWidget.setIndex(None)
 
         for signal_key in signalList:
             path = posixpath.join("/", nxDataList[0], signal_key)
@@ -350,7 +354,9 @@ class DatasetSelectionPage(qt.QWizardPage):
 
         self.nexusWidget.setWidgetConfiguration(ddict)
 
-        if axesList and (interpretation in ["image", b"image"]):
+        if self.stackIndexWidget._noMca:
+            self.nexusWidget.cntTable.setCounterSelection({'y': [0]})
+        elif axesList and (interpretation in ["image", b"image"]):
             self.nexusWidget.cntTable.setCounterSelection({'y': [0], 'x': [1]})
         elif axesList and (interpretation in ["spectrum", b"spectrum"]):
             self.nexusWidget.cntTable.setCounterSelection({'y': [0], 'x': [len(axesList)]})
@@ -444,7 +450,7 @@ class DatasetSelectionPage(qt.QWizardPage):
                 yShape = h5file[posixpath.join(entry, yPath.lstrip("/"))].shape
                 signalShapes.append(yShape)
 
-            if selection.get('noMca'):
+            if selection['noMca']:
                 nPoints = int(numpy.prod(signalShapes[0]))
             else:
                 if selection['index'] == -1:
@@ -481,7 +487,7 @@ class DatasetSelectionPage(qt.QWizardPage):
             b) "1D data is first/last dimension" then the singletons should/could be kept
         """
         selection['squeeze'] = False
-        if selection['scatter'] or selection.get('noMca'):
+        if selection['scatter'] or selection['noMca']:
             return True
         nSingletons = sum(1 for d in signalShape if d == 1)
         if (len(signalShape) == 3) and (nSingletons == 1):
@@ -513,11 +519,12 @@ class DatasetSelectionPage(qt.QWizardPage):
         # Cancel return user to Wizard
         return None
 
-    def _effectiveShape(self, selection, rawShape):
+    @staticmethod
+    def _effectiveShape(selection, rawShape):
         """
         "No 1D data" and "drop" both squeeze all singletons.
         """
-        if selection.get('noMca') or selection.get('squeeze'):
+        if selection['noMca'] or selection['squeeze']:
             return tuple(d for d in rawShape if d > 1)
         return rawShape
 
@@ -526,18 +533,18 @@ class DatasetSelectionPage(qt.QWizardPage):
         Validates dimensions for selected options.
         """
         ndim = len(effShape)
-        if selection.get('noMca'):
+        if selection['noMca']:
             if ndim > 2:
                 self.showMessage(
-                    "Three dimensions could not represent an image. " 
-                    "'No 1D data' support only 2D and 1D datasets. "
+                    "Three dimensions could not represent an image. "
+                    "'No 1D data' supports only 2D and 1D datasets. "
                     )
                 return False
         else:
             if ndim < 2:
                 self.showMessage(
-                    "A 1D dataset could not represent an image and channels. "
-                    "Use 'No 1D data (image)' in case there is no channel.")
+                    "A 1D dataset could not represent an image with channels. "
+                    "Use 'No 1D data (image)' in case there are no channels.")
                 return False
         return True
 
@@ -545,7 +552,7 @@ class DatasetSelectionPage(qt.QWizardPage):
         """
         Validate the axes against the dataset.
         """
-        noMca = selection.get('noMca')
+        noMca = selection['noMca']
         scatter = selection['scatter']
         chan, mapDims = self._channelAxisAndMap(selection, effShape)
         if noMca:
@@ -580,7 +587,7 @@ class DatasetSelectionPage(qt.QWizardPage):
                     "Three axes describe two map dimensions plus channels, but "
                     "'No 1D data' has no channels.")
                 return False
-            channelsFirst = (len(effShape) == 3) and (selection.get('index', -1) == 0)
+            channelsFirst = (len(effShape) == 3) and (selection['index'] == 0)
             slot = 0 if channelsFirst else len(spatial) - 1
             if spatial[slot] != channelSize:
                 where = "first" if channelsFirst else "last"
@@ -622,11 +629,11 @@ class DatasetSelectionPage(qt.QWizardPage):
         return False
 
     def _channelAxisAndMap(self, selection, effShape):
-        if selection.get('noMca'):
+        if selection['noMca']:
             return None, list(effShape)
          
         ndim = len(effShape)
-        if selection.get('index', -1) == 0:
+        if selection['index'] == 0:
             chan = 0
         else:
             chan = ndim - 1

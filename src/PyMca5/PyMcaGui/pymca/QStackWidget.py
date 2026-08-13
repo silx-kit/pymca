@@ -255,13 +255,11 @@ class QStackWidget(StackBase.StackBase,
         StackBase.StackBase.setStack(self, *var, **kw)
         scatter = self._stack.info.get("scatter", False)
         # drop singletons first
-        if self._stack.info.get("Squeeze", False) and\
-           isinstance(self._stack.data, numpy.ndarray):
-            if self._squeezeSingletonStack():
-                self.stackWidget.setImageData(None)
-                self.roiWidget.setImageData(None)
-                self._ROIImageDict["ROI"] = None
-                StackBase.StackBase.setStack(self, self._stack, **kw)
+        if self._squeezeSingletonStack():
+            self.stackWidget.setImageData(None)
+            self.roiWidget.setImageData(None)
+            self._ROIImageDict["ROI"] = None
+            StackBase.StackBase.setStack(self, self._stack, **kw)
 
         ndim = len(self._stack.data.shape)
         if not ndim:
@@ -336,6 +334,9 @@ class QStackWidget(StackBase.StackBase,
         """
         Drop the singletons from stack and re-read it.
         """
+        if not (self._stack.info.get("Squeeze", False) and
+                isinstance(self._stack.data, numpy.ndarray)):
+            return False
         core = numpy.squeeze(numpy.asarray(self._stack.data))
         # squeeze only once
         self._stack.info["Squeeze"] = False
