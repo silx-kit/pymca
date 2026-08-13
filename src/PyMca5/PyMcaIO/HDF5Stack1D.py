@@ -785,6 +785,22 @@ class HDF5Stack1D(DataObject.DataObject):
             elif core.ndim == 2:
                 self.data = core.reshape(core.shape[0], core.shape[1], 1)
             self.info["McaIndex"] = 2
+        elif self.info["Squeeze"] and hasattr(self.data, "reshape"):
+            self.info["Squeeze"] = False
+            core = numpy.squeeze(self.data)
+            if core.ndim == 2:
+                if mcaIndex == 0:
+                    nChannels, nPoints = core.shape
+                    core = core.T
+                else:
+                    nPoints, nChannels = core.shape
+                newData = numpy.ascontiguousarray(core)
+                self.data = newData.reshape(1, nPoints, nChannels)
+                self.info["McaIndex"] = 2
+            else:
+                _logger.warning("Squeeze failed. " 
+                "This is not suppose to appear if used with the HDF5StackWizard. " \
+                "Please report it.")
 
         # This small branch is probably dead now. Kept in case it is used outside.
         if (xSelectionList is not None) and (len(xDatasetList) == 2) \

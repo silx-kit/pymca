@@ -254,13 +254,6 @@ class QStackWidget(StackBase.StackBase,
         self.roiWidget.setImageData(None)
         StackBase.StackBase.setStack(self, *var, **kw)
         scatter = self._stack.info.get("scatter", False)
-        # drop singletons first
-        if self._squeezeSingletonStack():
-            self.stackWidget.setImageData(None)
-            self.roiWidget.setImageData(None)
-            self._ROIImageDict["ROI"] = None
-            StackBase.StackBase.setStack(self, self._stack, **kw)
-
         ndim = len(self._stack.data.shape)
         if not ndim:
             mcaAxis = 0
@@ -329,37 +322,6 @@ class QStackWidget(StackBase.StackBase,
         except Exception:
             # TODO: give a reasonable title
             pass
-
-    def _squeezeSingletonStack(self):
-        """
-        Drop the singletons from stack and re-read it.
-        """
-        if not (self._stack.info.get("Squeeze", False) and
-                isinstance(self._stack.data, numpy.ndarray)):
-            return False
-        core = numpy.squeeze(numpy.asarray(self._stack.data))
-        # squeeze only once
-        self._stack.info["Squeeze"] = False
-        # image should be 2D, should never fire with validator.
-        if core.ndim != 2:
-            _logger.warning("Squeeze failed. " 
-            "This is not suppose to appear if used with the HDF5StackWizard. " \
-            "Please report it.")
-            return False
-        if self.mcaIndex == 0:
-            nChannels, nPoints = core.shape
-            core = core.T
-        else:
-            nPoints, nChannels = core.shape
-        # array require a proper storage for further processing
-        newData = numpy.ascontiguousarray(core)
-        self._stack.data = newData.reshape(1, nPoints, nChannels)
-        self._stack.info["McaIndex"] = 2
-        # otherwise it could keep the old 1-point axis
-        x = getattr(self._stack, "x", None)
-        if x and (numpy.size(x[0]) != nChannels):
-            self._stack.x = None
-        return True
 
     def normalizeIconChecked(self):
         pass
