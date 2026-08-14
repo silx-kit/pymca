@@ -2,7 +2,7 @@
 #
 # The PyMca X-Ray Fluorescence Toolkit
 #
-# Copyright (c) 2004-2025 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2026 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF by the Software group.
@@ -327,7 +327,7 @@ class HDF5Stack1D(DataObject.DataObject):
                 else:
                     raise MemoryError("Force dynamic loading")
             if (mcaIndex == 0) and ( nFiles == 1) and (nScans == 1) \
-                and (len(yDataset.shape) > 1):
+                and (len(yDataset.shape) > 2) and (not scatter):
                 #keep the original arrangement but in memory
                 self.data = numpy.zeros(yDataset.shape, self.__dtype)
                 considerAsImages = True
@@ -765,6 +765,8 @@ class HDF5Stack1D(DataObject.DataObject):
         self.info["SourceName"] = filelist
         self.info["Size"]       = 1
         self.info["NumberOfFiles"] = 1
+        self.info["Squeeze"] = bool(selection.get("squeeze", False))
+        self.info["NoMca"] = bool(selection.get("noMca", False))
         if mcaIndex == 0:
             self.info["FileIndex"] = 1
         else:
@@ -773,9 +775,34 @@ class HDF5Stack1D(DataObject.DataObject):
             self.info['McaCalib'] = _calibration
         else:
             self.info['McaCalib'] = [ 0.0, 1.0, 0.0]
-        # "1D data is first dimension" with McaIndex == 0 case 
-        # scatter / regular-grid imaging expect the channels to be last
-        # so normalize it once here to fit next steps
+        # "No 1D data": the whole dataset is an image
+        # for the reshape/grid step below
+        # Add a single-channel axis
+        if self.info["NoMca"] and hasattr(self.data, "reshape"):
+            core = numpy.squeeze(self.data)
+            if core.ndim == 1:
+                self.data = core.reshape(1, core.shape[0], 1)
+            elif core.ndim == 2:
+                self.data = core.reshape(core.shape[0], core.shape[1], 1)
+            self.info["McaIndex"] = 2
+        elif self.info["Squeeze"] and hasattr(self.data, "reshape"):
+            self.info["Squeeze"] = False
+            core = numpy.squeeze(self.data)
+            if core.ndim == 2:
+                if mcaIndex == 0:
+                    nChannels, nPoints = core.shape
+                    core = core.T
+                else:
+                    nPoints, nChannels = core.shape
+                newData = numpy.ascontiguousarray(core)
+                self.data = newData.reshape(1, nPoints, nChannels)
+                self.info["McaIndex"] = 2
+            else:
+                _logger.warning("Squeeze failed. " 
+                "This is not suppose to appear if used with the HDF5StackWizard. " \
+                "Please report it.")
+
+        # This small branch is probably dead now. Kept in case it is used outside.
         if (xSelectionList is not None) and (len(xDatasetList) == 2) \
            and (self.info.get("McaIndex") == 0) and (len(self.data.shape) == 2):
             self.data = self.data.T
@@ -785,16 +812,20 @@ class HDF5Stack1D(DataObject.DataObject):
         # case i*j > n is also supported with padding protection
         # Reshape it here to process it as a regular stack (nRows, nCols, nChannels)
         if (not scatter) and (xSelectionList is not None) \
-           and (len(xDatasetList) == 2) and (len(self.data.shape) == 3) \
+           and (len(xDatasetList) in (2, 3)) and (len(self.data.shape) == 3) \
            and (self.data.shape[0] == 1) and (self.info.get("McaIndex") == 2):
-            nRows = numpy.asarray(xDatasetList[0]).size
-            nCols = numpy.asarray(xDatasetList[1]).size
             nChannels = self.data.shape[-1]
-            nFlat = self.data.shape[1]
-            if nRows * nCols == nFlat:
-                self.data = self.data.reshape(nRows, nCols, nChannels)
-            elif (nRows * nCols > nFlat) and allowPadding:
-                self.padIncompleteScan((nRows, nCols))
+            mapAxes = [numpy.asarray(x) for x in xDatasetList]
+            if len(mapAxes) == 3:
+                mapAxes = mapAxes[:-1]
+            if len(mapAxes) == 2:
+                nRows = mapAxes[0].size
+                nCols = mapAxes[1].size
+                nFlat = self.data.shape[1]
+                if nRows * nCols == nFlat:
+                    self.data = self.data.reshape(nRows, nCols, nChannels)
+                elif (nRows * nCols > nFlat) and allowPadding:
+                    self.padIncompleteScan((nRows, nCols))
 
         shape = self.data.shape
         nSpectra = 1
@@ -876,7 +907,12 @@ class HDF5Stack1D(DataObject.DataObject):
                 _logger.warning("Ignoring axes selection %s" % xSelectionList)
         elif _channels is not None:
             _channels = numpy.ravel(_channels)
-            self.x = [_channels]
+            if _channels.size == self.data.shape[self.info["McaIndex"]]:
+                self.x = [_channels]
+            else:
+                # if metadata does not match the data, ignore them
+                _logger.warning("Ignoring channels of size %d because it does not match seleced data size " % 
+                                _channels.size,)
         if _time is not None:
             self.info["McaLiveTime"] = _time
         if positionersGroup:

@@ -1,5 +1,5 @@
 #/*##########################################################################
-# Copyright (C) 2004-2023 European Synchrotron Radiation Facility
+# Copyright (C) 2004-2026 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF.
@@ -137,41 +137,60 @@ class StackIndexWidget(qt.QWidget):
         #self.mainLayout.setSpacing(0)
 
         self.buttonGroup = qt.QButtonGroup(self)
+        options = [
+            ("1D data is first dimension",
+             'The channel (1D-data) axis is always the first selected axis '
+             '("Axis X").',
+             self._setFirstDimension),
+            ("1D data is last dimension",
+             'The channel (1D-data) axis is the last selected axis: "Axis X" '
+             'if a single axis is selected, or "Axis Z" if three are.',
+             self._setLastDimension),
+            ("No 1D data",
+             "No axis is used as the channel (1D-data) axis: the whole dataset is treated "
+             "as an image.",
+             self._setNoMca),
+        ]
         i = 0
-        for text in ["1D data is first dimension", "1D data is last dimension"]:
+        for text, tip, slot in options:
             rButton = qt.QRadioButton(self)
             rButton.setText(text)
+            rButton.setToolTip(tip)
+            rButton.clicked.connect(slot)
             self.mainLayout.addWidget(rButton)
             self.buttonGroup.addButton(rButton, i)
             i += 1
-        rButton.setChecked(True)
+        self.buttonGroup.button(1).setChecked(True)
         self._stackIndex = -1
-        if hasattr(self.buttonGroup, "idClicked"):
-            self.buttonGroup.idClicked[int].connect(self._slot)
-        else:
-            # deprecated
-            _logger.debug("Using deprecated signal")
-            self.buttonGroup.buttonClicked[int].connect(self._slot)
+        self._noMca = False
 
-    def _slot(self, button):
-        if hasattr(button, "text"):
-            # received a button
-            pass
-        else:
-            # received an integer
-            button = self.buttonGroup.button(button)
-        if "first" in safe_str(button.text()).lower():
-            self._stackIndex =  0
-        else:
-            self._stackIndex = -1
+    def _setFirstDimension(self, checked=False):
+        self._stackIndex = 0
+        self._noMca = False
+
+    def _setLastDimension(self, checked=False):
+        self._stackIndex = -1
+        self._noMca = False
+
+    def _setNoMca(self, checked=False):
+        self._stackIndex = -1
+        self._noMca = True
 
     def setIndex(self, index):
         if index == 0:
             self._stackIndex = 0
-            self.buttonGroup.button(0).setChecked(True)
+            button_number = 0
+            self._noMca = False
+        elif index == -1:
+            self._stackIndex = -1
+            button_number = 1
+            self._noMca = False
         else:
             self._stackIndex = -1
-            self.buttonGroup.button(1).setChecked(True)
+            button_number = 2
+            self._noMca = True
+
+        self.buttonGroup.button(button_number).setChecked(True)
 
 
 class DatasetSelectionPage(qt.QWizardPage):
@@ -310,6 +329,10 @@ class DatasetSelectionPage(qt.QWizardPage):
 
         if interpretation in ["image", b"image"]:
             self.stackIndexWidget.setIndex(0)
+            # the typical image should not have 1D data
+            data = nxData[signalList[0]]
+            if hasattr(data, "shape") and len(data.shape) <= 2:
+                self.stackIndexWidget.setIndex(None)
 
         for signal_key in signalList:
             path = posixpath.join("/", nxDataList[0], signal_key)
@@ -331,7 +354,9 @@ class DatasetSelectionPage(qt.QWizardPage):
 
         self.nexusWidget.setWidgetConfiguration(ddict)
 
-        if axesList and (interpretation in ["image", b"image"]):
+        if self.stackIndexWidget._noMca:
+            self.nexusWidget.cntTable.setCounterSelection({'y': [0]})
+        elif axesList and (interpretation in ["image", b"image"]):
             self.nexusWidget.cntTable.setCounterSelection({'y': [0], 'x': [1]})
         elif axesList and (interpretation in ["spectrum", b"spectrum"]):
             self.nexusWidget.cntTable.setCounterSelection({'y': [0], 'x': [len(axesList)]})
@@ -349,13 +374,29 @@ class DatasetSelectionPage(qt.QWizardPage):
             return False
 
         signalShapes, nPoints, axisSizes = self._collectValidationData(selection)
-        # required for case  when no axes are selected
         if signalShapes:
             if not self._validateSignalShapes(signalShapes):
                 return False
-        if signalShapes and nPoints and axisSizes:
-            if not self._validateScanGeometry(selection, signalShapes, nPoints, axisSizes):
+            rawShape = tuple(signalShapes[0])
+            # a dataset is pure singleton - there is no image.
+            if not any(d > 1 for d in rawShape):
+                self.showMessage("The selected signal is all size-1; "
+                                 "there is nothing to image.")
                 return False
+            
+            # Resolve singletons before other validation
+            if not self._resolveSingletonDrop(selection, rawShape):
+                # back to Wizard
+                return False 
+            
+            effShape = self._effectiveShape(selection, rawShape)
+
+            if not self._validateDimensionality(selection, effShape):
+                return False
+
+            if axisSizes:
+                if not self._validateAxisSelection(selection, effShape, axisSizes):
+                    return False
 
         self.selection = selection
         return True
@@ -383,6 +424,8 @@ class DatasetSelectionPage(qt.QWizardPage):
                     selection[key].append(cntlist[idx])
         selection['scatter'] = self._scatterCheckBox.isChecked()
         selection['allowPadding'] = False
+        selection['squeeze'] = False
+        selection['noMca'] = self.stackIndexWidget._noMca
         return selection
 
     def _validateScatterSelection(self, selection):
@@ -407,11 +450,14 @@ class DatasetSelectionPage(qt.QWizardPage):
                 yShape = h5file[posixpath.join(entry, yPath.lstrip("/"))].shape
                 signalShapes.append(yShape)
 
-            if selection['index'] == -1:
-                mcaAxis = len(signalShapes[0]) - 1
+            if selection['noMca']:
+                nPoints = int(numpy.prod(signalShapes[0]))
             else:
-                mcaAxis = selection['index']
-            nPoints = int(numpy.prod(numpy.delete(signalShapes[0], mcaAxis)))
+                if selection['index'] == -1:
+                    mcaAxis = len(signalShapes[0]) - 1
+                else:
+                    mcaAxis = selection['index']
+                nPoints = int(numpy.prod(numpy.delete(signalShapes[0], mcaAxis)))
 
             axisSizes = []
             for xPath in selection['x']:
@@ -431,32 +477,176 @@ class DatasetSelectionPage(qt.QWizardPage):
             return False
         return True
 
-    def _validateScanGeometry(self, selection, signalShapes, nPoints, axisSizes):
-        scatter = selection['scatter']
-        signalShape = signalShapes[0]
-        axisSize = axisSizes[0]
-        # scatter needs a single scan dimension (besides the channels)
-        if scatter and (len(signalShape) - 1) > 1:
-            self.showMessage(
-                "Scatter mode needs a flat per-point scan (one scan "
-                "dimension besides the channels).")
-            return False
-
-        # the axes hold one value per 1D data so they must have equal sizes
-        if scatter and not all(size == axisSize for size in axisSizes):
-            self.showMessage(
-                "Axes should have same number of positions "
-                "(as they hold one value per 1D data) "
-                "Disable 'Scatter plot' or select different axes.")
-            return False
-
-        # check the number of points in the signal against the axes positions
-        if (nPoints > 1):
-            if scatter:
-                return self._validateScatterGeometry(selection, axisSize, nPoints)
-            elif len(axisSizes) == 2:
-                return self._validateGridGeometry(selection, axisSizes, nPoints)
+    def _resolveSingletonDrop(self, selection, signalShape):
+        """
+        Ask whether an explicit singleton is real or should be dropped.
+        
+        To be noticed that most of cases do not require a question:
+        when dataset is 1x1xN, 1xNx1, Nx1x1, 1xN, Nx1
+            a) "No 1D data" - singletons should/could be dropped
+            b) "1D data is first/last dimension" then the singletons should/could be kept
+        """
+        selection['squeeze'] = False
+        if selection['scatter'] or selection['noMca']:
+            return True
+        nSingletons = sum(1 for d in signalShape if d == 1)
+        if (len(signalShape) == 3) and (nSingletons == 1):
+            choice = self._askDropSingleton(signalShape)
+            if choice is None:
+                return False
+            selection['squeeze'] = choice
         return True
+
+    def _askDropSingleton(self, signalShape):
+        msg = qt.QMessageBox(self)
+        msg.setIcon(qt.QMessageBox.Question)
+        msg.setWindowTitle("Size-1 dimension")
+        msg.setText(
+            "The selected signal has a size-1 dimension.\n\n"
+            "Keep it as a real dimension, or drop it?"
+            )
+        keepButton = msg.addButton("Keep",
+                                   qt.QMessageBox.AcceptRole)
+        dropButton = msg.addButton("Drop and reshape",
+                                   qt.QMessageBox.ApplyRole)
+        msg.addButton(qt.QMessageBox.Cancel)
+        msg.exec()
+        clicked = msg.clickedButton()
+        if clicked is keepButton:
+            return False
+        if clicked is dropButton:
+            return True
+        # Cancel return user to Wizard
+        return None
+
+    @staticmethod
+    def _effectiveShape(selection, rawShape):
+        """
+        "No 1D data" and "drop" both squeeze all singletons.
+        """
+        if selection['noMca'] or selection['squeeze']:
+            return tuple(d for d in rawShape if d > 1)
+        return rawShape
+
+    def _validateDimensionality(self, selection, effShape):
+        """
+        Validates dimensions for selected options.
+        """
+        ndim = len(effShape)
+        if selection['noMca']:
+            if ndim > 2:
+                self.showMessage(
+                    "Three dimensions could not represent an image. "
+                    "'No 1D data' supports only 2D and 1D signals. "
+                    )
+                return False
+        else:
+            if ndim < 2:
+                self.showMessage(
+                    "A 1D signal could not represent an image with channels. "
+                    "Use 'No 1D data' in case there are no channels.")
+                return False
+            if ndim > 3:
+                self.showMessage(
+                    "More than three dimensions could not represent a stack "
+                    "(two map dimensions plus the channels). "
+                    "Drop size-1 axes (e.g. via 'No 1D data') or reshape the signal.")
+                return False
+        return True
+
+    def _validateAxisSelection(self, selection, effShape, axisSizes):
+        """
+        Validate the axes against the dataset.
+        """
+        noMca = selection['noMca']
+        scatter = selection['scatter']
+        chan, mapDims = self._channelAxisAndMap(selection, effShape)
+        if noMca:
+            channelSize = 1
+        else:
+            channelSize = effShape[chan]
+        nPoints = int(numpy.prod(mapDims)) if mapDims else 1
+        spatial = list(axisSizes)
+
+        # should never happen
+        if len(axisSizes) > 3:
+            self.showMessage(
+                "Too many axes selected")
+            return False
+
+        if len(axisSizes) == 1:
+            if noMca:
+                self.showMessage(
+                    "A single selected axis is the channel (1D-data) axis, but "
+                    "'No 1D data' has no channels. Select two axes, or none.")
+                return False
+            if axisSizes[0] != channelSize:
+                self.showMessage(
+                    "The selected channel axis has %d values but the 1D data "
+                    "has %d channels." % (axisSizes[0], channelSize))
+                return False
+            return True
+
+        if len(axisSizes) == 3:
+            if noMca:
+                self.showMessage(
+                    "Three axes describe two map dimensions plus channels, but "
+                    "'No 1D data' has no channels.")
+                return False
+            channelsFirst = (len(effShape) == 3) and (selection['index'] == 0)
+            slot = 0 if channelsFirst else len(spatial) - 1
+            if spatial[slot] != channelSize:
+                where = "first" if channelsFirst else "last"
+                self.showMessage(
+                    "The channel axis must be selected %s of the three axes "
+                    "(it must have length %d = the number of channels)."
+                    % (where, channelSize))
+                return False
+            spatial.pop(slot)
+
+        if scatter:
+            # scatter sometimes will be actually squeezed but it depends on other selections
+            # thus, validation appeared to be here. 
+            effMap = [d for d in mapDims if d > 1]
+            if len(effMap) != 1:
+                self.showMessage(
+                    "Scatter needs a flat per-point scan (one scan dimension); "
+                    "this map is %dD. Disable 'Scatter plot'." % len(effMap))
+                return False
+            if spatial[0] != spatial[1]:
+                self.showMessage(
+                    "Scatter motors (X and Y) must have equal length ")
+                return False
+            return self._validateScatterGeometry(selection, spatial[0], nPoints)
+
+        if len(mapDims) == 1:
+            # normal grid
+            return self._validateGridGeometry(selection, spatial, nPoints)
+        # at this moment len(mapDims) could be only 1 or 2
+        else:
+            if sorted(spatial) != sorted(mapDims):
+                self.showMessage(
+                    "The two grid axes must match the map dimensions; "
+                    "the image shape is fixed by the data. "
+                    "Consider to drop singletons (if kept) or to select `No 1D data`.")
+                return False
+            return True
+
+    def _channelAxisAndMap(self, selection, effShape):
+        if selection['noMca']:
+            return None, list(effShape)
+         
+        ndim = len(effShape)
+        if selection['index'] == 0:
+            chan = 0
+        else:
+            chan = ndim - 1
+        mapDims = []
+        for i in range(ndim):
+            if i == chan:
+                continue
+            mapDims.append(effShape[i])
+        return chan, mapDims
 
     def _validateScatterGeometry(self, selection, axisSize, nPoints):
         if axisSize < nPoints:

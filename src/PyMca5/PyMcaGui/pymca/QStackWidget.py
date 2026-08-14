@@ -254,10 +254,22 @@ class QStackWidget(StackBase.StackBase,
         self.roiWidget.setImageData(None)
         StackBase.StackBase.setStack(self, *var, **kw)
         scatter = self._stack.info.get("scatter", False)
-        if (not scatter) and (1 in self._stack.data.shape) and\
+        ndim = len(self._stack.data.shape)
+        if not ndim:
+            mcaAxis = 0
+        elif self.mcaIndex < 0:
+            mcaAxis = self.mcaIndex + ndim
+        else:
+            mcaAxis = self.mcaIndex
+        mapShape = []
+        for i in range(ndim):
+            if i == mcaAxis:
+                continue
+            mapShape.append(self._stack.data.shape[i])
+        if (not scatter) and (ndim == 3) and (1 in mapShape) and\
            isinstance(self._stack.data, numpy.ndarray):
-            oldshape = self._stack.data.shape
-            dialog = ImageShapeDialog(self, shape=oldshape[0:2])
+            nChannels = self._stack.data.shape[mcaAxis]
+            dialog = ImageShapeDialog(self, shape=tuple(mapShape))
             dialog.setModal(True)
             ret = dialog.exec()
             if ret:
@@ -266,14 +278,19 @@ class QStackWidget(StackBase.StackBase,
                 dialog.close()
                 del dialog
                 new_npixels = shape[0] * shape[1]
-                old_npixels = oldshape[0] * oldshape[1]
+                old_npixels = mapShape[0] * mapShape[1]
                 if pad_with_nan and new_npixels > old_npixels:
                     self._stack.padIncompleteScan(
                         (shape[0], shape[1]),
-                        padPositioners=True)
+                        padPositioners=True,
+                        mcaIndex=mcaAxis)
+                elif mcaAxis == 0:
+                    # respect "1D data is first"
+                    self._stack.data = self._stack.data.reshape(
+                        nChannels, shape[0], shape[1])
                 else:
                     self._stack.data = self._stack.data.reshape(
-                        shape[0], shape[1], oldshape[2])
+                        shape[0], shape[1], nChannels)
                 self.stackWidget.setImageData(None)
                 self.roiWidget.setImageData(None)
                 # make sure old ROI images are not used
