@@ -1346,7 +1346,7 @@ class QStackWidget(StackBase.StackBase,
             scatter = False
         if scatter:
             if self._scatterRoiView is None:
-                # left - orginal stack
+                # left - original stack
                 try:
                     self._scatterStackView = MaskScatterViewWidget(parent=self.stackWindow, backend="mpl")
                 except:
