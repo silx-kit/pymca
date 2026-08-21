@@ -33,6 +33,12 @@ import importlib
 import sys
 import unittest
 
+try:
+    import PyMca5.PyMcaGui.PyMcaQt as qt
+    QT = True
+except Exception:
+    QT = False
+
 # the modules executed by the scripts (from setup.py)
 ENTRY_POINT_MODULES = [
     "PyMca5.PyMcaGui.pymca.PyMcaMain",              # pymca
@@ -48,6 +54,7 @@ ENTRY_POINT_MODULES = [
 
 class testImport(unittest.TestCase):
     @unittest.skipIf(getattr(sys, 'frozen', False), "skipped running as frozen binary")
+    @unittest.skipUnless(QT, "Qt binding not installed")
     def testEntryPointModules(self):
         for name in ENTRY_POINT_MODULES:
             # TestAll and CliTest ignores import errors because of OS differences
