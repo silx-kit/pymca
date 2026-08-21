@@ -389,6 +389,8 @@ class NNMAWindow(PCAWindow.PCAWindow):
                         "%g %% explained intensity" % self.eigenValues[i]
                     )
                 self.vectorGraph.setGraphTitle(self.vectorGraphTitles[0])
+                # in case of rerun
+                self.vectorGraph.replot()
 
         self.slider.setValue(0)
 

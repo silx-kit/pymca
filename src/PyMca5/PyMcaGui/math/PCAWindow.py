@@ -555,9 +555,11 @@ class PCAWindow(MaskImageWidget.MaskImageWidget):
         if self.eigenVectors is not None:
             legend = self.vectorNames[index]
             y = self.eigenVectors[index]
+            self.vectorGraph.addCurve(range(len(y)), y, legend, replace=True, replot=False)
             if self.vectorGraphTitles is not None:
                 self.vectorGraph.setGraphTitle(self.vectorGraphTitles[index])
-            self.vectorGraph.addCurve(range(len(y)), y, legend, replace=True)
+            # otherwise it shows old info
+            self.vectorGraph.replot()
         if len(self.imageList):
             self.showImage(index, moveslider=False)
 
