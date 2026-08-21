@@ -63,9 +63,14 @@ from PyMca5.PyMcaCore import McaStackExport
 from PyMca5.PyMcaGui.misc import CloseEventNotifyingWidget
 from PyMca5.PyMcaGui.plotting import MaskImageWidget
 convertToRowAndColumn = MaskImageWidget.convertToRowAndColumn
-from PyMca5.PyMcaGui.plotting.MaskScatterViewWidget import MaskScatterViewWidget
-from silx.gui.plot import items as silx_items
-from silx.gui.plot.items.scatter import _guess_grid
+try:
+    # silx is an optional dependency. It is only needed by the scatter mode.
+    from PyMca5.PyMcaGui.plotting.MaskScatterViewWidget import MaskScatterViewWidget
+    from silx.gui.plot import items as silx_items
+    from silx.gui.plot.items.scatter import _guess_grid
+    SCATTER_FLAG = True
+except Exception:
+    SCATTER_FLAG = False
 
 from PyMca5.PyMcaGui.pymca import RGBCorrelator
 from PyMca5.PyMcaGui.pymca import QStackWidget
@@ -1335,6 +1340,10 @@ class QStackWidget(StackBase.StackBase,
         The MaskImageWidgets and MaskScatterViewWidgets
         are kept alive but hidden in coressponding mode
         """
+        if scatter and not SCATTER_FLAG:
+            # silx is not installed: fall back to the regular image widgets
+            _logger.warning("silx not installed. Scatter mode not available.")
+            scatter = False
         if scatter:
             if self._scatterRoiView is None:
                 # left - orginal stack
