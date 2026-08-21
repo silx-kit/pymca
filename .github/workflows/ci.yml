@@ -132,7 +132,16 @@ jobs:
               libxcb-xfixes0 \
               libxcb-xinerama0 \
               libxcb-xkb1 \
-              libxcb1
+              libxcb1 \
+              libxcb-util1 \
+              libxcb-cursor0 \
+              libglu1-mesa \
+              libgl1 \
+              libegl1 \
+              libx11-xcb1 \
+              libxi6 \
+              libxrender1 \
+              libsm6
             #export QT_QPA_PLATFORM=offscreen
             export DISPLAY=:99.0
 
