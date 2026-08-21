@@ -2,7 +2,7 @@
 #
 # The PyMca X-Ray Fluorescence Toolkit
 #
-# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2026 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF.
@@ -46,6 +46,7 @@ from PyMca5.tests.McaStackViewTest import test as testMcaStackView
 from PyMca5.tests.NexusUtilsTest import test as testNexusUtils
 from PyMca5.tests.StackInfoTest import test as testStackInfo
 from PyMca5.tests.FastXRFLinearFitTest import test as testFastXRFLinearFit
+from PyMca5.tests.ImportTest import test as testImport
 
 def testAll():
     from PyMca5.tests.TestAll import main as testAll
