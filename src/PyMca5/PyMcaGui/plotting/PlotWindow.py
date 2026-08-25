@@ -1504,11 +1504,15 @@ class PlotWindow(PlotWidget.PlotWidget):
         if self.legendDockWidget.isHidden():
             return
         legendList = [] * len(self._curveList)
+        activeCurve = self.getActiveCurve(just_legend=True)
         for i in range(len(self._curveList)):
             legend = self._curveList[i]
             _defaultColor = qt.QApplication.instance().palette().color(qt.QPalette.Text).name()
-            color = self._curveDict[legend][3].get('plot_color',
-                                                         _defaultColor)
+            if legend == activeCurve:
+                color = self._activeCurveColor
+            else:
+                color = self._curveDict[legend][3].get('plot_color',
+                                                             _defaultColor)
             color = qt.QColor(color)
             linewidth = self._curveDict[legend][3].get('plot_line_width',
                                                              2)
