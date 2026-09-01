@@ -46,8 +46,6 @@ import silx
 from silx.gui.data.DataViewerFrame import DataViewerFrame
 from silx.gui.data.DataViewer import DataViewer
 from silx.gui.data import DataViews
-from silx.gui.data import NXdataWidgets
-from silx.gui.plot import Plot1D, Plot2D
 from silx.gui import icons
 
 
@@ -71,28 +69,23 @@ if userPluginsDirectory is not None:
     PLUGINS_DIR.append(userPluginsDirectory)
 
 
-class Plot1DWithPlugins(Plot1D):
-    """Add a plugin toolbutton to a Plot1D"""
-    def __init__(self, parent=None):
-        Plot1D.__init__(self, parent)
-        self._plotType = "SCAN"    # needed by legacy plugins
+class Plot1DViewWithPlugins(DataViews._Plot1dView):
+    """Add a :class:`PluginsToolButton`
+    to the widget silx uses for 1D plots.
+    """
+    def createWidget(self, parent):
+        widget = super().createWidget(parent)
+        widget._plotType = "SCAN"    # needed by legacy plugins
 
-        self._toolbar = qt.QToolBar(self)
-        self.addToolBar(self._toolbar)
-        pluginsToolButton = PluginsToolButton(plot=self, parent=self)
-
+        pymcaToolbar = qt.QToolBar(widget)
+        widget.addToolBar(pymcaToolbar)
+        pluginsToolButton = PluginsToolButton(plot=widget, parent=widget)
         if PLUGINS_DIR:
             pluginsToolButton.getPlugins(
                     method="getPlugin1DInstance",
                     directoryList=PLUGINS_DIR)
-        self._toolbar.addWidget(pluginsToolButton)
-
-
-class Plot1DViewWithPlugins(DataViews._Plot1dView):
-    """Overload Plot1DView to use the widget with a
-    :class:`PluginsToolButton`"""
-    def createWidget(self, parent):
-        return Plot1DWithPlugins(parent=parent)
+        pymcaToolbar.addWidget(pluginsToolButton)
+        return widget
 
 class Plot2DViewWithPlugins(DataViews._Plot2dView):
     def createWidget(self, parent):
@@ -111,54 +104,46 @@ class Plot2DViewWithPlugins(DataViews._Plot2dView):
         widget.getIntensityHistogramAction().setVisible(True)
         return widget
 
-class ArrayCurvePlotWithPlugins(NXdataWidgets.ArrayCurvePlot):
-    """Adds a plugin toolbutton to an ArrayCurvePlot widget"""
-    def __init__(self, parent=None):
-        NXdataWidgets.ArrayCurvePlot.__init__(self, parent)
-
+class NXdataCurveViewWithPlugins(DataViews._NXdataCurveView):
+    """Add a :class:`PluginsToolButton`
+    to the widget silx uses for NXdata curves.
+    """
+    def createWidget(self, parent):
+        # ArrayCurvePlot before 3.1, NxCurvePlot after
+        widget = super().createWidget(parent)
+        plot = widget._plot
         # patch the Plot1D to make it compatible with plugins
-        self._plot._plotType = "SCAN"
+        plot._plotType = "SCAN"
 
-        self._toolbar = qt.QToolBar(self)
-        self._plot.addToolBar(self._toolbar)
-        pluginsToolButton = PluginsToolButton(plot=self._plot,
-                                              parent=self)
+        pymcaToolbar = qt.QToolBar(widget)
+        plot.addToolBar(pymcaToolbar)
+        pluginsToolButton = PluginsToolButton(plot=plot, parent=widget)
         if PLUGINS_DIR:
             pluginsToolButton.getPlugins(
                     method="getPlugin1DInstance",
                     directoryList=PLUGINS_DIR)
-        self._toolbar.addWidget(pluginsToolButton)
+        pymcaToolbar.addWidget(pluginsToolButton)
+        return widget
 
 
-class NXdataCurveViewWithPlugins(DataViews._NXdataCurveView):
-    """Use the widget with a :class:`PluginsToolButton`"""
+class NXdataImageViewWithPlugins(DataViews._NXdataImageView):
+    """Add a :class:`PluginsToolButton`
+    to the widget silx uses for NXdata images.
+    """
     def createWidget(self, parent):
-        return ArrayCurvePlotWithPlugins(parent=parent)
+        # silx already sets the default colormap and the colormap dialog
+        widget = super().createWidget(parent)
+        plot = widget.getPlot()
 
-
-class ArrayImagePlotWithPlugins(NXdataWidgets.ArrayImagePlot):
-    """Adds a plugin toolbutton to an ArrayImagePlot widget"""
-    def __init__(self, parent=None):
-        NXdataWidgets.ArrayImagePlot.__init__(self, parent)
-
-        self._toolbar = qt.QToolBar(self)
-        self.getPlot().addToolBar(self._toolbar)
-        pluginsToolButton = PluginsToolButton(plot=self.getPlot(),
-                                              parent=self,
+        pymcaToolbar = qt.QToolBar(widget)
+        plot.addToolBar(pymcaToolbar)
+        pluginsToolButton = PluginsToolButton(plot=plot, parent=widget,
                                               method="getPlugin2DInstance")
         if PLUGINS_DIR:
             pluginsToolButton.getPlugins(
                     method="getPlugin2DInstance",
                     directoryList=PLUGINS_DIR)
-        self._toolbar.addWidget(pluginsToolButton)
-
-
-class NXdataImageViewWithPlugins(DataViews._NXdataImageView):
-    """Use the widget with a :class:`PluginsToolButton`"""
-    def createWidget(self, parent):
-        widget = ArrayImagePlotWithPlugins(parent)
-        widget.getPlot().setDefaultColormap(self.defaultColormap())
-        widget.getPlot().getColormapAction().setColorDialog(self.defaultColorDialog())
+        pymcaToolbar.addWidget(pluginsToolButton)
         return widget
 
 
