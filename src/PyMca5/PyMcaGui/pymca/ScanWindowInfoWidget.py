@@ -442,47 +442,9 @@ class ScanInfoWidget(qt.QWidget):
             self.scanLabel.setText(scan[0])
         hkl = info.get('hkl', None)
         if hkl is None:
-            # HKL in HDF5 are in "instrument/positioners"
-            hkl = self._hklFromMotors(info)
-        if hkl is None:
             self.hkl.setHKL("----", "----", "----")
         else:
             self.hkl.setHKL(*hkl)
-
-    def _hklFromMotors(self, info):
-        """HKL is taken from the "motors" or None"""
-        # the motors are read as in PyMcaPlugins/MotorInfoPlugin.py
-        motorNames = info.get('MotorNames', None)
-        if type(motorNames) == str:
-            namesList = motorNames.split()
-        elif type(motorNames) == list:
-            namesList = motorNames
-        else:
-            namesList = []
-        motorValues = info.get('MotorValues', None)
-        if type(motorValues) == str:
-            valuesList = motorValues.split()
-        elif type(motorValues) == list:
-            valuesList = motorValues
-        else:
-            valuesList = []
-        if len(namesList) != len(valuesList):
-            _logger.debug("Number of motors and values does not match!")
-            return None
-        motors = dict(zip(namesList, valuesList))
-
-        # extract H K L
-        hkl = []
-        try:
-            for key in ["H", "K", "L"]:
-                if key in motors:
-                    hkl.append(float(motors[key]))
-                else:
-                    hkl.append(float(motors[key.lower()]))
-        except Exception:
-            _logger.debug("Cannot get HKL from the motors")
-            return None
-        return hkl
 
     def getInfo(self):
         ddict = {}

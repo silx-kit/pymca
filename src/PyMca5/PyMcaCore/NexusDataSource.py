@@ -364,6 +364,18 @@ class NexusDataSource(object):
             except Exception:
                 # I cannot affort to fail here for something probably not used
                 _logger.debug("Error reading positioners\n%s", sys.exc_info())
+            try:
+                startingPositioners = NexusTools.getStartingPositionersGroup(phynxFile, entry)
+                hkl = []
+                for key in ["H", "K", "L"]:
+                    if key in startingPositioners:
+                        dataset = startingPositioners[key]
+                    else:
+                        dataset = startingPositioners[key.lower()]
+                    hkl.append(float(dataset[()]))
+                output.info["hkl"] = hkl
+            except Exception:
+                output.info["hkl"] = None
         if "mca" in selection:
             # this should go somewhere else
             h5File = phynxFile
