@@ -372,7 +372,8 @@ class NexusDataSource(object):
                         dataset = startingPositioners[key]
                     else:
                         dataset = startingPositioners[key.lower()]
-                    hkl.append(float(dataset[()]))
+                    # if more than one position, the first one is shown
+                    hkl.append(float(dataset[(0,) * dataset.ndim]))
                 output.info["hkl"] = hkl
             except Exception:
                 output.info["hkl"] = None
