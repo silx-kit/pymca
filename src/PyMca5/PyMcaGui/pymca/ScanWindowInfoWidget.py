@@ -437,6 +437,14 @@ class ScanInfoWidget(qt.QWidget):
             scan = ""
             if "envdict" in info:
                 scan = info["envdict"].get('title', "")
+            else:
+                # in HDF5 entry is a scan number
+                scanNumber = info.get("entry", "")
+                if scanNumber.startswith("/") and len(scanNumber) > 1:
+                    scan = scanNumber[1:]
+                title = info.get("title", "")
+                if title:
+                    scan += " %s" % title
             self.scanLabel.setText(scan)
         else:
             self.scanLabel.setText(scan[0])

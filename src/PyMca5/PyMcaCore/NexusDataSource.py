@@ -336,6 +336,7 @@ class NexusDataSource(object):
             txt = "Error reading title for path <%s>"
             _logger.warning(txt)
             output.info["title"] = ""
+        output.info["entry"] = entry
         output.info['selection'] = selection
         # promote plot_yaxis from selection to top-level info so the right Y-axis could appear
         if 'plot_yaxis' in selection:
@@ -364,6 +365,19 @@ class NexusDataSource(object):
             except Exception:
                 # I cannot affort to fail here for something probably not used
                 _logger.debug("Error reading positioners\n%s", sys.exc_info())
+            try:
+                startingPositioners = NexusTools.getStartingPositionersGroup(phynxFile, entry)
+                hkl = []
+                for key in ["H", "K", "L"]:
+                    if key in startingPositioners:
+                        dataset = startingPositioners[key]
+                    else:
+                        dataset = startingPositioners[key.lower()]
+                    # if more than one position, the first one is shown
+                    hkl.append(float(dataset[(0,) * dataset.ndim]))
+                output.info["hkl"] = hkl
+            except Exception:
+                output.info["hkl"] = None
         if "mca" in selection:
             # this should go somewhere else
             h5File = phynxFile
