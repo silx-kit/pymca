@@ -336,6 +336,7 @@ class NexusDataSource(object):
             txt = "Error reading title for path <%s>"
             _logger.warning(txt)
             output.info["title"] = ""
+        output.info["entry"] = entry
         output.info['selection'] = selection
         # promote plot_yaxis from selection to top-level info so the right Y-axis could appear
         if 'plot_yaxis' in selection:
