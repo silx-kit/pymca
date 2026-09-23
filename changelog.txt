@@ -1,7 +1,68 @@
-Unreleased
-----------
+VERSION 5.9.7
+-------------
+
+- GUI. Support dark mode.
+
+- CLI. Common command line interface for all applications, with --help.
+
+- GUI. Add the possibility to remove the default settings (File menu | pymca --clean_ini).
+
+- HDF5. Refresh keeps the tree expansion and the selection, and updates the plots.
+
+- HDF5. Add Auto REFRESH option to update the plotted data every second.
+
+- HDF5. Add the possibility to plot signals against a right Y-axis and to select multiple monitors (right click on the table headers).
+
+- HDF5. Allow scalar monitors.
+
+- HDF5. Improved sorting of entries using several keys by priority (Correct sorting).
+
+- HDF5. Prevent crashes when reading files being written. Closing a file releases it completely.
+
+- HDF5. Do not plot misleading curves when selecting several entries with different counter or motor names in the AUTO tab.
+
+- HDF5. Skip positioners that are not datasets (Motor Info plugin).
+
+- HDF5. Compatibility with silx 3.1.
+
+- HDF5. Show scan number and title of HDF5 scans as for SPEC files. Read H, K, L from the positioners if available.
+
+- ROI Imaging. Integrate the Mask Scatter View plugin as scatter mode for maps with per point motor positions, like irregular or mosaic maps (requires silx).
+
+- ROI Imaging. Validate the HDF5 stack selection with explanatory messages. Add "No 1D data" option to load stacks of images.
+
+- ROI Imaging and RGB Correlator. Allow to open incomplete scans padding the missing points with NaN.
+
+- ROI Imaging. Correct the reshaping of stacks with NaN values.
+
+- ROI Imaging. Correct outdated titles in PCA and NNMA vector plots.
+
+- 1d-Plots. Legend of the active curve uses the active curve color (black).
+
+- GUI. Correct printing of plots with PyQt6 and PySide6.
+
+- GUI. Compatibility with matplotlib 3.11. Require matplotlib 3.5 or newer.
+
+- Compatibility with numpy 2.4.
+
+- Packaging. Correct multiprocessing issues of frozen binaries.
+
+VERSION 5.9.6
+-------------
+
+- Build and test under Python 3.14.
 
 - XRF. Bug fix in batch processing when using fit files.
+
+- XRF. Explicit xmin and xmax arguments of McaTheory.setData.
+
+- HDF5. Correct display of scalar datasets.
+
+- GUI. Force light mode under Windows.
+
+- Packaging. Correct HDF5 file access in MacOS frozen binaries.
+
+- Prepare for the numpy deprecation.
 
 VERSION 5.9.5
 -------------
