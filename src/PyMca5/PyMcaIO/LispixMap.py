@@ -2,7 +2,7 @@
 #
 # The PyMca X-Ray Fluorescence Toolkit
 #
-# Copyright (c) 2004-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2026 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF.
@@ -62,6 +62,19 @@ class LispixMap(DataObject.DataObject):
         '''
         dataFile, headerFile = _getDataAndDescriptionFileName(filename)
         description = _parseHeaderFile(headerFile)
+
+        byte_order = description.get("byte-order", None)
+        if byte_order in ["big-endian", "high-endian"]:
+            if sys.byteorder == "litte":
+                safememmap = False
+            else:
+                safememmap = True
+        else:
+            # assume little-endian
+            if sys.byteorder == "litte":
+                safememmap = True
+            else:
+                safememmap = False
 
         columns = description.get("width", None)
         rows = description.get("height", None)
@@ -132,8 +145,30 @@ class LispixMap(DataObject.DataObject):
             finally:
                 f.close()
             mcaIndex = 2
-        elif (offset == 0) and (dtype not in [numpy.int8, numpy.uint8, numpy.int16, numpy.uint16]):
+        elif (offset == 0) and safememmap:
             # direct, native readout using numpy
+            try:
+                import h5py
+                h5 = h5py.File(filename+"_hd5_wrap.h5", "w")
+                size_bytes = rows * columns * channels * description["data-length"]
+                h5["/stack/title"] = "HDF5 wrapped raw file"
+                h5["/stack"].create_group("data")
+                h5["/stack/data"].create_dataset("spectra",
+                                        shape=(rows, columns, channels),
+                                        dtype=dtype,
+                                        #external=((dataFile, offset, size_bytes)))
+                                        external=((dataFile, offset, h5py.h5f.UNLIMITED),))
+                h5["/stack/data/spectra"].attrs['interpretation'] = u"spectrum"
+                h5["/stack/data"].attrs['signal'] = u"spectra"
+                h5["/stack/data"].attrs["NX_class"] = u"NXdata"
+                h5["/stack"].attrs["NX_class"] = u"NXentry"
+                h5["/"].attrs["NX_class"] = u"NXroot"
+                h5.flush()
+                h5.close()
+                _logger.info("Successful Automatic hdf5 wrapping")
+            except Exception:
+                _logger.warning("Automatic hdf5 wrapping failed")
+            _logger.info("Mapping using numpy.fromfile")
             self.data = numpy.fromfile(dataFile, dtype=dtype)
             native = True
         elif description["record-by"] == "image":
@@ -158,6 +193,7 @@ class LispixMap(DataObject.DataObject):
                 f.close()
             native = True
         elif description["record-by"] != "image":
+            print("Reading using struct")
             if dtype in [numpy.int8, numpy.uint8, numpy.int16, numpy.uint16]:
                 # force stack of spectra with floating point values
                 self.data = numpy.zeros((rows, columns, channels), dtype=numpy.float32)
