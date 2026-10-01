@@ -65,7 +65,7 @@ class LispixMap(DataObject.DataObject):
 
         byte_order = description.get("byte-order", None)
         if byte_order in ["big-endian", "high-endian"]:
-            if sys.byteorder == "litte":
+            if sys.byteorder == "little":
                 safememmap = False
             else:
                 safememmap = True
