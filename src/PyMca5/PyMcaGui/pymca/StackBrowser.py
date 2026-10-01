@@ -1,5 +1,5 @@
 #/*##########################################################################
-# Copyright (C) 2004-2022 European Synchrotron Radiation Facility
+# Copyright (C) 2004-2026 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF.
@@ -213,7 +213,8 @@ class StackBrowser(MaskImageWidget.MaskImageWidget):
                                      (data[0, :, :]+data[-1, :,:])
                         data = data.sum(axis=0) - backgroundData
                     else:
-                        data = dataObject.data[i0:i1,:,:].sum(axis=0)
+                        data = dataObject.data[i0:i1,:,:].sum(axis=0,
+                                        dtype=numpy.float64)
                     data /= float(i1-i0)
                 return data
             #I have to deduce the appropriate indices from the given index
@@ -232,7 +233,8 @@ class StackBrowser(MaskImageWidget.MaskImageWidget):
                         j = tmpIndex % acquisitionShape[-1]
                         i = int(index/npoints)
                         if tmpIndex == i0:
-                            data = dataObject.data[i, j]
+                            data = numpy.array(dataObject.data[i, j],
+                                               dtype=numpy.float64)
                             backgroundData = data * 1
                         elif tmpIndex == (i1-1):
                             tmpData = dataObject.data[i, j]
@@ -259,9 +261,11 @@ class StackBrowser(MaskImageWidget.MaskImageWidget):
                         data = dataObject.data[:,:,i0:i1]
                         backgroundData = 0.5*(i1-i0)*\
                                      (data[:, :,  0]+data[:,:,-1])
-                        data = data.sum(axis=-1) - backgroundData
+                        data = data.sum(axis=-1,
+                                        dtype=numpy.float64) - backgroundData
                     else:
-                        data = dataObject.data[:,:,i0:i1].sum(axis=-1)
+                        data = dataObject.data[:,:,i0:i1].sum(axis=-1,
+                                                        dtype=numpy.float64)
                     data /= float(i1-i0)
                 return data
         raise IndexError("Unhandled dimension")
