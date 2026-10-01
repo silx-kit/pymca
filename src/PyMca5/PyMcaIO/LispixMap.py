@@ -148,7 +148,7 @@ class LispixMap(DataObject.DataObject):
         elif (offset == 0) and safememmap:
             # direct, native readout using numpy possible
             try:
-                hdf5_wrap = filename+"_hd5_wrap.h5"
+                hdf5_wrap = os.path.abspath(filename) + "_hd5_wrap.h5"
                 if not os.path.exists(hdf5_wrap):
                     import h5py
                     h5 = h5py.File(hdf5_wrap, "w")
