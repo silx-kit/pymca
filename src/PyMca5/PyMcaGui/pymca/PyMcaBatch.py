@@ -1668,19 +1668,26 @@ class McaBatchWindow(qt.QWidget):
                     except Exception:
                         _logger.warning("cannot delete file %s", self.htmlindex)
         nfiles = len(indexlist)
+        if nfiles == 1:
+            self._handleTimeLeftOnImage = True
+        else:
+            self._handleTimeLeftOnImage = False
         self.status.setText("Processing file %s" % file)
         e = time.time()
         self.progressBar.setMaximum(nfiles)
         self.progressBar.setValue(index)
-        if self.time0 is not None:
-            t = (e - self.time0) * (nfiles - index)
-            self.time0 =e
-            if t < 120:
-                self.timeLeft.setText("Estimated time left = %d sec" % (t))
-            else:
-                self.timeLeft.setText("Estimated time left = %d min" % (int(t / 60.)))
+        if self._handleTimeLeftOnImage:
+            pass
         else:
-            self.time0 = e
+            if self.time0 is not None:
+                t = (e - self.time0) * (nfiles - index)
+                self.time0 = e
+                if t < 120:
+                    self.timeLeft.setText("Estimated time left = %d sec" % (t))
+                else:
+                    self.timeLeft.setText("Estimated time left = %d min" % (int(t / 60.)))
+            else:
+                self.time0 = e
         if sys.platform == 'darwin':
             qApp = qt.QApplication.instance()
             qApp.processEvents()
@@ -1693,6 +1700,17 @@ class McaBatchWindow(qt.QWidget):
         self.imageBar.setValue(i)
         self.mcaBar.setMaximum(1)
         self.mcaBar.setValue(0)
+        if self._handleTimeLeftOnImage:
+            e = time.time()
+            if self.time0 is not None:
+                t = (e - self.time0) * (n - i)
+                self.time0 = e
+                if t < 120:
+                    self.timeLeft.setText("Estimated time left = %d sec" % (t))
+                else:
+                    self.timeLeft.setText("Estimated time left = %d min" % (int(t / 60.)))
+            else:
+                self.time0 = e
 
     #def onMca(self, mca, nmca, mcastep):
     def onMca(self, ddict):
