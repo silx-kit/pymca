@@ -146,26 +146,31 @@ class LispixMap(DataObject.DataObject):
                 f.close()
             mcaIndex = 2
         elif (offset == 0) and safememmap:
-            # direct, native readout using numpy
+            # direct, native readout using numpy possible
             try:
-                import h5py
-                h5 = h5py.File(filename+"_hd5_wrap.h5", "w")
-                size_bytes = rows * columns * channels * description["data-length"]
-                h5["/stack/title"] = "HDF5 wrapped raw file"
-                h5["/stack"].create_group("data")
-                h5["/stack/data"].create_dataset("spectra",
+                hdf5_wrap = filename+"_hd5_wrap.h5"
+                if not os.path.exists(hdf5_wrap):
+                    import h5py
+                    h5 = h5py.File(hdf5_wrap, "w")
+                    size_bytes = rows * columns * channels * \
+                                 description["data-length"]
+                    h5["/stack/title"] = "HDF5 wrapped raw file"
+                    h5["/stack"].create_group("data")
+                    h5["/stack/data"].create_dataset("spectra",
                                         shape=(rows, columns, channels),
                                         dtype=dtype,
-                                        #external=((dataFile, offset, size_bytes)))
-                                        external=((dataFile, offset, h5py.h5f.UNLIMITED),))
-                h5["/stack/data/spectra"].attrs['interpretation'] = u"spectrum"
-                h5["/stack/data"].attrs['signal'] = u"spectra"
-                h5["/stack/data"].attrs["NX_class"] = u"NXdata"
-                h5["/stack"].attrs["NX_class"] = u"NXentry"
-                h5["/"].attrs["NX_class"] = u"NXroot"
-                h5.flush()
-                h5.close()
-                _logger.info("Successful Automatic hdf5 wrapping")
+                                        #external=[(dataFile, offset, size_bytes)])
+                                        external=((dataFile,
+                                                   offset,
+                                                   h5py.h5f.UNLIMITED),))
+                    h5["/stack/data/spectra"].attrs['interpretation'] = u"spectrum"
+                    h5["/stack/data"].attrs['signal'] = u"spectra"
+                    h5["/stack/data"].attrs["NX_class"] = u"NXdata"
+                    h5["/stack"].attrs["NX_class"] = u"NXentry"
+                    h5["/"].attrs["NX_class"] = u"NXroot"
+                    h5.flush()
+                    h5.close()
+                    _logger.info("Successful Automatic hdf5 wrapping")
             except Exception:
                 _logger.warning("Automatic hdf5 wrapping failed")
             _logger.info("Mapping using numpy.memmap")
