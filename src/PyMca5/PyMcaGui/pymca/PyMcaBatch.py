@@ -1668,17 +1668,14 @@ class McaBatchWindow(qt.QWidget):
                     except Exception:
                         _logger.warning("cannot delete file %s", self.htmlindex)
         nfiles = len(indexlist)
+        self.status.setText("Processing file %s" % file)
+        self.progressBar.setMaximum(nfiles)
+        self.progressBar.setValue(index)
         if nfiles == 1:
             self._handleTimeLeftOnImage = True
         else:
             self._handleTimeLeftOnImage = False
-        self.status.setText("Processing file %s" % file)
-        e = time.time()
-        self.progressBar.setMaximum(nfiles)
-        self.progressBar.setValue(index)
-        if self._handleTimeLeftOnImage:
-            pass
-        else:
+            e = time.time()
             if self.time0 is not None:
                 t = (e - self.time0) * (nfiles - index)
                 self.time0 = e
