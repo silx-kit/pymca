@@ -148,28 +148,27 @@ class LispixMap(DataObject.DataObject):
         elif (offset == 0) and safememmap:
             # direct, native readout using numpy possible
             try:
-                hdf5_wrap = os.path.abspath(filename) + "_hd5_wrap.h5"
+                hdf5_wrap = os.path.abspath(filename) + "_hdf5_wrap.h5"
                 if not os.path.exists(hdf5_wrap):
                     import h5py
-                    h5 = h5py.File(hdf5_wrap, "w")
-                    size_bytes = rows * columns * channels * \
-                                 description["data-length"]
-                    h5["/stack/title"] = "HDF5 wrapped raw file"
-                    h5["/stack"].create_group("data")
-                    h5["/stack/data"].create_dataset("spectra",
-                                        shape=(rows, columns, channels),
-                                        dtype=dtype,
-                                        #external=[(dataFile, offset, size_bytes)])
-                                        external=((dataFile,
-                                                   offset,
-                                                   h5py.h5f.UNLIMITED),))
-                    h5["/stack/data/spectra"].attrs['interpretation'] = u"spectrum"
-                    h5["/stack/data"].attrs['signal'] = u"spectra"
-                    h5["/stack/data"].attrs["NX_class"] = u"NXdata"
-                    h5["/stack"].attrs["NX_class"] = u"NXentry"
-                    h5["/"].attrs["NX_class"] = u"NXroot"
-                    h5.flush()
-                    h5.close()
+                    with h5py.File(hdf5_wrap, "w") as h5:
+                        size_bytes = rows * columns * channels * \
+                                     description["data-length"]
+                        h5["/stack/title"] = "HDF5 wrapped raw file"
+                        h5["/stack"].create_group("data")
+                        h5["/stack/data"].create_dataset("spectra",
+                                            shape=(rows, columns, channels),
+                                            dtype=dtype,
+                                            #external=[(dataFile, offset, size_bytes)])
+                                            external=((dataFile,
+                                                       offset,
+                                                       h5py.h5f.UNLIMITED),))
+                        h5["/stack/data/spectra"].attrs['interpretation'] = u"spectrum"
+                        h5["/stack/data"].attrs['signal'] = u"spectra"
+                        h5["/stack/data"].attrs["NX_class"] = u"NXdata"
+                        h5["/stack"].attrs["NX_class"] = u"NXentry"
+                        h5["/"].attrs["NX_class"] = u"NXroot"
+                        h5.flush()
                     _logger.info("Successful Automatic hdf5 wrapping")
             except Exception:
                 _logger.warning("Automatic hdf5 wrapping failed")
