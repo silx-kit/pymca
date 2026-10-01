@@ -2,7 +2,7 @@
 #
 # The PyMca X-Ray Fluorescence Toolkit
 #
-# Copyright (c) 2004-2025 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2026 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF.
@@ -303,7 +303,7 @@ class McaAdvancedFitBatch(object):
                     # TODO: what if the user gave more than one HDF5 file?
                     break
                 else:
-                    _logger.warning("Multiple stacks may no work yet")
+                    _logger.warning("Multiple stacks may not work yet")
                     # TODO: I doubt this works for multiple non-HDF5 stacks
                     #       because __processStack restarts from __row = 0
             else:
@@ -455,7 +455,10 @@ class McaAdvancedFitBatch(object):
         nmcaToFit = len(mcaIndices)
         keylist = ["1.1"] * nrows
         for i in range(nrows):
-            keylist[i] = "1.%04d" % i
+            if nrows > 10000:
+                keylist[i] = "1.%06d" % i
+            else:
+                keylist[i] = "1.%04d" % i
 
         for i in range(nrows):
             if self.pleaseBreak:
