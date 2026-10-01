@@ -201,7 +201,7 @@ class LispixMap(DataObject.DataObject):
                 f.close()
             native = True
         elif description["record-by"] != "image":
-            print("Reading using struct")
+            _logger.info("Reading using struct")
             if dtype in [numpy.int8, numpy.uint8, numpy.int16, numpy.uint16]:
                 # force stack of spectra with floating point values
                 self.data = numpy.zeros((rows, columns, channels), dtype=numpy.float32)
