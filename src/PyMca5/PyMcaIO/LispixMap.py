@@ -71,7 +71,7 @@ class LispixMap(DataObject.DataObject):
                 safememmap = True
         else:
             # assume little-endian
-            if sys.byteorder == "litte":
+            if sys.byteorder == "little":
                 safememmap = True
             else:
                 safememmap = False
@@ -168,8 +168,11 @@ class LispixMap(DataObject.DataObject):
                 _logger.info("Successful Automatic hdf5 wrapping")
             except Exception:
                 _logger.warning("Automatic hdf5 wrapping failed")
-            _logger.info("Mapping using numpy.fromfile")
-            self.data = numpy.fromfile(dataFile, dtype=dtype)
+            _logger.info("Mapping using numpy.memmap")
+            self.data = numpy.memmap(dataFile,
+                                     mode='r',
+                                     dtype=dtype,
+                                     shape=(channels, rows, columns))
             native = True
         elif description["record-by"] == "image":
             if dtype in [numpy.int8, numpy.uint8, numpy.int16, numpy.uint16]:
