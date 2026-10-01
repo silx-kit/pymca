@@ -149,7 +149,7 @@ class LispixMap(DataObject.DataObject):
             # direct, native readout using numpy possible
             size_bytes = rows * columns * channels * description["data-length"]
             try:
-                hdf5_wrap = os.path.abspath(filename) + "_hdf5_wrap.h5"
+                hdf5_wrap = os.path.abspath(filename){:-4] + "_hdf5_wrap.h5"
                 if not os.path.exists(hdf5_wrap):
                     import h5py
                     with h5py.File(hdf5_wrap, "w") as h5:
@@ -171,16 +171,16 @@ class LispixMap(DataObject.DataObject):
                     _logger.info("Successful Automatic hdf5 wrapping")
             except Exception:
                 _logger.warning("Automatic hdf5 wrapping failed")
-            done = False
+            inMemory = False
             if size_bytes < 2.5e9:
                 # on reasonable sizes by 2026 standards try to read into memory
                 try:
                     _logger.info("Reading using numpy.fromfile")
                     self.data = numpy.fromfile(dataFile, dtype=dtype)
-                    done = True
+                    inMemory = True
                 except Exception:
                     _logger.warning("Unsuccessful reading by numpy.fromfile")                                     
-            if not done:
+            if not inMemory:
                 _logger.info("Mapping using numpy.memmap")
                 self.data = numpy.memmap(dataFile,
                                          mode='r',
