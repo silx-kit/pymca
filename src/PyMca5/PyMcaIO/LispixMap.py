@@ -149,7 +149,7 @@ class LispixMap(DataObject.DataObject):
             # direct, native readout using numpy possible
             size_bytes = rows * columns * channels * description["data-length"]
             try:
-                hdf5_wrap = os.path.abspath(filename){:-4] + "_hdf5_wrap.h5"
+                hdf5_wrap = os.path.abspath(filename)[:-4] + "_hdf5_wrap.h5"
                 if not os.path.exists(hdf5_wrap):
                     import h5py
                     with h5py.File(hdf5_wrap, "w") as h5:
@@ -159,7 +159,7 @@ class LispixMap(DataObject.DataObject):
                                             shape=(rows, columns, channels),
                                             dtype=dtype,
                                             #external=[(dataFile, offset, size_bytes)])
-                                            external=((dataFile,
+                                            external=((os.path.abspath(dataFile),
                                                        offset,
                                                        h5py.h5f.UNLIMITED),))
                         h5["/stack/data/spectra"].attrs['interpretation'] = u"spectrum"
