@@ -171,21 +171,17 @@ class LispixMap(DataObject.DataObject):
                     _logger.info("Successful Automatic hdf5 wrapping")
             except Exception:
                 _logger.warning("Automatic hdf5 wrapping failed")
-            inMemory = False
-            if size_bytes < 2.5e9:
-                # on reasonable sizes by 2026 standards try to read into memory
-                try:
-                    _logger.info("Reading using numpy.fromfile")
-                    self.data = numpy.fromfile(dataFile, dtype=dtype)
-                    inMemory = True
-                except Exception:
-                    _logger.warning("Unsuccessful reading by numpy.fromfile")                                     
-            if not inMemory:
-                _logger.info("Mapping using numpy.memmap")
-                self.data = numpy.memmap(dataFile,
-                                         mode='r',
-                                         dtype=dtype,
-                                         shape=(channels, rows, columns))
+            data = numpy.memmap(dataFile,
+                                mode='r',
+                                dtype=dtype,
+                                shape=(channels, rows, columns))
+            try:
+                # I dislike this because the data can fit into memory but be
+                # totally useless because of not being able to operate with it
+                self.data = numpy.array(data, dtype=numpy.float32)
+            except Exception:
+                _logger.warning("Using dynamic loading")                
+                self.data = data
             native = True
         elif description["record-by"] == "image":
             if dtype in [numpy.int8, numpy.uint8, numpy.int16, numpy.uint16]:
