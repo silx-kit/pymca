@@ -176,11 +176,10 @@ class LispixMap(DataObject.DataObject):
                                 dtype=dtype,
                                 shape=(channels, rows, columns))
             try:
-                # I dislike this because the data can fit into memory but be
-                # totally useless because of not being able to operate with it
                 self.data = numpy.array(data, dtype=numpy.float32)
+                _logger.info("Data in memory as float32")
             except Exception:
-                _logger.warning("Using dynamic loading")                
+                _logger.warning("Using dynamic loading")
                 self.data = data
             native = True
         elif description["record-by"] == "image":
