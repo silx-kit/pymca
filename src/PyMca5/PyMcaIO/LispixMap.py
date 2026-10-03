@@ -2,7 +2,7 @@
 #
 # The PyMca X-Ray Fluorescence Toolkit
 #
-# Copyright (c) 2004-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2026 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF.
@@ -36,6 +36,7 @@ import struct
 import numpy
 import logging
 from PyMca5 import DataObject
+from PyMca5.PyMcaMisc import PhysicalMemory
 
 _logger = logging.getLogger(__name__)
 
@@ -49,8 +50,8 @@ class LispixMap(DataObject.DataObject):
     This class info member contains all the parsed information.
     This class data member contains the map itself as a 3D array.
     '''
-    
-    def __init__(self, filename, native=False):
+
+    def __init__(self, filename, native=False, dynamic=None):
         '''
         Parameters:
         -----------
@@ -59,9 +60,26 @@ class LispixMap(DataObject.DataObject):
         native : boolean (default False)
             If set to False, it will always return a stack of spectra.
             It set to True, it will return what it is specified in the original file.
+        dynamic : boolean (default None)
+            If None, it will attempt to use dynamic loading of data only in case of memory issues
+            If False, it will not use dynamic loading. Raising errors in case of memory limitations
+            If True, it will always try to use dynamic loading. It will not raise exceptions if it cannot.
         '''
         dataFile, headerFile = _getDataAndDescriptionFileName(filename)
         description = _parseHeaderFile(headerFile)
+
+        byte_order = description.get("byte-order", None)
+        if byte_order in ["big-endian", "high-endian"]:
+            if sys.byteorder == "little":
+                safememmap = False
+            else:
+                safememmap = True
+        else:
+            # assume little-endian
+            if sys.byteorder == "little":
+                safememmap = True
+            else:
+                safememmap = False
 
         columns = description.get("width", None)
         rows = description.get("height", None)
@@ -70,7 +88,7 @@ class LispixMap(DataObject.DataObject):
         if rows is None:
             raise IOError("Missing height field")
         offset = description["offset"]
-        channels = description["depth"]        
+        channels = description["depth"]
         if description["data-type"] in ["float", "double"]:
             if description["data-length"] == 4:
                 dtype = numpy.float32
@@ -89,7 +107,7 @@ class LispixMap(DataObject.DataObject):
                 fmt = "h"
             elif description["data-length"] == 4:
                 dtype = numpy.int32
-                fmt = "l"                      
+                fmt = "l"
             elif description["data-length"] == 8:
                 dtype = numpy.int64
                 fmt = "q"
@@ -132,10 +150,6 @@ class LispixMap(DataObject.DataObject):
             finally:
                 f.close()
             mcaIndex = 2
-        elif (offset == 0) and (dtype not in [numpy.int8, numpy.uint8, numpy.int16, numpy.uint16]):
-            # direct, native readout using numpy
-            self.data = numpy.fromfile(dataFile, dtype=dtype)
-            native = True
         elif description["record-by"] == "image":
             if dtype in [numpy.int8, numpy.uint8, numpy.int16, numpy.uint16]:
                 # force stack of spectra with floating point values
@@ -157,7 +171,79 @@ class LispixMap(DataObject.DataObject):
             finally:
                 f.close()
             native = True
-        elif description["record-by"] != "image":
+        elif (offset == 0) and safememmap:
+            # data stored as spectra in the file in conditions where
+            # direct, native readout as spectra using numpy possible
+
+            # provide an HDF5 wrapper as a bonus to allow more functionalities of PyMca than
+            # those provided to Lispix format.
+            try:
+                hdf5_wrap = os.path.abspath(filename)[:-4] + "_hdf5_wrap.h5"
+                if not os.path.exists(hdf5_wrap):
+                    import h5py
+                    with h5py.File(hdf5_wrap, "w") as h5:
+                        h5["/stack/title"] = "HDF5 wrapped raw file"
+                        h5["/stack"].create_group("data")
+                        h5["/stack/data"].create_dataset("spectra",
+                                            shape=(rows, columns, channels),
+                                            dtype=dtype,
+                                            #external=[(dataFile, offset, size_bytes)])
+                                            external=((os.path.abspath(dataFile),
+                                                       0,
+                                                       h5py.h5f.UNLIMITED),))
+                        h5["/stack/data/spectra"].attrs['interpretation'] = u"spectrum"
+                        h5["/stack/data"].attrs['signal'] = u"spectra"
+                        h5["/stack/data"].attrs["NX_class"] = u"NXdata"
+                        h5["/stack"].attrs["NX_class"] = u"NXentry"
+                        h5["/"].attrs["NX_class"] = u"NXroot"
+                        h5.flush()
+                    _logger.info("Successful Automatic hdf5 wrapping")
+            except Exception:
+                _logger.warning("Automatic hdf5 wrapping failed")
+
+            data = numpy.memmap(dataFile,
+                                mode='r',
+                                dtype=dtype,
+                                shape=(channels, rows, columns))
+
+            if dtype in [numpy.int8, numpy.uint8, numpy.int16, numpy.uint16]:
+                # force floating point values as in the other paths
+                memoryDtype = numpy.float32
+            else:
+                memoryDtype = dtype
+            neededBytes = data.size * numpy.dtype(memoryDtype).itemsize
+
+            if dynamic == True:
+                # we are done
+                self.data = data
+                _logger.info(f"Dynamic loading as {dtype}")
+            elif dynamic == False:
+                # attempt direct conversion
+                self.data = numpy.array(data, dtype=memoryDtype)
+                _logger.info(f"Data in memory as {memoryDtype}")
+            else:
+                # same rule as HDF5Stack1D
+                physicalMemory = None
+                if hasattr(PhysicalMemory, "getAvailablePhysicalMemoryOrNone"):
+                    physicalMemory = PhysicalMemory.getAvailablePhysicalMemoryOrNone()
+                if not physicalMemory:
+                    physicalMemory = PhysicalMemory.getPhysicalMemoryOrNone()
+                if physicalMemory is None:
+                    physicalMemory = 6000 * 1024 * 1024
+                if (neededBytes < 0.95 * physicalMemory):
+                    try:
+                        self.data = numpy.array(data, dtype=memoryDtype)
+                        _logger.info(f"Data in memory as {memoryDtype}")
+                    except Exception as e:
+                        # Expected only MemoryError exception
+                        _logger.warning(f"Exception {e} occurred. Using dynamic loading")
+                        self.data = data
+                else:
+                    self.data = data
+                    _logger.info(f"Dynamic loading as {dtype} due to memory limitations")
+            native = True
+        else:
+            _logger.info("Reading as spectra using struct")
             if dtype in [numpy.int8, numpy.uint8, numpy.int16, numpy.uint16]:
                 # force stack of spectra with floating point values
                 self.data = numpy.zeros((rows, columns, channels), dtype=numpy.float32)
@@ -178,8 +264,6 @@ class LispixMap(DataObject.DataObject):
             finally:
                 f.close()
             native = True
-        else:
-            raise IOError("Unhandled reading case. I should not reach this point")
 
         if native:
             if description["record-by"] == "image":
@@ -215,7 +299,7 @@ def _getDataAndDescriptionFileName(filename):
     """
     tmpFileName = filename.lower()
     if tmpFileName.endswith(".raw"):
-        dataDile = filename 
+        dataDile = filename
         headerFile = filename[:-3] + "rpl"
     elif tmpFileName.endswith(".rpl"):
         headerFile = filename
