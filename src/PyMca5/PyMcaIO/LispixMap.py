@@ -63,7 +63,7 @@ class LispixMap(DataObject.DataObject):
         dynamic : boolean (default None)
             If None, it will attempt to use dynamic loading of data only in case of memory issues
             If False, it will not use dynamic loading. Raising errors in case of memory limitations
-            If True, it will allways try to use dynamic loading. It will not raise exceptions if it cannot.
+            If True, it will always try to use dynamic loading. It will not raise exceptions if it cannot.
         '''
         dataFile, headerFile = _getDataAndDescriptionFileName(filename)
         description = _parseHeaderFile(headerFile)
