@@ -91,6 +91,7 @@ class PyMcaPostBatch(RGBCorrelator.RGBCorrelator):
 
 def main(args):
     app = qt.QApplication([])
+    app.setDesktopFileName("pymcapostbatch")
     PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
 
     if args.shape:

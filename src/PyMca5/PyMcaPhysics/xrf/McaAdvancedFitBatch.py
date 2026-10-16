@@ -487,7 +487,10 @@ class McaAdvancedFitBatch(object):
                 else:
                     x = xStack
                 #key = "%s.%s.%02d.%02d" % (scan,order,row,col)
-                key = "%s.%04d" % (keylist[i], mcaIndex)
+                if self.__ncols > 10000:
+                    key = "%s.%06d" % (keylist[i], mcaIndex)
+                else:
+                    key = "%s.%04d" % (keylist[i], mcaIndex)
                 #I only process the first file of the stack?
                 filename = os.path.basename(info['SourceName'][0])
                 infoDict = {}

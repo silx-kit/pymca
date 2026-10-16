@@ -289,6 +289,7 @@ class MyQLineEdit(qt.QLineEdit):
 
 def main(args):
     app  = qt.QApplication([])
+    app.setDesktopFileName("elementsinfo")
     PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
 
     w = ElementsInfo()

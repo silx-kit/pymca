@@ -1764,6 +1764,7 @@ def main(args):
 
     # Initialize Qt application
     app = qt.QApplication([])
+    app.setDesktopFileName("pymca")
     PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
 
     # Splash screen

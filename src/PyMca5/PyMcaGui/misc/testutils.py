@@ -41,17 +41,7 @@ _logger = logging.getLogger(__name__)
 
 from PyMca5.PyMcaGui import PyMcaQt as qt
 
-if qt.BINDING == 'PySide2':
-    from PySide2.QtTest import QTest
-    try:
-        from PySide2.shiboken2 import isValid  # noqa
-        from PySide2.shiboken2 import createdByPython  # noqa
-        from PySide2.shiboken2 import ownedByPython  # noqa
-    except ImportError:
-        from shiboken2 import isValid  # noqa
-        from shiboken2 import createdByPython  # noqa
-        from shiboken2 import ownedByPython  # noqa
-elif qt.BINDING == 'PyQt5':
+if qt.BINDING == 'PyQt5':
     from PyQt5.QtTest import QTest
     try:
         from PyQt5.sip import isdeleted as _isdeleted  # noqa
@@ -87,36 +77,11 @@ elif qt.BINDING == 'PyQt6':
         """
         return not _isdeleted(obj)
 
-elif qt.BINDING == 'PyQt4':
-    from PyQt4.QtTest import QTest
-    from sip import isdeleted as _isdeleted  # noqa
-    from sip import ispycreated as createdByPython  # noqa
-    from sip import ispyowned as ownedByPython  # noqa
-    def isValid(obj):
-        """Returns True if underlying C++ object is valid.
-
-        :param QObject obj:
-        :rtype: bool
-        """
-        return not _isdeleted(obj)
-
 elif qt.BINDING == 'PySide6':
     from PySide6.QtTest import QTest
     from shiboken6 import isValid, createdByPython, ownedByPython
 else:
     raise ImportError('Unsupported Qt bindings')
-
-# Qt4/Qt5 compatibility wrapper
-if qt.BINDING in ('PySide', 'PyQt4'):
-    _logger.info("QTest.qWaitForWindowExposed not available," +
-                 "using QTest.qWaitForWindowShown instead.")
-
-    def qWaitForWindowExposed(window, timeout=None):
-        """Mimic QTest.qWaitForWindowExposed for Qt4."""
-        QTest.qWaitForWindowShown(window)
-        return True
-else:
-    qWaitForWindowExposed = QTest.qWaitForWindowExposed
 
 
 def qWaitForWindowExposedAndActivate(window, timeout=None):
@@ -127,9 +92,9 @@ def qWaitForWindowExposedAndActivate(window, timeout=None):
     See QTest.qWaitForWindowExposed for details.
     """
     if timeout is None:
-        result = qWaitForWindowExposed(window)
+        result = QTest.qWaitForWindowExposed(window)
     else:
-        result = qWaitForWindowExposed(window, timeout)
+        result = QTest.qWaitForWindowExposed(window, timeout)
 
     if result:
         # Makes sure window is active and on top
@@ -138,10 +103,8 @@ def qWaitForWindowExposedAndActivate(window, timeout=None):
 
     return result
 
-
 # Placeholder for QApplication
 _qapp = None
-
 
 class TestCaseQt(unittest.TestCase):
     """Base class to write test for Qt stuff.
@@ -234,7 +197,8 @@ class TestCaseQt(unittest.TestCase):
         widgets = [widget for widget in self.qapp.allWidgets()
                    if (widget not in self.__previousWidgets and
                        createdByPython(widget))]
-        del self.__previousWidgets
+
+        self.__previousWidgets = None
 
         if qt.BINDING in ('PySide', 'PySide2', 'PySide6', 'PyQt5', 'PyQt6', 'PyQt4'):
             # TODO: many leaks with PyQt5 as well...
@@ -261,6 +225,7 @@ class TestCaseQt(unittest.TestCase):
                 "Test ended with widgets alive: %s" % txt)
 
     def tearDown(self):
+        self.qapp.processEvents()
         if len(self.__class__._exceptions) > 0:
             messages = "\n".join(self.__class__._exceptions)
             raise AssertionError("Exception occured in Qt thread:\n" + messages)
@@ -407,16 +372,7 @@ class TestCaseQt(unittest.TestCase):
         if ms is None:
             ms = cls.DEFAULT_TIMEOUT_WAIT
 
-        if qt.BINDING in ('PySide', 'PySide2', 'PySide6'):
-            # PySide has no qWait, provide a replacement
-            timeout = int(ms)
-            endTimeMS = int(time.time() * 1000) + timeout
-            while timeout > 0:
-                _qapp.processEvents(qt.QEventLoop.AllEvents,
-                                        timeout)
-                timeout = endTimeMS - int(time.time() * 1000)
-        else:
-            QTest.qWait(ms + cls.TIMEOUT_WAIT)
+        QTest.qWait(ms + cls.TIMEOUT_WAIT)
 
     def qWaitForWindowExposed(self, window, timeout=None):
         """Waits until the window is shown in the screen.

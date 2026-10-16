@@ -1667,6 +1667,7 @@ def main(args):
             _logger.warning("Cannot set backend to %s", args.backend)
 
     app = qt.QApplication([])
+    app.setDesktopFileName("pymcaroitool")
     PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
 
     widget = QStackWidget()

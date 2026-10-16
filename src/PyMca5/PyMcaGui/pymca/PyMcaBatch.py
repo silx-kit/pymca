@@ -1925,6 +1925,7 @@ def main(args):
             cfg = [line.decode(sys.getfilesystemencoding()).strip() for line in fd.readlines()]
 
     app = qt.QApplication([])
+    app.setDesktopFileName("pymcabatch")
     PyMcaAppInit.init_before_app_start(qt_app=app, cli_args=args)
 
     if args.html:
