@@ -2,7 +2,7 @@
 #
 # The PyMca X-Ray Fluorescence Toolkit
 #
-# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2026 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF.
@@ -338,7 +338,10 @@ class McaAdvancedFitBatch(object):
         numberofmca = stack.info['Dim_2']
         keylist = ["1.1"] * nimages
         for i in range(nimages):
-            keylist[i] = "1.%04d" % i
+            if nimages > 10000:
+                keylist[i] = "1.%06d" % i
+            else:
+                keylist[i] = "1.%04d" % i
 
         for i in range(nimages):
             if self.pleaseBreak: break
@@ -370,7 +373,10 @@ class McaAdvancedFitBatch(object):
                 else:
                     x = xStack
                 #key = "%s.%s.%02d.%02d" % (scan,order,row,col)
-                key = "%s.%04d" % (keylist[i], mca)
+                if self.__ncols > 10000:
+                    key = "%s.%06d" % (keylist[i], mca)
+                else:
+                    key = "%s.%04d" % (keylist[i], mca)
                 #I only process the first file of the stack?
                 filename = os.path.basename(info['SourceName'][0])
                 infoDict = {}
