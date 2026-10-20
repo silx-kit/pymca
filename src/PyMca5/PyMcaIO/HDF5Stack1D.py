@@ -46,12 +46,16 @@ SOURCE_TYPE = "HDF5Stack1D"
 class HDF5Stack1D(DataObject.DataObject):
     def __init__(self, filelist, selection,
                        scanlist=None,
-                       dtype=None):
+                       dtype=None,
+                       dynamic=None):
         DataObject.DataObject.__init__(self)
 
         #the data type of the generated stack
         self.__dtype0 = dtype
         self.__dtype  = dtype
+
+        # None: dynamic loading only if the data do not fit into memory
+        self.__dynamic = dynamic
 
         if filelist is not None:
             if selection is not None:
@@ -315,6 +319,12 @@ class HDF5Stack1D(DataObject.DataObject):
             else:
                 physicalMemory /= (1024*1024.)
             _logger.info("Using physical memory %.1f GBytes" % (physicalMemory/1024))
+            if self.__dynamic and (nFiles == 1) and (nScans == 1) \
+               and (len(shape) == 3) and (shape[0] > 1) \
+               and (len(ySelectionList) == 1) and (mSelection is None) \
+               and (not scatter):
+                # nothing to sum, normalize or reshape: use the dataset as it is
+                raise MemoryError("Requested dynamic loading")
             if (neededMegaBytes > (0.95*physicalMemory))\
                and (nFiles == 1) and (len(shape) == 3):
                 if self.__dtype0 is None:
@@ -322,9 +332,9 @@ class HDF5Stack1D(DataObject.DataObject):
                         # try reading as float32
                         print("Forcing the use of float32 data")
                         self.__dtype = numpy.float32
-                    else:
+                    elif self.__dynamic is not False:
                         raise MemoryError("Force dynamic loading")
-                else:
+                elif self.__dynamic is not False:
                     raise MemoryError("Force dynamic loading")
             if (mcaIndex == 0) and ( nFiles == 1) and (nScans == 1) \
                 and (len(yDataset.shape) > 2) and (not scatter):
@@ -337,7 +347,7 @@ class HDF5Stack1D(DataObject.DataObject):
             DONE = False
         except (MemoryError, ValueError):
             # some versions report ValueError instead of MemoryError
-            if (nFiles == 1) and (len(shape) == 3):
+            if (self.__dynamic is not False) and (nFiles == 1) and (len(shape) == 3):
                 _logger.warning("Attempting dynamic loading")
                 if mSelection is not None:
                     _logger.warning("Ignoring monitor")
@@ -749,7 +759,7 @@ class HDF5Stack1D(DataObject.DataObject):
                                     self.data[i:i+1] += yDataset[i:i+1]
         else:
             self.info["McaIndex"] = mcaIndex
-            if _time:
+            if _time is not None:
                 nRequiredValues = 1
                 for i in range(len(self.data.shape)):
                     if i != mcaIndex:

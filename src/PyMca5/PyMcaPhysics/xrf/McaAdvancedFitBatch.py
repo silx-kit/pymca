@@ -312,6 +312,9 @@ class McaAdvancedFitBatch(object):
             # Needed for cleanup
             self.filehandle = None
 
+        # release the input file also when the loop ended with break
+        self.filehandle = None
+
         if self.counter:
             # Finish list of FIT files
             if not self.roiFit and self.fitFiles and \
@@ -328,16 +331,16 @@ class McaAdvancedFitBatch(object):
             if HDF5SUPPORT:
                 if h5py.is_hdf5(inputfile):
                     self._HDF5 = True
-                    # if (len(self._filelist) == 1) && (self.mcaStep > 1)
-                    # it should attempt to avoid loading  many times
-                    # the stack into memory in case of multiple processes
                     if len(self._filelist) == 1:
                         scanlist = self.selection.get("entry", None)
                     else:
                         scanlist = None
+                    # dynamic loading avoids loading the stack into memory
+                    # once per process in case of multiple processes
                     return HDF5Stack1D.HDF5Stack1D(self._filelist,
                                                    self.selection,
-                                                   scanlist=scanlist)
+                                                   scanlist=scanlist,
+                                                   dynamic=True)
 
             ffile = self.__tryEdf(inputfile)
             if ffile is None:
@@ -351,7 +354,8 @@ class McaAdvancedFitBatch(object):
                     ffile = self.__tryAifira(inputfile)
             if ffile is None:
                 if LispixMap.isLispixMapFile(inputfile):
-                    ffile = LispixMap.LispixMap(inputfile, native=False)
+                    ffile = LispixMap.LispixMap(inputfile, native=False,
+                                                dynamic=True)
             if ffile is None:
                 del ffile
                 ffile = SpecFileLayer.SpecFileLayer()
