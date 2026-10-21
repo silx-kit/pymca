@@ -290,6 +290,12 @@ class HDF5Stack1D(DataObject.DataObject):
         dim0, dim1, mcaDim = self.getDimensions(nFiles, nScans, shape,
                                                 index=mcaIndex)
         _logger.debug("Returned dimensions = %d, %d, %d" % (dim0, dim1, mcaDim))
+        if self.__dynamic and not ((nFiles == 1) and (nScans == 1) \
+           and (len(shape) == 3) and (shape[0] > 1) \
+           and (len(ySelectionList) == 1) and (mSelection is None) \
+           and (not scatter)):
+            raise ValueError("Dynamic loading needs a single 3D dataset: "
+                             "one file, one entry, one y and no monitor")
         try:
             if self.__dtype in [numpy.float32, numpy.int32]:
                 bytefactor = 4
@@ -319,11 +325,7 @@ class HDF5Stack1D(DataObject.DataObject):
             else:
                 physicalMemory /= (1024*1024.)
             _logger.info("Using physical memory %.1f GBytes" % (physicalMemory/1024))
-            if self.__dynamic and (nFiles == 1) and (nScans == 1) \
-               and (len(shape) == 3) and (shape[0] > 1) \
-               and (len(ySelectionList) == 1) and (mSelection is None) \
-               and (not scatter):
-                # nothing to sum, normalize or reshape: use the dataset as it is
+            if self.__dynamic:
                 raise MemoryError("Requested dynamic loading")
             if (neededMegaBytes > (0.95*physicalMemory))\
                and (nFiles == 1) and (len(shape) == 3):
