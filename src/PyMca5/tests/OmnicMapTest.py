@@ -152,6 +152,17 @@ class testOmnicMap(unittest.TestCase):
         self.assertTrue(numpy.array_equal(stack.info["positioners"]["Y"],
                                           positions[:, 1]))
 
+    def testArrayDetectorTitles(self):
+        # array detector maps title the spectra "Pixel n, XPos=..."
+        positions = [[100.0 + 25.0 * (i % 3), 200.0 + 50.0 * (i // 3)]
+                     for i in range(6)]
+        titles = ["Pixel %d, XPos=-1762.21, YPos= 978.78, X=%.2f, Y=%.2f" %
+                  (16 - i, x, y) for i, (x, y) in enumerate(positions)]
+        stack = self._read(self._spectra(6), positions, titles=titles,
+                           description=(200, 250, 50, 100, 150, 25))
+        self.assertEqual(stack.data.shape, (2, 3, N_CHANNELS))
+        self._checkPositions(stack, positions)
+
     def testPointMapClassicLayout(self):
         # "Spectral Data File" point map: the map description holds point
         # indices, the stage positions are in the directory

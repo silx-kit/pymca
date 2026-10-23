@@ -90,17 +90,32 @@ class OmnicMap(DataObject.DataObject):
             stagePositions = self._getStagePositions(data, self.nSpectra)
         else:
             searchedChain = bytes("Spectrum ", 'utf-8')
-            firstByte = data.index(searchedChain)
+            series = [(offset, size) for key, index, offset, size in \
+                      (self._directory or []) if key == 0x12d]
+            searchStart = 0
+            arrayDetector = (searchedChain not in data) and \
+                            (len(series) > 0) and (omnicInfo is not None)
+            if arrayDetector:
+                # array detector maps title the spectra "Pixel n, XPos=..."
+                # in the spectra block (key 0x12d)
+                searchedChain = b"Pixel "
+                searchStart = series[0][0]
+            firstByte = data.index(searchedChain, searchStart)
             s = data[firstByte:(firstByte + 100 - 16)]
             s = str(s)
             _logger.debug("firstByte = %d", firstByte)
             _logger.debug("s1 = %s ", s)
             tmpValues = exp.findall(s)
             spectrumIndex = int(tmpValues[0])
-            self.nSpectra = int(tmpValues[1])
+            if arrayDetector:
+                # 196-byte prefix, then 100-byte header and data per spectrum
+                self.nSpectra = (series[0][1] - 196) // \
+                                (100 + 4 * omnicInfo['Number of points'])
+            else:
+                self.nSpectra = int(tmpValues[1])
             _logger.debug("spectrumIndex, nSpectra = %d %d",
                           spectrumIndex, self.nSpectra)
-            chain = bytes("Spectrum", 'utf-8')
+            chain = searchedChain.strip()
             secondByte = data[(firstByte + 1):].index(chain)
             secondByte += firstByte + 1
             _logger.debug("secondByte = %s", secondByte)
