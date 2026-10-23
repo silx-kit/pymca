@@ -233,6 +233,38 @@ class testOmnicMap(unittest.TestCase):
         self.assertEqual(stack.info["xScale"], [100.0, 25.0])
         self.assertEqual(stack.info["yScale"], [200.0, 50.0])
 
+    def testLineScanStagePositions(self):
+        # line scans have no map description: positions come from the file
+        positions = [[411.15 + 11.9 * i, 17109.14 + 21.92 * i]
+                     for i in range(5)]
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            stack = self._read(self._spectra(5), positions)
+        self.assertEqual(stack.data.shape, (1, 5, N_CHANNELS))
+        self._checkPositions(stack, positions)
+        self.assertTrue("yScale" not in stack.info)
+        # no division by zero when calculating the scales
+        self.assertEqual([str(w.message) for w in caught], [])
+
+    def testStaleMapDescription(self):
+        # a map description left over from an earlier map is ignored
+        positions = [[7116.8 - 23.6 * i, 2078.2 + 16.4 * i]
+                     for i in range(4)]
+        stack = self._read(self._spectra(4), positions,
+                           description=(1110, 2810, 1e-40, 6179, 7379, 100))
+        self._checkPositions(stack, positions)
+
+    def testGridKeepsComputedPositions(self):
+        # stored positions within 0.01 um of the map description are not
+        # used, so existing results do not change
+        computed = [[100.0 + 25.0 * (i % 3), 200.0 + 50.0 * (i // 3)]
+                    for i in range(6)]
+        stored = numpy.array(computed) + 0.004
+        stack = self._read(self._spectra(6), stored,
+                           description=(200, 250, 50, 100, 150, 25))
+        self.assertEqual(stack.data.shape, (2, 3, N_CHANNELS))
+        self._checkPositions(stack, computed)
+
 
 def getSuite(auto=True):
     testSuite = unittest.TestSuite()

@@ -110,6 +110,15 @@ class OmnicMap(DataObject.DataObject):
             delta = 100 + self.nChannels * 4
             spectra = [(firstByte + i * delta, firstByte - 16 + 100 + i * delta)
                        for i in range(self.nSpectra)]
+            if "X = " not in s:
+                # stored stage positions, unless they agree with the positions
+                # computed from the map description (grid maps)
+                stagePositions = self._getStagePositions(data, self.nSpectra)
+                if (stagePositions is not None) and numpy.allclose(
+                        stagePositions,
+                        [self.getPositionFromIndexAndInfo(i, omnicInfo)
+                         for i in range(self.nSpectra)], rtol=0, atol=0.01):
+                    stagePositions = None
 
         #fill the header
         self.header = []
