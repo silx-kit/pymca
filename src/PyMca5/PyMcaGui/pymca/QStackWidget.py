@@ -91,6 +91,11 @@ QTVERSION = qt.qVersion()
 
 class QStackWidget(StackBase.StackBase,
                    CloseEventNotifyingWidget.CloseEventNotifyingWidget):
+    # silx plot backend of the scatter views, not the PyMca one (--backend).
+    # PyMcaMain can set OpenGL (faster on big maps), 
+    # the ROI tool alone follows --backend.
+    scatterBackend = "mpl"
+
     def __init__(self, parent=None,
                  mcawidget=None,
                  rgbwidget=None,
@@ -1342,11 +1347,8 @@ class QStackWidget(StackBase.StackBase,
             scatter = False
         if scatter:
             if self._scatterRoiView is None:
-                # silx plot backend, not the PyMca one (--backend):
-                # OpenGL is much faster on big maps, matplotlib if not available
-                silxBackend = ("gl", "mpl")
                 # left - original stack
-                self._scatterStackView = MaskScatterViewWidget(parent=self.stackWindow, backend=silxBackend)
+                self._scatterStackView = MaskScatterViewWidget(parent=self.stackWindow, backend=self.scatterBackend)
                 # Always start by displaying the data at the true motor positions
                 # without requiring a guessable grid.
                 solid = silx_items.Scatter.Visualization.SOLID
@@ -1356,7 +1358,7 @@ class QStackWidget(StackBase.StackBase,
                 sidx = self.stackWindow.mainLayout.indexOf(self.stackWidget)
                 self.stackWindow.mainLayout.insertWidget(sidx, self._scatterStackView)
                 # right - ROI image
-                self._scatterRoiView = MaskScatterViewWidget(parent=self.roiWindow, backend=silxBackend)
+                self._scatterRoiView = MaskScatterViewWidget(parent=self.roiWindow, backend=self.scatterBackend)
                 self._scatterRoiView.setVisualizationMode(solid)
                 # show mask tool on start
                 self._scatterRoiView.setMaskToolsVisible(True)
@@ -1658,6 +1660,13 @@ def main(args):
             Plot.defaultBackend = args.backend
         except Exception:
             _logger.warning("Cannot set backend to %s", args.backend)
+        # PyMca silx backends by their silx name, others as entered
+        if args.backend.lower() in ["silx-gl", "silxgl"]:
+            QStackWidget.scatterBackend = "gl"
+        elif args.backend.lower() in ["silx", "silx-mpl", "silxmpl"]:
+            QStackWidget.scatterBackend = "mpl"
+        else:
+            QStackWidget.scatterBackend = args.backend
 
     app = qt.QApplication([])
     app.setDesktopFileName("pymcaroitool")
