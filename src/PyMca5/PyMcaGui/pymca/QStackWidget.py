@@ -1342,10 +1342,11 @@ class QStackWidget(StackBase.StackBase,
             scatter = False
         if scatter:
             if self._scatterRoiView is None:
+                # silx plot backend, not the PyMca one (--backend):
                 # OpenGL is much faster on big maps, matplotlib if not available
-                backend = ("gl", "mpl")
+                silxBackend = ("gl", "mpl")
                 # left - original stack
-                self._scatterStackView = MaskScatterViewWidget(parent=self.stackWindow, backend=backend)
+                self._scatterStackView = MaskScatterViewWidget(parent=self.stackWindow, backend=silxBackend)
                 # Always start by displaying the data at the true motor positions
                 # without requiring a guessable grid.
                 solid = silx_items.Scatter.Visualization.SOLID
@@ -1355,7 +1356,7 @@ class QStackWidget(StackBase.StackBase,
                 sidx = self.stackWindow.mainLayout.indexOf(self.stackWidget)
                 self.stackWindow.mainLayout.insertWidget(sidx, self._scatterStackView)
                 # right - ROI image
-                self._scatterRoiView = MaskScatterViewWidget(parent=self.roiWindow, backend=backend)
+                self._scatterRoiView = MaskScatterViewWidget(parent=self.roiWindow, backend=silxBackend)
                 self._scatterRoiView.setVisualizationMode(solid)
                 # show mask tool on start
                 self._scatterRoiView.setMaskToolsVisible(True)
