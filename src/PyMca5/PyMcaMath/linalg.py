@@ -408,7 +408,7 @@ def lstsq(a, b, rcond=None, sigma_b=None, weight=False,
                 if uncertainties:
                     sigmapar[:, i] = numpy.sqrt(numpy.diag(_covariance))
                 if covariances:
-                    covarianceMatrix[i] = covariances
+                    covarianceMatrix[i] = _covariance
     if len(original) == 1:
         parameters = numpy.ravel(parameters)
     if covariances:
