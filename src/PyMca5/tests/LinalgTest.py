@@ -38,7 +38,8 @@ class testLinalg(unittest.TestCase):
     def testLstsqCovariancesWeighted(self):
         x = numpy.linspace(0, 1, 50)
         a = numpy.vstack([numpy.ones_like(x), x, x**2]).T
-        b = numpy.random.default_rng(0).uniform(10, 100, (len(x), 4))
+        n = numpy.arange(len(x) * 4.0).reshape(len(x), 4)
+        b = 10 + 90 * numpy.abs(numpy.sin(n))
         results = [
             lstsq(a, b, weight=True, covariances=True, svd=svd)
             for svd in (True, False)
