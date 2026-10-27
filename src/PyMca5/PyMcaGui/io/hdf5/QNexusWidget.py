@@ -238,7 +238,7 @@ class QNexusWidget(qt.QWidget):
         self._cntTableMenu.addAction(QString("Delete Selected"),
                                     self._deleteSelectedCountersFromTable)
 
-        # the header of the tree offers smart scan selection
+        # the header of the tree offers numeric scan selection
         header = self.hdf5Widget.header()
         header.setContextMenuPolicy(qt.Qt.CustomContextMenu)
         header.customContextMenuRequested.connect(self._headerContextMenu)
@@ -249,7 +249,7 @@ class QNexusWidget(qt.QWidget):
 
     def _headerContextMenu(self, pos):
         menu = qt.QMenu(self)
-        menu.addAction(QString("Smart selection of scans"),
+        menu.addAction("Numeric selection of scans",
                        self.showSmartSelectionDialog)
         menu.exec(qt.QCursor.pos())
 
@@ -1460,11 +1460,11 @@ class QNexusWidget(qt.QWidget):
         entryIndexDict = {}
         for row in range(model.rowCount(fileIndex)):
             index = model.index(row, 0, fileIndex)
-            name = qt.safe_str(index.data())
+            name = index.data()
             entryNames.append(name)
             entryIndexDict[name] = index
         dialog = HDF5SmartSelectionDialog.HDF5SmartSelectionDialog(self,
-                            filename=qt.safe_str(fileIndex.data()),
+                            filename=fileIndex.data(),
                             entryNames=entryNames)
         # to avoid a leak
         dialog.setAttribute(qt.Qt.WA_DeleteOnClose)
