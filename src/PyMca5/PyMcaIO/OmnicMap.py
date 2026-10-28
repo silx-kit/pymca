@@ -74,69 +74,73 @@ class OmnicMap(DataObject.DataObject):
         except Exception:
             omnicInfo = None
         self.sourceName = [filename]
-        searchedChain = bytes("Spectrum ", 'utf-8')
-        firstByte = data.index(searchedChain)
-        s = data[firstByte:(firstByte + 100 - 16)]
-        s = str(s)
-        _logger.debug("firstByte = %d", firstByte)
-        _logger.debug("s1 = %s ", s)
         exp = re.compile(r'(-?[0-9]+\.?[0-9]*)')
-        tmpValues = exp.findall(s)
-        spectrumIndex = int(tmpValues[0])
-        self.nSpectra = int(tmpValues[1])
-        if "X = " in s:
-            xPosition = float(tmpValues[2])
-            yPosition = float(tmpValues[3])
-        else:
-            # I have to calculate them from the scan
-            xPosition, yPosition = self.getPositionFromIndexAndInfo(0, omnicInfo)
-        _logger.debug("spectrumIndex, nSpectra, xPosition, yPosition = %d %d %f %f",
-                      spectrumIndex, self.nSpectra, xPosition, yPosition)
-        chain = bytes("Spectrum", 'utf-8')
-        secondByte = data[(firstByte + 1):].index(chain)
-        secondByte += firstByte + 1
-        _logger.debug("secondByte = %s", secondByte)
-        self.nChannels = int((secondByte - firstByte - 100) / 4)
-        _logger.debug("nChannels = %d", self.nChannels)
-        self.firstSpectrumOffset = firstByte - 16
         # (title offset, data offset) of each spectrum
-        delta = 100 + self.nChannels * 4
-        spectra = [(firstByte + i * delta, firstByte - 16 + 100 + i * delta)
-                   for i in range(self.nSpectra)]
+        spectra = None
         stagePositions = None
         if omnicInfo is not None:
-            directorySpectra = self._getSpectraFromDirectory(
+            spectra = self._getSpectraFromDirectory(
                                         omnicInfo['Number of points'])
-            if directorySpectra is not None:
-                spectra = directorySpectra
-                self.nSpectra = len(spectra)
-                self.nChannels = omnicInfo['Number of points']
-                stagePositions = self._getStagePositions(data, self.nSpectra)
-        if stagePositions is not None:
-            xPosition, yPosition = stagePositions[0]
+        if spectra is not None:
+            # "Spectral Data File" maps: the directory gives the spectra and
+            # their stage positions, the spectrum titles are not needed
+            self.nSpectra = len(spectra)
+            self.nChannels = omnicInfo['Number of points']
+            self.firstSpectrumOffset = spectra[0][0] - 16
+            stagePositions = self._getStagePositions(data, self.nSpectra)
+        else:
+            searchedChain = bytes("Spectrum ", 'utf-8')
+            firstByte = data.index(searchedChain)
+            s = data[firstByte:(firstByte + 100 - 16)]
+            s = str(s)
+            _logger.debug("firstByte = %d", firstByte)
+            _logger.debug("s1 = %s ", s)
+            tmpValues = exp.findall(s)
+            spectrumIndex = int(tmpValues[0])
+            self.nSpectra = int(tmpValues[1])
+            if "X = " in s:
+                xPosition = float(tmpValues[2])
+                yPosition = float(tmpValues[3])
+            else:
+                # I have to calculate them from the scan
+                xPosition, yPosition = self.getPositionFromIndexAndInfo(0, omnicInfo)
+            _logger.debug("spectrumIndex, nSpectra, xPosition, yPosition = %d %d %f %f",
+                          spectrumIndex, self.nSpectra, xPosition, yPosition)
+            chain = bytes("Spectrum", 'utf-8')
+            secondByte = data[(firstByte + 1):].index(chain)
+            secondByte += firstByte + 1
+            _logger.debug("secondByte = %s", secondByte)
+            self.nChannels = int((secondByte - firstByte - 100) / 4)
+            _logger.debug("nChannels = %d", self.nChannels)
+            self.firstSpectrumOffset = firstByte - 16
+            delta = 100 + self.nChannels * 4
+            spectra = [(firstByte + i * delta, firstByte - 16 + 100 + i * delta)
+                       for i in range(self.nSpectra)]
 
         #fill the header
         self.header = []
-        oldXPosition = xPosition
-        oldYPosition = yPosition
         self.nRows = 0
         xPositions = numpy.zeros(self.nSpectra)
         yPositions = numpy.zeros(self.nSpectra)
         calculating = True
         for i in range(self.nSpectra):
-            offset = spectra[i][0]
-            s = str(data[offset:(offset + 100 - 16)])
-            tmpValues = exp.findall(s)
-            spectrumIndex = int(tmpValues[0])
-            if "X = " in s:
-                xPosition = float(tmpValues[2])
-                yPosition = float(tmpValues[3])
-            else:
-                #I have to calculate them from the scan
-                xPosition, yPosition = self.getPositionFromIndexAndInfo(i,
-                                                                    omnicInfo)
             if stagePositions is not None:
                 xPosition, yPosition = stagePositions[i]
+            else:
+                offset = spectra[i][0]
+                s = str(data[offset:(offset + 100 - 16)])
+                tmpValues = exp.findall(s)
+                spectrumIndex = int(tmpValues[0])
+                if "X = " in s:
+                    xPosition = float(tmpValues[2])
+                    yPosition = float(tmpValues[3])
+                else:
+                    #I have to calculate them from the scan
+                    xPosition, yPosition = self.getPositionFromIndexAndInfo(i,
+                                                                    omnicInfo)
+            if i == 0:
+                oldXPosition = xPosition
+                oldYPosition = yPosition
             xPositions[i] = xPosition
             yPositions[i] = yPosition
             if calculating:

@@ -2,10 +2,9 @@
 #
 # The PyMca X-Ray Fluorescence Toolkit
 #
-# Copyright (c) 2004-2026 European Synchrotron Radiation Facility
+# Copyright (c) 2026 Henry Towbin
 #
-# This file is part of the PyMca X-ray Fluorescence Toolkit developed at
-# the ESRF.
+# This file is part of the PyMca X-ray Fluorescence Toolkit.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,10 +25,9 @@
 # THE SOFTWARE.
 #
 #############################################################################*/
-__author__ = "V.A. Sole - ESRF"
-__contact__ = "sole@esrf.fr"
+__author__ = "Henry Towbin"
 __license__ = "MIT"
-__copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
+__copyright__ = "Henry Towbin"
 import os
 import shutil
 import struct
@@ -165,6 +163,21 @@ class testOmnicMap(unittest.TestCase):
         stack = self._read(spectra, positions, extended=False,
                            description=(1, 4, 1, 1, 2, 1))
         self.assertEqual(stack.data.shape, (1, 4, N_CHANNELS))
+        self._checkPositions(stack, positions)
+
+    def testPointMapSingleSpectrum(self):
+        # the directory is enough: there is no second title to search for
+        positions = [[556.36, 17357.45]]
+        stack = self._read(self._spectra(1), positions, extended=False)
+        self.assertEqual(stack.data.shape, (1, 1, N_CHANNELS))
+        self._checkPositions(stack, positions)
+
+    def testPointMapOtherTitles(self):
+        # the directory is enough: titles need not be "Spectrum i of n"
+        positions = [[556.36, 17357.45], [281.99, 17492.40]]
+        stack = self._read(self._spectra(2), positions, extended=False,
+                           titles=["Grain 1 core", "Grain 1 rim"])
+        self.assertEqual(stack.data.shape, (1, 2, N_CHANNELS))
         self._checkPositions(stack, positions)
 
     def testPointMapBackToFirstX(self):
