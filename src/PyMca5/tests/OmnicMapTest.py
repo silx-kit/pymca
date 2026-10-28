@@ -63,12 +63,13 @@ def _labels(size, offsets):
 
 
 def writeOmnicMap(fname, spectra, positions, extended=True, titles=None,
-                  description=None):
+                  description=None, history=None):
     """
     Write a minimal OMNIC map with the block layout of the
     "Spectral Exte File" (extended=True) or "Spectral Data File"
     (extended=False) containers. description is the map description
     (y0, y1, deltaY, x0, x1, deltaX) stored with the "Position" labels.
+    history is the text of the history block (key 0x1b).
     """
     spectra = numpy.asarray(spectra, dtype=numpy.float32)
     nSpectra, nChannels = spectra.shape
@@ -90,6 +91,8 @@ def writeOmnicMap(fname, spectra, positions, extended=True, titles=None,
     if extended:
         blocks += [(0x69, 1, bytes(12)), (0x92, 1, bytes(728))]
     blocks += [display, (6, 1, xy), (2, 0, header), (3, 0, background)]
+    if history is not None:
+        blocks.append((0x1b, 1, history.encode("ascii")))
     if extended:
         series = header + bytes(56)
         for i in range(nSpectra):
@@ -162,6 +165,22 @@ class testOmnicMap(unittest.TestCase):
                            description=(200, 250, 50, 100, 150, 25))
         self.assertEqual(stack.data.shape, (2, 3, N_CHANNELS))
         self._checkPositions(stack, positions)
+
+    def testSpectrumInHistory(self):
+        # "Spectrum " in the history, before the spectra block, is not taken
+        # for a spectrum title, on grid maps and on array detector maps
+        positions = [[100.0 + 25.0 * (i % 3), 200.0 + 50.0 * (i // 3)]
+                     for i in range(6)]
+        arrayTitles = ["Pixel %d, XPos=-1762.21, YPos= 978.78, X=%.2f, "
+                       "Y=%.2f" % (16 - i, x, y)
+                       for i, (x, y) in enumerate(positions)]
+        for titles in [None, arrayTitles]:
+            stack = self._read(self._spectra(6), positions, titles=titles,
+                               description=(200, 250, 50, 100, 150, 25),
+                               history="Spectrum 1 olivine, background "
+                                       "collected before the map")
+            self.assertEqual(stack.data.shape, (2, 3, N_CHANNELS))
+            self._checkPositions(stack, positions)
 
     def testPointMapClassicLayout(self):
         # "Spectral Data File" point map: the map description holds point

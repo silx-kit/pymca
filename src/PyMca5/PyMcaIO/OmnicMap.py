@@ -92,14 +92,15 @@ class OmnicMap(DataObject.DataObject):
             searchedChain = bytes("Spectrum ", 'utf-8')
             series = [(offset, size) for key, index, offset, size in \
                       (self._directory or []) if key == 0x12d]
-            searchStart = 0
-            arrayDetector = (searchedChain not in data) and \
+            # the titles are in the spectra block (key 0x12d) when there is
+            # one, after the file title and history, which may also contain
+            # "Spectrum "
+            searchStart = series[0][0] if len(series) else 0
+            arrayDetector = (data.find(searchedChain, searchStart) < 0) and \
                             (len(series) > 0) and (omnicInfo is not None)
             if arrayDetector:
                 # array detector maps title the spectra "Pixel n, XPos=..."
-                # in the spectra block (key 0x12d)
                 searchedChain = b"Pixel "
-                searchStart = series[0][0]
             firstByte = data.index(searchedChain, searchStart)
             s = data[firstByte:(firstByte + 100 - 16)]
             s = str(s)
