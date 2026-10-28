@@ -111,13 +111,10 @@ class OmnicMap(DataObject.DataObject):
             spectra = [(firstByte + i * delta, firstByte - 16 + 100 + i * delta)
                        for i in range(self.nSpectra)]
             if "X = " not in s:
-                # stored stage positions, unless they agree with the positions
-                # computed from the map description (grid maps)
+                # stored stage positions, unless the map description belongs
+                # to this map (grid maps keep the positions computed from it)
                 stagePositions = self._getStagePositions(data, self.nSpectra)
-                if (stagePositions is not None) and numpy.allclose(
-                        stagePositions,
-                        [self.getPositionFromIndexAndInfo(i, omnicInfo)
-                         for i in range(self.nSpectra)], rtol=0, atol=0.01):
+                if self._isOnMapGrid(stagePositions, omnicInfo):
                     stagePositions = None
 
         #fill the header
@@ -325,6 +322,26 @@ class OmnicMap(DataObject.DataObject):
                                     count=2 * nSpectra, offset=offset + 6)
                 return positions.reshape(nSpectra, 2).astype(numpy.float64)
         return None
+
+    def _isOnMapGrid(self, positions, info):
+        '''
+        True if every position is within half a step of the position
+        computed from the map description, i.e. the description belongs to
+        this map. A tolerance relative to the step works at any step size.
+        '''
+        if (positions is None) or (info is None) or \
+           ('First map location' not in info):
+            return False
+        try:
+            computed = numpy.array([self.getPositionFromIndexAndInfo(i, info)
+                                    for i in range(len(positions))])
+        except (ArithmeticError, ValueError):
+            # a description that cannot be evaluated (zero or NaN step,
+            # last location before the first) does not belong to this map
+            return False
+        halfStep = 0.5 * numpy.abs([info['Mapping stage X step size'],
+                                    info['Mapping stage Y step size']])
+        return bool(numpy.all(numpy.abs(positions - computed) <= halfStep))
 
     def getMapInformation(self, data):
         '''

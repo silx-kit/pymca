@@ -254,9 +254,20 @@ class testOmnicMap(unittest.TestCase):
                            description=(1110, 2810, 1e-40, 6179, 7379, 100))
         self._checkPositions(stack, positions)
 
+    def testUnusableMapDescription(self):
+        # a description that cannot be evaluated (NaN step, last X before
+        # the first) is ignored when stored positions are available
+        positions = [[7116.8 - 23.6 * i, 2078.2 + 16.4 * i]
+                     for i in range(4)]
+        for description in [(1110, 2810, 100, 6179, 7379, numpy.nan),
+                            (1110, 2810, 100, 7379, 6179, 100)]:
+            stack = self._read(self._spectra(4), positions,
+                               description=description)
+            self._checkPositions(stack, positions)
+
     def testGridKeepsComputedPositions(self):
-        # stored positions within 0.01 um of the map description are not
-        # used, so existing results do not change
+        # stored positions within half a step of the map description are
+        # not used, so existing results do not change
         computed = [[100.0 + 25.0 * (i % 3), 200.0 + 50.0 * (i // 3)]
                     for i in range(6)]
         stored = numpy.array(computed) + 0.004
@@ -264,6 +275,17 @@ class testOmnicMap(unittest.TestCase):
                            description=(200, 250, 50, 100, 150, 25))
         self.assertEqual(stack.data.shape, (2, 3, N_CHANNELS))
         self._checkPositions(stack, computed)
+
+    def testSmallStepGridOffDescription(self):
+        # the tolerance follows the step: with a 0.005 um step, stored
+        # positions 0.008 um away from the description are another grid
+        stored = [[100.0 + 0.005 * (i % 3) + 0.008, 200.0 + 0.005 * (i // 3)]
+                  for i in range(6)]
+        stack = self._read(self._spectra(6), stored,
+                           description=(200, 200.005, 0.005,
+                                        100, 100.01, 0.005))
+        self.assertEqual(stack.data.shape, (2, 3, N_CHANNELS))
+        self._checkPositions(stack, stored)
 
 
 def getSuite(auto=True):
