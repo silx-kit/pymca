@@ -98,14 +98,8 @@ class OmnicMap(DataObject.DataObject):
             tmpValues = exp.findall(s)
             spectrumIndex = int(tmpValues[0])
             self.nSpectra = int(tmpValues[1])
-            if "X = " in s:
-                xPosition = float(tmpValues[2])
-                yPosition = float(tmpValues[3])
-            else:
-                # I have to calculate them from the scan
-                xPosition, yPosition = self.getPositionFromIndexAndInfo(0, omnicInfo)
-            _logger.debug("spectrumIndex, nSpectra, xPosition, yPosition = %d %d %f %f",
-                          spectrumIndex, self.nSpectra, xPosition, yPosition)
+            _logger.debug("spectrumIndex, nSpectra = %d %d",
+                          spectrumIndex, self.nSpectra)
             chain = bytes("Spectrum", 'utf-8')
             secondByte = data[(firstByte + 1):].index(chain)
             secondByte += firstByte + 1
@@ -149,7 +143,8 @@ class OmnicMap(DataObject.DataObject):
                     calculating = False
                     continue
                 self.nRows += 1
-        if self.nSpectra % self.nRows:
+        if (self.nSpectra % self.nRows) or ((stagePositions is not None) and
+                not self._isRegularGrid(xPositions, yPositions, self.nRows)):
             # the positions do not fill a grid (a list of points coming
             # back to the first X): keep all the spectra in one row
             self.nRows = self.nSpectra
@@ -160,13 +155,12 @@ class OmnicMap(DataObject.DataObject):
         #arrange as an EDF Stack
         self.info = {}
         self.__nFiles = int(self.nSpectra / self.nRows)
-        try:
+        deltaX = None
+        deltaY = None
+        # line scans and point lists have no regular grid
+        if (self.nRows > 1) and (self.__nFiles > 1):
             deltaX = (xPositions[-1] - xPositions[0]) / (self.nRows - 1)
             deltaY = (yPositions[-1] - yPositions[0]) / (self.__nFiles - 1)
-        except Exception:
-            deltaX = None
-            deltaY = None
-            _logger.warning("Cannot calculate scales")
         self.data = numpy.zeros((self.__nFiles, self.nRows, self.nChannels),
                                  dtype=numpy.float32)
 
@@ -255,8 +249,23 @@ class OmnicMap(DataObject.DataObject):
         ddict['Background gain'] = vFloats[10]
         for key in ddict.keys():
             _logger.debug("%s: %s", key, ddict[key])
-        ddict.update(self.getMapInformation(data))
+        try:
+            ddict.update(self.getMapInformation(data))
+        except Exception:
+            # keep the spectral information when the map description
+            # cannot be read
+            _logger.debug("No map description: %s", sys.exc_info()[1])
         return ddict
+
+    def _isRegularGrid(self, xPositions, yPositions, nRows):
+        '''
+        True if every row repeats the X positions of the first row at a
+        single Y (same tolerance as the row detection)
+        '''
+        x = xPositions.reshape(-1, nRows)
+        y = yPositions.reshape(-1, nRows)
+        return bool(numpy.all(numpy.abs(x - x[0]) < 1.0e-6) and
+                    numpy.all(numpy.abs(y - y[:, :1]) < 1.0e-6))
 
     def _getDirectory(self, data):
         '''

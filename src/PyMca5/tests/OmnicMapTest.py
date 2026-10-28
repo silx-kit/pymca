@@ -33,6 +33,7 @@ import shutil
 import struct
 import tempfile
 import unittest
+import warnings
 
 import numpy
 
@@ -185,6 +186,43 @@ class testOmnicMap(unittest.TestCase):
         positions = [[100.0, 200.0], [150.0, 210.0], [100.0, 260.0]]
         stack = self._read(self._spectra(3), positions, extended=False)
         self.assertEqual(stack.data.shape, (1, 3, N_CHANNELS))
+        self._checkPositions(stack, positions)
+
+    def testPointMapNotAGrid(self):
+        # points coming back to the first X that divide evenly into rows
+        # are still not a grid
+        positions = [[100.0, 200.0], [150.0, 210.0], [100.0, 260.0],
+                     [120.0, 300.0]]
+        stack = self._read(self._spectra(4), positions, extended=False)
+        self.assertEqual(stack.data.shape, (1, 4, N_CHANNELS))
+        self._checkPositions(stack, positions)
+        self.assertTrue("xScale" not in stack.info)
+
+    def testPointMapNoScales(self):
+        # a point list has no pixel size, and no division by zero
+        positions = [[100.0 + 10.0 * i, 200.0 + 7.0 * i] for i in range(4)]
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            stack = self._read(self._spectra(4), positions, extended=False)
+        self.assertTrue("xScale" not in stack.info)
+        self.assertTrue("yScale" not in stack.info)
+        self.assertEqual([str(w.message) for w in caught], [])
+
+    def testPointMapWithoutPositionLabels(self):
+        # the spectral header is kept when the map description is missing
+        fname = os.path.join(self.tmpDir, "test.map")
+        positions = [[556.36, 17357.45], [281.99, 17492.40]]
+        spectra = self._spectra(2)
+        writeOmnicMap(fname, spectra, positions, extended=False)
+        with open(fname, "rb") as fid:
+            content = fid.read()
+        with open(fname, "wb") as fid:
+            fid.write(content.replace(b"Position", b"Distance"))
+        stack = self.module.OmnicMap(fname)
+        info = stack.info["OmnicInfo"]
+        self.assertEqual(info["Number of points"], N_CHANNELS)
+        self.assertTrue(numpy.array_equal(
+            stack.data.reshape(-1, N_CHANNELS), spectra))
         self._checkPositions(stack, positions)
 
     def testGridMapExtendedLayout(self):
