@@ -2,8 +2,6 @@
 #
 # The PyMca X-Ray Fluorescence Toolkit
 #
-# Copyright (c) 2026 Henry Towbin
-#
 # This file is part of the PyMca X-ray Fluorescence Toolkit.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -27,7 +25,6 @@
 #############################################################################*/
 __author__ = "Henry Towbin"
 __license__ = "MIT"
-__copyright__ = "Henry Towbin"
 import os
 import shutil
 import struct
