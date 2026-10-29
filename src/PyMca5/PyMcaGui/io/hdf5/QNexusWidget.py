@@ -51,6 +51,7 @@ from . import NexusInfo
 from . import HDF5CounterTable
 from . import HDF5McaTable
 from . import QNexusWidgetActions
+from . import HDF5SmartSelectionDialog
 try:
     from . import Hdf5NodeView
 except Exception:
@@ -237,9 +238,20 @@ class QNexusWidget(qt.QWidget):
         self._cntTableMenu.addAction(QString("Delete Selected"),
                                     self._deleteSelectedCountersFromTable)
 
+        # the header of the tree offers numeric scan selection
+        header = self.hdf5Widget.header()
+        header.setContextMenuPolicy(qt.Qt.CustomContextMenu)
+        header.customContextMenuRequested.connect(self._headerContextMenu)
+
     def _counterTableCustomMenuSlot(self, qpoint):
         self.getWidgetConfiguration()
         self._cntTableMenu.exec(qt.QCursor.pos())
+
+    def _headerContextMenu(self, pos):
+        menu = qt.QMenu(self)
+        menu.addAction("Numeric selection of scans",
+                       self.showSmartSelectionDialog)
+        menu.exec(qt.QCursor.pos())
 
     def _getConfigurationFromFile(self, fname):
         ddict = ConfigDict.ConfigDict()
@@ -1432,6 +1444,47 @@ class QNexusWidget(qt.QWidget):
 
     def getSelectedEntries(self):
         return self.hdf5Widget.getSelectedEntries()
+
+    def showSmartSelectionDialog(self):
+        """Select the entries of the current file by number."""
+        model = self.hdf5Widget.model()
+        # the file of the current item, the first file otherwise
+        index = self.hdf5Widget.currentIndex()
+        while index.parent().isValid():
+            index = index.parent()
+        fileIndex = model.index(max(index.row(), 0), 0, qt.QModelIndex())
+        if not fileIndex.isValid():
+            return
+        # the entries as shown by the tree
+        entryNames = []
+        entryIndexDict = {}
+        for row in range(model.rowCount(fileIndex)):
+            index = model.index(row, 0, fileIndex)
+            name = index.data()
+            entryNames.append(name)
+            entryIndexDict[name] = index
+        dialog = HDF5SmartSelectionDialog.HDF5SmartSelectionDialog(self,
+                            filename=fileIndex.data(),
+                            entryNames=entryNames)
+        # to avoid a leak
+        dialog.setAttribute(qt.Qt.WA_DeleteOnClose)
+        if not dialog.exec():
+            return
+        selection = qt.QItemSelection()
+        for name in dialog.selected:
+            selection.select(entryIndexDict[name], entryIndexDict[name])
+        currentIndex = entryIndexDict[dialog.selected[0]]
+        self.hdf5Widget.expand(fileIndex)
+        self.hdf5Widget.scrollTo(currentIndex)
+        # on selection change the current item fills the counters tables
+        # and the Auto ADD/REPLACE mode is applied
+        selectionModel = self.hdf5Widget.selectionModel()
+        selectionModel.setCurrentIndex(currentIndex,
+                                       qt.QItemSelectionModel.NoUpdate)
+        self._lastEntry = None  # force counter table rebuild
+        selectionModel.select(selection,
+                              qt.QItemSelectionModel.ClearAndSelect |
+                              qt.QItemSelectionModel.Rows)
 
     def closeEvent(self, event):
         keyList = list(self._widgetDict.keys())
