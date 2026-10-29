@@ -162,6 +162,8 @@ try:
     STACK = True
 except Exception:
     STACK = False
+if STACK and OPENGL_DRIVERS_OK:
+    QStackWidget.QStackWidget.scatterBackend = ("gl", "mpl")
 from PyMca5.PyMcaGui.pymca import PyMcaPostBatch
 from PyMca5.PyMcaGui.pymca import RGBCorrelator
 from PyMca5.PyMcaGui.physics.xrf import MaterialEditor
