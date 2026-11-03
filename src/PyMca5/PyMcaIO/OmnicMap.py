@@ -67,57 +67,80 @@ class OmnicMap(DataObject.DataObject):
         fid.close()
         fid = None
 
+        # directory of blocks (None if the file layout is not known)
+        self._directory = self._getDirectory(data)
         try:
             omnicInfo = self._getOmnicInfo(data)
         except Exception:
             omnicInfo = None
         self.sourceName = [filename]
-        searchedChain = bytes("Spectrum ", 'utf-8')
-        firstByte = data.index(searchedChain)
-        s = data[firstByte:(firstByte + 100 - 16)]
-        s = str(s)
-        _logger.debug("firstByte = %d", firstByte)
-        _logger.debug("s1 = %s ", s)
         exp = re.compile(r'(-?[0-9]+\.?[0-9]*)')
-        tmpValues = exp.findall(s)
-        spectrumIndex = int(tmpValues[0])
-        self.nSpectra = int(tmpValues[1])
-        if "X = " in s:
-            xPosition = float(tmpValues[2])
-            yPosition = float(tmpValues[3])
+        # (title offset, data offset) of each spectrum
+        spectra = None
+        stagePositions = None
+        if omnicInfo is not None:
+            spectra = self._getSpectraFromDirectory(
+                                        omnicInfo['Number of points'])
+        if spectra is not None:
+            # "Spectral Data File" maps: the directory gives the spectra and
+            # their stage positions, the spectrum titles are not needed
+            self.nSpectra = len(spectra)
+            self.nChannels = omnicInfo['Number of points']
+            self.firstSpectrumOffset = spectra[0][0] - 16
+            stagePositions = self._getStagePositions(data, self.nSpectra)
         else:
-            # I have to calculate them from the scan
-            xPosition, yPosition = self.getPositionFromIndexAndInfo(0, omnicInfo)
-        _logger.debug("spectrumIndex, nSpectra, xPosition, yPosition = %d %d %f %f",
-                      spectrumIndex, self.nSpectra, xPosition, yPosition)
-        chain = bytes("Spectrum", 'utf-8')
-        secondByte = data[(firstByte + 1):].index(chain)
-        secondByte += firstByte + 1
-        _logger.debug("secondByte = %s", secondByte)
-        self.nChannels = int((secondByte - firstByte - 100) / 4)
-        _logger.debug("nChannels = %d", self.nChannels)
-        self.firstSpectrumOffset = firstByte - 16
+            searchedChain = bytes("Spectrum ", 'utf-8')
+            firstByte = data.index(searchedChain)
+            s = data[firstByte:(firstByte + 100 - 16)]
+            s = str(s)
+            _logger.debug("firstByte = %d", firstByte)
+            _logger.debug("s1 = %s ", s)
+            tmpValues = exp.findall(s)
+            spectrumIndex = int(tmpValues[0])
+            self.nSpectra = int(tmpValues[1])
+            _logger.debug("spectrumIndex, nSpectra = %d %d",
+                          spectrumIndex, self.nSpectra)
+            chain = bytes("Spectrum", 'utf-8')
+            secondByte = data[(firstByte + 1):].index(chain)
+            secondByte += firstByte + 1
+            _logger.debug("secondByte = %s", secondByte)
+            self.nChannels = int((secondByte - firstByte - 100) / 4)
+            _logger.debug("nChannels = %d", self.nChannels)
+            self.firstSpectrumOffset = firstByte - 16
+            delta = 100 + self.nChannels * 4
+            spectra = [(firstByte + i * delta, firstByte - 16 + 100 + i * delta)
+                       for i in range(self.nSpectra)]
+            if "X = " not in s:
+                # stored stage positions, unless the map description belongs
+                # to this map (grid maps keep the positions computed from it)
+                stagePositions = self._getStagePositions(data, self.nSpectra)
+                if self._isOnMapGrid(stagePositions, omnicInfo):
+                    stagePositions = None
 
         #fill the header
         self.header = []
-        oldXPosition = xPosition
-        oldYPosition = yPosition
         self.nRows = 0
         xPositions = numpy.zeros(self.nSpectra)
         yPositions = numpy.zeros(self.nSpectra)
         calculating = True
         for i in range(self.nSpectra):
-            offset = int(firstByte + i * (100 + self.nChannels * 4))
-            s = str(data[offset:(offset + 100 - 16)])
-            tmpValues = exp.findall(s)
-            spectrumIndex = int(tmpValues[0])
-            if "X = " in s:
-                xPosition = float(tmpValues[2])
-                yPosition = float(tmpValues[3])
+            if stagePositions is not None:
+                xPosition, yPosition = stagePositions[i]
             else:
-                #I have to calculate them from the scan
-                xPosition, yPosition = self.getPositionFromIndexAndInfo(i,
+                offset = spectra[i][0]
+                s = str(data[offset:(offset + 100 - 16)])
+                tmpValues = exp.findall(s)
+                spectrumIndex = int(tmpValues[0])
+                if "X = " in s:
+                    xPosition = float(tmpValues[2])
+                    yPosition = float(tmpValues[3])
+                else:
+                    #I have to calculate them from the scan
+                    xPosition, yPosition = self.getPositionFromIndexAndInfo(i,
                                                                     omnicInfo)
+            if i == 0:
+                oldXPosition = xPosition
+                oldYPosition = yPosition
             xPositions[i] = xPosition
             yPositions[i] = yPosition
             if calculating:
@@ -126,6 +149,11 @@ class OmnicMap(DataObject.DataObject):
                     calculating = False
                     continue
                 self.nRows += 1
+        if (self.nSpectra % self.nRows) or ((stagePositions is not None) and
+                not self._isRegularGrid(xPositions, yPositions, self.nRows)):
+            # the positions do not fill a grid (a list of points coming
+            # back to the first X): keep all the spectra in one row
+            self.nRows = self.nSpectra
 
         _logger.debug("DIMENSIONS X = %f Y=%d",
                       self.nSpectra * 1.0 / self.nRows, self.nRows)
@@ -133,22 +161,22 @@ class OmnicMap(DataObject.DataObject):
         #arrange as an EDF Stack
         self.info = {}
         self.__nFiles = int(self.nSpectra / self.nRows)
-        try:
+        deltaX = None
+        deltaY = None
+        # line scans and point lists have no regular grid
+        if (self.nRows > 1) and (self.__nFiles > 1):
             deltaX = (xPositions[-1] - xPositions[0]) / (self.nRows - 1)
             deltaY = (yPositions[-1] - yPositions[0]) / (self.__nFiles - 1)
-        except Exception:
-            deltaX = None
-            deltaY = None
-            _logger.warning("Cannot calculate scales")
         self.data = numpy.zeros((self.__nFiles, self.nRows, self.nChannels),
                                  dtype=numpy.float32)
 
         self.__nImagesPerFile = 1
-        offset = firstByte - 16 + 100  # starting position of the data
         delta = 100 + self.nChannels * 4
         fmt = "%df" % self.nChannels
         for i in range(self.__nFiles):
             for j in range(self.nRows):
+                # starting position of the data
+                offset = spectra[i * self.nRows + j][1]
                 # this approach is inneficient when compared to a direct
                 # data readout, but it allows to deal with nan at the source
                 tmpData = numpy.zeros((self.nChannels,), dtype=numpy.float32)
@@ -156,7 +184,6 @@ class OmnicMap(DataObject.DataObject):
                                 data[offset:(offset + delta - 100)])
                 finiteData = numpy.isfinite(tmpData)
                 self.data[i, j, finiteData] = tmpData[finiteData]
-                offset = int(offset + delta)
         shape = self.data.shape
         for i in range(len(shape)):
             key = 'Dim_%d' % (i + 1,)
@@ -198,6 +225,11 @@ class OmnicMap(DataObject.DataObject):
         infoBlockIndex = int(infoBlockIndex)
         #infoblock is the position of the information block
         offset = infoBlockIndex * 4
+        for key, index, blockOffset, size in (self._directory or []):
+            if (key == 2) and (index == 1):
+                # spectral header block given by the directory
+                offset = blockOffset + 4
+                break
         #read 13 unsigned integers
         nValues = 13
         fmt = "%dI" % nValues
@@ -209,7 +241,7 @@ class OmnicMap(DataObject.DataObject):
         ddict['Number of sample scans'] = values[8]
         ddict['Number of FFT points'] = values[10]
         ddict['Number of background scans'] = values[12]
-        offset = (infoBlockIndex + 3) * 4
+        offset = offset + 12
         nFloats = 47
         fmt = "%df" % nFloats
         vFloats = struct.unpack(fmt, data[offset:(offset + 4 * nFloats)])
@@ -223,8 +255,93 @@ class OmnicMap(DataObject.DataObject):
         ddict['Background gain'] = vFloats[10]
         for key in ddict.keys():
             _logger.debug("%s: %s", key, ddict[key])
-        ddict.update(self.getMapInformation(data))
+        try:
+            ddict.update(self.getMapInformation(data))
+        except Exception:
+            # keep the spectral information when the map description
+            # cannot be read
+            _logger.debug("No map description: %s", sys.exc_info()[1])
         return ddict
+
+    def _isRegularGrid(self, xPositions, yPositions, nRows):
+        '''
+        True if every row repeats the X positions of the first row at a
+        single Y (same tolerance as the row detection)
+        '''
+        x = xPositions.reshape(-1, nRows)
+        y = yPositions.reshape(-1, nRows)
+        return bool(numpy.all(numpy.abs(x - x[0]) < 1.0e-6) and
+                    numpy.all(numpy.abs(y - y[:, :1]) < 1.0e-6))
+
+    def _getDirectory(self, data):
+        '''
+        Directory of blocks at byte 304 (number of entries at byte 294).
+        Returns a list of (key, index, offset, size) or None
+        '''
+        fmt = {b"Spectral Data File": "<HIIIH",
+               b"Spectral Exte File": "<HQIII"}.get(data[0:18])
+        if fmt is None:
+            return None
+        entrySize = struct.calcsize(fmt)
+        nEntries = struct.unpack("<H", data[294:296])[0]
+        if (304 + nEntries * entrySize) > len(data):
+            return None
+        directory = []
+        for i in range(nEntries):
+            key, offset, size, index = struct.unpack_from(fmt, data,
+                                                304 + i * entrySize)[0:4]
+            if (offset + size) > len(data):
+                return None
+            directory.append((key, index, offset, size))
+        return directory
+
+    def _getSpectraFromDirectory(self, nChannels):
+        '''
+        "Spectral Data File" maps keep each spectrum in a 96-byte header
+        block (key 0x94, title at byte 16) and a data block (key 3), indexed
+        from 1. Returns the (title offset, data offset) of each spectrum.
+        '''
+        headers = dict((index, offset) for key, index, offset, size \
+                       in (self._directory or []) if key == 0x94)
+        spectra = sorted((index, offset) for key, index, offset, size \
+                         in (self._directory or []) if (key == 3) and \
+                         (index in headers) and (size == 4 * nChannels))
+        if not len(spectra):
+            return None
+        return [(headers[index] + 16, offset) for index, offset in spectra]
+
+    def _getStagePositions(self, data, nSpectra):
+        '''
+        Stage X and Y of each spectrum: block with key 6 holding uint16 number
+        of spectra, uint16 values per spectrum (2), uint16, float32 values.
+        '''
+        for key, index, offset, size in (self._directory or []):
+            if (key == 6) and (size >= (6 + 8 * nSpectra)) and \
+               (struct.unpack("<HH", data[offset:(offset + 4)]) == (nSpectra, 2)):
+                positions = numpy.frombuffer(data, dtype="<f4",
+                                    count=2 * nSpectra, offset=offset + 6)
+                return positions.reshape(nSpectra, 2).astype(numpy.float64)
+        return None
+
+    def _isOnMapGrid(self, positions, info):
+        '''
+        True if every position is within half a step of the position
+        computed from the map description, i.e. the description belongs to
+        this map. A tolerance relative to the step works at any step size.
+        '''
+        if (positions is None) or (info is None) or \
+           ('First map location' not in info):
+            return False
+        try:
+            computed = numpy.array([self.getPositionFromIndexAndInfo(i, info)
+                                    for i in range(len(positions))])
+        except (ArithmeticError, ValueError):
+            # a description that cannot be evaluated (zero or NaN step,
+            # last location before the first) does not belong to this map
+            return False
+        halfStep = 0.5 * numpy.abs([info['Mapping stage X step size'],
+                                    info['Mapping stage Y step size']])
+        return bool(numpy.all(numpy.abs(positions - computed) <= halfStep))
 
     def getMapInformation(self, data):
         '''
