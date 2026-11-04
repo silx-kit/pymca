@@ -450,7 +450,7 @@ class SpecfitFunctions(object):
             forcePeak =  int(float(self.config.get('ForcePeakPresence', 0)))
             if (not mca) and forcePeak:
                 delta = yy - zz
-                peaks  = [int(numpy.nonzero(delta == delta.max())[0])]
+                peaks  = [int(numpy.nonzero(delta == delta.max())[0][0])]
 
        #print "peaks = ",peaks
        #print "peaks subac = ",self.seek(yy-zz,fwhm=search_fwhm,
