@@ -70,6 +70,19 @@ class testGefit(unittest.TestCase):
         for i in range(len(originalParameters)):
             self.assertTrue(abs(fittedpar[i] - originalParameters[i]) < 0.01)
 
+    def testSpecfitStepUpEstimate(self):
+        # steep edge: no peak found, the forced one is used
+        from PyMca5.PyMcaMath.fitting import Specfit, SpecfitFunctions
+        fit = Specfit.Specfit()
+        fit.importfun(SpecfitFunctions.__file__)
+        fit.settheory("Step Up")
+        fit.configure(ForcePeakPresence=1)
+        fit.setdata(x=numpy.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
+                    y=numpy.array([0, 0, 0, 0, 0, 0.5, 1, 1, 1, 1]))
+        fit.estimate()
+        # Height, Position, FWHM
+        self.assertTrue(abs(fit.paramlist[1]["estimation"] - 5.0) < 0.1)
+
 def getSuite(auto=True):
     testSuite = unittest.TestSuite()
     if auto:
@@ -79,6 +92,7 @@ def getSuite(auto=True):
         # use a predefined order
         testSuite.addTest(testGefit("testGefitImport"))
         testSuite.addTest(testGefit("testGefitLeastSquares"))
+        testSuite.addTest(testGefit("testSpecfitStepUpEstimate"))
     return testSuite
 
 def test(auto=False):

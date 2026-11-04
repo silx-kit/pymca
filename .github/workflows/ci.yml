@@ -35,6 +35,7 @@ jobs:
             python-version: "3.9"
             BUILD_COMMAND: --sdist
             QT_BINDING: PyQt5==5.14.1
+            NUMPY: numpy==1.23.5
             XVFB_RUN: xvfb-run -a
             WARNING_FLAGS: "-W ignore::DeprecationWarning"
           
@@ -188,7 +189,7 @@ jobs:
 
       - name: Install
         run: |
-         pip install --pre "$(ls dist/*ca5-5.*)"
+         pip install --pre "$(ls dist/*ca5-5.*)" ${{ matrix.NUMPY }}
 
       - name: Run the tests
         run: |
