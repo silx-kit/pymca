@@ -164,7 +164,7 @@ def _add_backend_argument(parser):
     """
 
     parser.add_argument(
-        "-b", "--backend", type=str, choices=backend_choices, default="mpl", help=help
+        "-b", "--backend", type=str, choices=backend_choices, default=None, help=help
     )
 
 
