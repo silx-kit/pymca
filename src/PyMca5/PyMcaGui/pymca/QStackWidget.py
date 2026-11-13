@@ -91,9 +91,8 @@ QTVERSION = qt.qVersion()
 
 class QStackWidget(StackBase.StackBase,
                    CloseEventNotifyingWidget.CloseEventNotifyingWidget):
-    # silx plot backend of the scatter views, not the PyMca one (--backend).
-    # PyMcaMain can set OpenGL (faster on big maps), 
-    # the ROI tool alone follows --backend.
+    # silx plot backend of the scatter views: None follows --backend
+    # (silx default), PyMcaMain can prefer OpenGL (faster on big maps)
     scatterBackend = "mpl"
 
     def __init__(self, parent=None,
@@ -1655,18 +1654,8 @@ def main(args):
             )
 
     if args.backend is not None:
-        try:
-            from PyMca5.PyMcaGraph.Plot import Plot
-            Plot.defaultBackend = args.backend
-        except Exception:
-            _logger.warning("Cannot set backend to %s", args.backend)
-        # PyMca silx backends by their silx name, others as entered
-        if args.backend.lower() in ["silx-gl", "silxgl"]:
-            QStackWidget.scatterBackend = "gl"
-        elif args.backend.lower() in ["silx", "silx-mpl", "silxmpl"]:
-            QStackWidget.scatterBackend = "mpl"
-        else:
-            QStackWidget.scatterBackend = args.backend
+        # silx default, set from --backend by PyMcaAppInit
+        QStackWidget.scatterBackend = None
 
     app = qt.QApplication([])
     app.setDesktopFileName("pymcaroitool")
