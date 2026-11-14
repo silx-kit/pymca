@@ -593,6 +593,10 @@ class QNexusWidget(qt.QWidget):
         # delete references to all the closed widgets
         self._checkWidgetDict()
 
+        # Auto refresh would close the window
+        if not self._BUTTONS:
+            self.actions.autoRefreshBox.setChecked(False)
+
         # we can use the existing instance or a new one
         # the former solution seems more robust
         useInstance = True
