@@ -36,10 +36,7 @@ jobs:
             BUILD_COMMAND: --sdist
             QT_BINDING: PyQt5==5.14.1
             NUMPY: numpy==1.23.5
-            BUILD_PINS: cython==3.3.1 setuptools==82.0.1
-            RUNTIME_PINS: matplotlib==3.9.4 h5py==3.14.0 fisx==1.3.2
-            BUILD_FLAGS: --no-isolation --skip-dependency-check
-            PIP_FLAGS: --no-build-isolation
+            # OpenBLAS 0.3.21 of numpy 1.23.5 gives wrong fit results on newer runner CPUs
             TEST_ENV: OPENBLAS_CORETYPE=Haswell
             XVFB_RUN: xvfb-run -a
             WARNING_FLAGS: "-W ignore::DeprecationWarning"
@@ -170,10 +167,10 @@ jobs:
       - name: Install build dependencies
         run: |
           pip install --upgrade wheel
-          pip install --upgrade ${{ matrix.NUMPY || 'numpy' }}
+          pip install --upgrade numpy
           pip install --upgrade build
           # put cython
-          pip install ${{ matrix.BUILD_PINS || 'cython' }}
+          pip install cython
 
       - name: Install runtime dependencies
         run: |
@@ -189,19 +186,12 @@ jobs:
         env:
           MACOSX_DEPLOYMENT_TARGET: "11"
         run: |
-          python -m build ${{ matrix.BUILD_COMMAND }} ${{ matrix.BUILD_FLAGS }}
+          python -m build ${{ matrix.BUILD_COMMAND }}
           ls dist
 
       - name: Install
         run: |
-         pip install --pre ${{ matrix.PIP_FLAGS }} "$(ls dist/*ca5-5.*)" ${{ matrix.NUMPY }} ${{ matrix.RUNTIME_PINS }}
-
-      - name: OpenBLAS info
-        if: matrix.NUMPY
-        run: |
-          lscpu | grep "Model name"
-          pip install threadpoolctl
-          python -m threadpoolctl -i numpy
+         pip install --pre "$(ls dist/*ca5-5.*)" ${{ matrix.NUMPY }}
 
       - name: Run the tests
         run: |
