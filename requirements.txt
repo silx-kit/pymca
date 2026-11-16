@@ -6,7 +6,10 @@
 --find-links http://www.silx.org/pub/wheelhouse/
 --only-binary numpy,h5py,PyQt5,PySide2
 
-numpy >= 1.8
+# numpy >= 1.23 can be used, but be careful with its bundled OpenBLAS:
+# old versions can give wrong fit results on recent CPUs
+# (setting e.g. OPENBLAS_CORETYPE=Haswell avoids it)
+numpy >= 2.0
 fisx >= 1.1.6
 PyOpenGL                  # For PyMca5.Object3D module 
 h5py                      # For HDF5 file format support
