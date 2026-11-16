@@ -36,6 +36,8 @@ jobs:
             BUILD_COMMAND: --sdist
             QT_BINDING: PyQt5==5.14.1
             NUMPY: numpy==1.23.5
+            # OpenBLAS 0.3.21 of numpy 1.23.5 gives wrong fit results on newer runner CPUs
+            TEST_ENV: OPENBLAS_CORETYPE=Haswell
             XVFB_RUN: xvfb-run -a
             WARNING_FLAGS: "-W ignore::DeprecationWarning"
           
@@ -194,4 +196,4 @@ jobs:
       - name: Run the tests
         run: |
           cd ..
-          ${{ matrix.XVFB_RUN }} python -W error ${{ matrix.WARNING_FLAGS }} -m PyMca5.tests.TestAll
+          ${{ matrix.TEST_ENV }} ${{ matrix.XVFB_RUN }} python -W error ${{ matrix.WARNING_FLAGS }} -m PyMca5.tests.TestAll
