@@ -40,6 +40,7 @@ jobs:
             RUNTIME_PINS: matplotlib==3.9.4 h5py==3.14.0 fisx==1.3.2
             BUILD_FLAGS: --no-isolation --skip-dependency-check
             PIP_FLAGS: --no-build-isolation
+            TEST_ENV: OPENBLAS_CORETYPE=Haswell
             XVFB_RUN: xvfb-run -a
             WARNING_FLAGS: "-W ignore::DeprecationWarning"
           
@@ -195,7 +196,14 @@ jobs:
         run: |
          pip install --pre ${{ matrix.PIP_FLAGS }} "$(ls dist/*ca5-5.*)" ${{ matrix.NUMPY }} ${{ matrix.RUNTIME_PINS }}
 
+      - name: OpenBLAS info
+        if: matrix.NUMPY
+        run: |
+          lscpu | grep "Model name"
+          pip install threadpoolctl
+          python -m threadpoolctl -i numpy
+
       - name: Run the tests
         run: |
           cd ..
-          ${{ matrix.XVFB_RUN }} python -W error ${{ matrix.WARNING_FLAGS }} -m PyMca5.tests.TestAll
+          ${{ matrix.TEST_ENV }} ${{ matrix.XVFB_RUN }} python -W error ${{ matrix.WARNING_FLAGS }} -m PyMca5.tests.TestAll
