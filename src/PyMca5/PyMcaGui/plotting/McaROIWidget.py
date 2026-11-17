@@ -32,10 +32,6 @@ import os
 import logging
 
 from PyMca5.PyMcaGui import PyMcaQt as qt
-if hasattr(qt, "QString"):
-    QString = qt.QString
-else:
-    QString = qt.safe_str
 
 QTVERSION = qt.qVersion()
 
@@ -359,15 +355,15 @@ class McaROITable(qt.QTableWidget):
                 line = line0 -1
                 self.roidict[key]['line'] = line
                 ROI = key
-                roitype = QString("%s" % roi['type'])
-                fromdata= QString("%6g" % (roi['from']))
-                todata  = QString("%6g" % (roi['to']))
+                roitype = "%s" % roi['type']
+                fromdata= "%6g" % (roi['from'])
+                todata  = "%6g" % (roi['to'])
                 if 'rawcounts' in roi:
-                    rawcounts= QString("%6g" % (roi['rawcounts']))
+                    rawcounts= "%6g" % (roi['rawcounts'])
                 else:
                     rawcounts = " ?????? "
                 if 'netcounts' in roi:
-                    netcounts= QString("%6g" % (roi['netcounts']))
+                    netcounts= "%6g" % (roi['netcounts'])
                 else:
                     netcounts = " ?????? "
                 fields  = [ROI,roitype,fromdata,todata,rawcounts,netcounts]
@@ -435,16 +431,16 @@ class McaROITable(qt.QTableWidget):
         self.roidict[key]['from'] = roi['from']
         self.roidict[key]['to']   = roi['to']
         ROI = key
-        roitype = QString("%s" % roi['type'])
-        fromdata= QString("%6g" % (roi['from']))
-        todata  = QString("%6g" % (roi['to']))
+        roitype = "%s" % roi['type']
+        fromdata= "%6g" % (roi['from'])
+        todata  = "%6g" % (roi['to'])
         if 'rawcounts' in roi:
-            rawcounts= QString("%6g" % (roi['rawcounts']))
+            rawcounts= "%6g" % (roi['rawcounts'])
         else:
             rawcounts = " ?????? "
         self.roidict[key]['rawcounts']   = rawcounts
         if 'netcounts' in roi:
-            netcounts= QString("%6g" % (roi['netcounts']))
+            netcounts= "%6g" % (roi['netcounts'])
         else:
             netcounts = " ?????? "
         self.roidict[key]['netcounts']   = netcounts
@@ -635,18 +631,6 @@ class McaROITable(qt.QTableWidget):
 
     def emitSignal(self, ddict):
         self.sigMcaROITableSignal.emit(ddict)
-
-class SimpleComboBox(qt.QComboBox):
-        def __init__(self,parent = None,name = None,fl = 0,options=['1','2','3']):
-            qt.QComboBox.__init__(self,parent)
-            self.setOptions(options)
-
-        def setOptions(self,options=['1','2','3']):
-            self.clear()
-            self.insertStrList(options)
-
-        def getCurrent(self):
-            return   self.currentItem(),str(self.currentText())
 
 class MyQTableWidgetItem(qt.QTableWidgetItem):
     def __lt__(self, other):

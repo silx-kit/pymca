@@ -43,10 +43,6 @@ from PyMca5.PyMcaMath.PyMcaSciPy.signal.median import medfilt2d
 
 from PyMca5.PyMcaGui import PyMcaQt as qt
 from PyMca5.PyMcaGui.io import PyMcaFileDialogs
-if hasattr(qt, "QString"):
-    QString = qt.QString
-else:
-    QString = str
 from PyMca5.PyMcaGui.plotting.PyMca_Icons import IconDict
 from PyMca5.PyMcaIO import ArraySave
 from PyMca5.PyMcaCore import PyMcaDirs
@@ -185,7 +181,7 @@ class SaveImageListAction(qt.QAction):
     to EDF or CSV"""
     def __init__(self, title, maskImageWidget,
                  clipped=False, subtract=False):
-        super(SaveImageListAction, self).__init__(QString(title),
+        super(SaveImageListAction, self).__init__(str(title),
                                                   maskImageWidget)
         self.maskImageWidget = maskImageWidget
         self.triggered[bool].connect(self.onTrigger)
@@ -318,7 +314,7 @@ class SaveImageListAction(qt.QAction):
 class SaveMatplotlib(qt.QAction):
     """Save current image ho high quality graphics using matplotlib"""
     def __init__(self, title, maskImageWidget):
-        super(SaveMatplotlib, self).__init__(QString(title),
+        super(SaveMatplotlib, self).__init__(str(title),
                                              maskImageWidget)
         self.maskImageWidget = maskImageWidget
         self.triggered[bool].connect(self.onTrigger)

@@ -40,11 +40,6 @@ from PyMca5.PyMcaGui import PyMcaQt as qt
 _logger = logging.getLogger(__name__)
 
 
-if qt.qVersion() > '4.0.0':
-    class QGridLayout(qt.QGridLayout):
-        def addMultiCellWidget(self, w, r0, r1, c0, c1, *var):
-            self.addWidget(w, r0, c0, 1 + r1 - r0, 1 + c1 - c0)
-
 class QXTube(qt.QWidget):
     sigQXTubeSignal = qt.pyqtSignal(object)
     def __init__(self, parent=None, initdict = None):
@@ -242,7 +237,7 @@ class TubeWidget(qt.QWidget):
         layout.setContentsMargins(11, 11, 11, 11)
 
         gridwidget   = qt.QWidget(self)
-        grid = QGridLayout(gridwidget)
+        grid = qt.QGridLayout(gridwidget)
         grid.setContentsMargins(0, 0, 0, 0)
         grid.setSpacing(6)
 
@@ -254,7 +249,7 @@ class TubeWidget(qt.QWidget):
 
         self.voltage = qt.QLineEdit(gridwidget)
 
-        grid.addMultiCellWidget(self.transmissionCheckBox, 0 ,0, 0, 1)
+        grid.addWidget(self.transmissionCheckBox, 0, 0, 1, 2)
         grid.addWidget(voltage, 0 ,2)
         grid.addWidget(self.voltage, 0 ,3)
 
@@ -328,7 +323,7 @@ class TubeWidget(qt.QWidget):
         deltalabel.setText("Delta energy (keV) just for plotting")
         self.delta = qt.QLineEdit(gridwidget)
 
-        grid.addMultiCellWidget(deltalabel, 7, 7, 0, 3)
+        grid.addWidget(deltalabel, 7, 0, 1, 4)
         grid.addWidget(self.delta, 7, 3)
 
         layout.addWidget(gridwidget)
@@ -441,11 +436,8 @@ class MyQComboBox(qt.QComboBox):
 
     def setOptions(self,options=['1','2','3']):
         self.clear()
-        if qt.qVersion() < '4.0.0':
-            self.insertStrList(options)
-        else:
-            for item in options:
-                self.addItem(item)
+        for item in options:
+            self.addItem(item)
 
     def getCurrent(self):
         return   self.currentIndex(),str(self.currentText())

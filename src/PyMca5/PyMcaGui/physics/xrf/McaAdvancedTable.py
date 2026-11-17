@@ -32,10 +32,6 @@ __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 import logging
 from PyMca5.PyMcaGui import PyMcaQt as qt
-if hasattr(qt, "QString"):
-    QString = qt.QString
-else:
-    QString = str
 QTVERSION = qt.qVersion()
 _logger = logging.getLogger(__name__)
 
@@ -97,8 +93,8 @@ class McaTable(QTable):
         self.setRowCount(nrows)
         for group in result['groups']:
             ele,group0 = group.split()
-            fitarea    = QString("%.4e" % (result[group]['fitarea']))
-            sigmaarea  = QString("%.2e" % (result[group]['sigmaarea']))
+            fitarea    = "%.4e" % (result[group]['fitarea'])
+            sigmaarea  = "%.2e" % (result[group]['sigmaarea'])
             fields = [ele,group0,fitarea,sigmaarea]
             col = 0
             color = qt.QApplication.instance().palette().color(qt.QPalette.Base)
@@ -115,10 +111,7 @@ class McaTable(QTable):
                         self.setItem(line, col, item)
                     else:
                         item.setText(text)
-                        if hasattr(item, "setBackground"):
-                            item.setBackground(color)
-                        else:
-                            item.setBackgroundColor(color)
+                        item.setBackground(color)
                         item.setFlags(qt.Qt.ItemIsSelectable|
                                       qt.Qt.ItemIsEnabled)
                 else:
@@ -131,12 +124,12 @@ class McaTable(QTable):
             color = qt.QApplication.instance().palette().color(qt.QPalette.AlternateBase)
             for peak in result[group]['peaks']:
                 name  = peak
-                energy = QString("%.3f" % (result[group][peak]['energy']))
-                ratio  = QString("%.5f" % (result[group][peak]['ratio']))
-                area   = QString("%.4e" % (result[group][peak]['fitarea']))
-                sigma  = QString("%.2e" % (result[group][peak]['sigmaarea']))
-                fwhm   = QString("%.3f" % (result[group][peak]['fwhm']))
-                chisq  = QString("%.2f" % (result[group][peak]['chisq']))
+                energy = "%.3f" % (result[group][peak]['energy'])
+                ratio  = "%.5f" % (result[group][peak]['ratio'])
+                area   = "%.4e" % (result[group][peak]['fitarea'])
+                sigma  = "%.2e" % (result[group][peak]['sigmaarea'])
+                fwhm   = "%.3f" % (result[group][peak]['fwhm'])
+                chisq  = "%.2f" % (result[group][peak]['chisq'])
                 if (line+1) > nlines:
                     self.setRowCount(line+1)
                 fields = [name,area,sigma,energy,ratio,fwhm,chisq]
@@ -150,10 +143,7 @@ class McaTable(QTable):
                         self.setItem(line, col, item)
                     else:
                         item.setText(text)
-                    if hasattr(item, "setBackground"):
-                        item.setBackground(color)
-                    else:
-                        item.setBackgroundColor(color)
+                    item.setBackground(color)
                     item.setFlags(qt.Qt.ItemIsSelectable|
                                   qt.Qt.ItemIsEnabled)
                     col=col+1
@@ -161,12 +151,12 @@ class McaTable(QTable):
             for peak0 in result[group]['escapepeaks']:
                 peak  = peak0+"esc"
                 if result[group][peak]['ratio'] > 0.0:
-                    energy = QString("%.3f" % (result[group][peak]['energy']))
-                    ratio  = QString("%.5f" % (result[group][peak]['ratio']))
-                    area   = QString("%.4e" % (result[group][peak]['fitarea']))
-                    sigma  = QString("%.2e" % (result[group][peak]['sigmaarea']))
-                    fwhm   = QString("%.3f" % (result[group][peak]['fwhm']))
-                    chisq  = QString("%.2f" % (result[group][peak]['chisq']))
+                    energy = "%.3f" % (result[group][peak]['energy'])
+                    ratio  = "%.5f" % (result[group][peak]['ratio'])
+                    area   = "%.4e" % (result[group][peak]['fitarea'])
+                    sigma  = "%.2e" % (result[group][peak]['sigmaarea'])
+                    fwhm   = "%.3f" % (result[group][peak]['fwhm'])
+                    chisq  = "%.2f" % (result[group][peak]['chisq'])
                     if (line+1) > nlines:
                         self.setRowCount(line+1)
                     fields = [peak,area,sigma,energy,ratio,fwhm,chisq]
@@ -179,10 +169,7 @@ class McaTable(QTable):
                             self.setItem(line, col, item)
                         else:
                             item.setText(field)
-                        if hasattr(item, "setBackground"):
-                            item.setBackground(color)
-                        else:
-                            item.setBackgroundColor(color)
+                        item.setBackground(color)
                         item.setFlags(qt.Qt.ItemIsSelectable|
                                       qt.Qt.ItemIsEnabled)
                         col=col+1

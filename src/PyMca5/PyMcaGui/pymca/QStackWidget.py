@@ -44,10 +44,6 @@ import logging
 
 from PyMca5.PyMcaGui import PyMcaQt as qt
 
-if hasattr(qt, "QString"):
-    QString = qt.QString
-else:
-    QString = qt.safe_str
 try:
     # try to import silx prior to importing matplotlib to prevent
     # unnecessary warning
@@ -150,33 +146,33 @@ class QStackWidget(StackBase.StackBase,
         self._stackSaveMenu = qt.QMenu()
         if HDF5:
             if self.primary:
-                self._stackSaveMenu.addAction(QString("Export All Stacks Workspace"),
+                self._stackSaveMenu.addAction("Export All Stacks Workspace",
                                                          self.exportStackList)
-            self._stackSaveMenu.addAction(QString("Export Stack Workspace"),
+            self._stackSaveMenu.addAction("Export Stack Workspace",
                                                          self.exportStack)
-            self._stackSaveMenu.addAction(QString("Save Zoomed Stack Region as Spectra"),
+            self._stackSaveMenu.addAction("Save Zoomed Stack Region as Spectra",
                                              self.saveStackAsNeXusSpectra)
-            self._stackSaveMenu.addAction(QString("Save Zoomed Stack Region as Images"),
+            self._stackSaveMenu.addAction("Save Zoomed Stack Region as Images",
                                              self.saveStackAsNeXusImages)
-            self._stackSaveMenu.addAction(QString("Save Zoomed Stack Region as Compressed Spectra"),
+            self._stackSaveMenu.addAction("Save Zoomed Stack Region as Compressed Spectra",
                                              self.saveStackAsNeXusCompressedSpectra)
-            self._stackSaveMenu.addAction(QString("Save Zoomed Stack Region as Compressed Images"),
+            self._stackSaveMenu.addAction("Save Zoomed Stack Region as Compressed Images",
                                              self.saveStackAsNeXusCompressedImages)
-            self._stackSaveMenu.addAction(QString("Save Zoomed Stack Region as Float32 Spectra"),
+            self._stackSaveMenu.addAction("Save Zoomed Stack Region as Float32 Spectra",
                                              self.saveStackAsFloat32NeXusSpectra)
-            self._stackSaveMenu.addAction(QString("Save Zoomed Stack Region as Float64 Spectra"),
+            self._stackSaveMenu.addAction("Save Zoomed Stack Region as Float64 Spectra",
                                              self.saveStackAsFloat64NeXusSpectra)
-            self._stackSaveMenu.addAction(QString("Save Zoomed Stack Region as Float32 Images"),
+            self._stackSaveMenu.addAction("Save Zoomed Stack Region as Float32 Images",
                                              self.saveStackAsFloat32NeXusImages)
-            self._stackSaveMenu.addAction(QString("Save Zoomed Stack Region as Float64 Images"),
+            self._stackSaveMenu.addAction("Save Zoomed Stack Region as Float64 Images",
                                              self.saveStackAsFloat64NeXusImages)
-            self._stackSaveMenu.addAction(QString("Save Zoomed Stack Region as HDF5 /data"),
+            self._stackSaveMenu.addAction("Save Zoomed Stack Region as HDF5 /data",
                                              self.saveStackAsSimplestHDF5)
-        self._stackSaveMenu.addAction(QString("Save Zoomed Stack Region as Monochromatic TIFF Images"),
+        self._stackSaveMenu.addAction("Save Zoomed Stack Region as Monochromatic TIFF Images",
                                              self.saveStackAsMonochromaticTiffImages)
-        self._stackSaveMenu.addAction(QString("Save Zoomed Stack Region as Float32 TIFF Images"),
+        self._stackSaveMenu.addAction("Save Zoomed Stack Region as Float32 TIFF Images",
                                              self.saveStackAsFloat32TiffImages)
-        self._stackSaveMenu.addAction(QString("Standard Graphics"),
+        self._stackSaveMenu.addAction("Standard Graphics",
                             self.stackWidget.graphWidget._saveIconSignal)
         self.stackWidget.graphWidget.saveToolButton.clicked.connect( \
                      self._stackSaveToolButtonSignal)
@@ -668,7 +664,7 @@ class QStackWidget(StackBase.StackBase,
                           'Delete Secondary Stacks']
             menu = qt.QMenu(self)
             for action in actionList:
-                text = QString(action)
+                text = str(action)
                 menu.addAction(text)
             a = menu.exec(qt.QCursor.pos())
             if a is None:
@@ -817,17 +813,17 @@ class QStackWidget(StackBase.StackBase,
     def _pluginClicked(self):
         actionList = []
         menu = qt.QMenu(self)
-        text = QString("Reload Plugins")
+        text = "Reload Plugins"
         menu.addAction(text)
         actionList.append(text)
-        text = QString("Set User Plugin Directory")
+        text = "Set User Plugin Directory"
         menu.addAction(text)
         actionList.append(text)
         global _logger
         if _logger.getEffectiveLevel() == logging.DEBUG:
-            text = QString("Toggle DEBUG mode OFF")
+            text = "Toggle DEBUG mode OFF"
         else:
-            text = QString("Toggle DEBUG mode ON")
+            text = "Toggle DEBUG mode ON"
         menu.addAction(text)
         actionList.append(text)
         menu.addSeparator()
@@ -839,14 +835,14 @@ class QStackWidget(StackBase.StackBase,
                 continue
             module = sys.modules[m]
             if hasattr(module, 'MENU_TEXT'):
-                text = QString(module.MENU_TEXT)
+                text = str(module.MENU_TEXT)
             else:
                 text = os.path.basename(module.__file__)
                 if text.endswith('.pyc'):
                     text = text[:-4]
                 elif text.endswith('.py'):
                     text = text[:-3]
-                text = QString(text)
+                text = str(text)
             methods = self.pluginInstanceDict[m].getMethods()
             if not len(methods):
                 continue
@@ -906,9 +902,9 @@ class QStackWidget(StackBase.StackBase,
             #methods.sort()
             menu = qt.QMenu(self)
             for method in methods:
-                text = QString(method)
+                text = str(method)
                 pixmap = self.pluginInstanceDict[key].getMethodPixmap(method)
-                tip = QString(self.pluginInstanceDict[key].getMethodToolTip(\
+                tip = str(self.pluginInstanceDict[key].getMethodToolTip(\
                                                                     method))
                 if pixmap is not None:
                     action = qt.QAction(qt.QIcon(qt.QPixmap(pixmap)),

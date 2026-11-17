@@ -41,7 +41,6 @@ import time
 
 from PyMca5.PyMcaGui import PyMcaQt as qt
 QTVERSION = qt.qVersion()
-qt.Qt.WDestructiveClose = "TO BE DONE"
 from PyMca5.PyMcaGui.io import PyMcaFileDialogs
 from PyMca5.PyMcaGui.plotting.PyMca_Icons import IconDict
 from PyMca5.PyMcaGui.pymca import McaCustomEvent
@@ -58,7 +57,7 @@ else:
 
 
 class Mca2EdfGUI(qt.QWidget):
-    def __init__(self,parent=None,name="Mca to Edf Conversion",fl=qt.Qt.WDestructiveClose,
+    def __init__(self,parent=None,name="Mca to Edf Conversion",fl=0,
                 filelist=None,outputdir=None, actions=0):
         qt.QWidget.__init__(self, parent)
         self.setWindowTitle(name)
@@ -342,12 +341,8 @@ class Mca2EdfBatch(QThread):
 
 class Mca2EdfWindow(qt.QWidget):
     def __init__(self,parent=None, name="BatchWindow", fl=0, actions = 0):
-        if qt.qVersion() < '4.0.0':
-            qt.QWidget.__init__(self, parent, name, fl)
-            self.setCaption(name)
-        else:
-            qt.QWidget.__init__(self, parent)
-            self.setWindowTitle(name)
+        qt.QWidget.__init__(self, parent)
+        self.setWindowTitle(name)
         self.l = qt.QVBoxLayout(self)
         self.l.setContentsMargins(0, 0, 0, 0)
         self.l.setSpacing(0)

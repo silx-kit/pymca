@@ -33,15 +33,6 @@ __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 import sys
 import logging
 from PyMca5.PyMcaGui import PyMcaQt as qt
-if hasattr(qt, "QStringList"):
-    QStringList = qt.QStringList
-else:
-    def QStringList():
-        return []
-if hasattr(qt, "QString"):
-    QString = qt.QString
-else:
-    QString = str
 from PyMca5.PyMcaPhysics import Elements
 
 _logger = logging.getLogger(__name__)
@@ -134,13 +125,13 @@ class PeakTableWidget(QTable):
                                     'setenergy',
                                     'use',
                                     'calenergy'],
-                          'number':     QString('1'),
-                          'channel':    QString('0'),
-                          'element':    QString('-'),
-                          'elementline':QString('-'),
-                          'setenergy':  QString('0'),
+                          'number':     '1',
+                          'channel':    '0',
+                          'element':    '-',
+                          'elementline':'-',
+                          'setenergy':  '0',
                           'use':        0,
-                          'calenergy':  QString()}
+                          'calenergy':  ""}
         self.peaklist.append(peak)
         self.setReadWrite(peak,'setenergy')
         self.setReadWrite(peak,'channel')
@@ -153,7 +144,7 @@ class PeakTableWidget(QTable):
                            self.peaks[peak]['element_item'])
         self.peaks[peak]['element_item'].sigCellChanged[int,int].connect( \
                            self.myslot)
-        a = QStringList()
+        a = []
         a.append('-')
         col = self.peaks[peak]['fields'].index('elementline')
         self.peaks[peak]['elementline_item']= QComboTableItem(self,
@@ -194,15 +185,15 @@ class PeakTableWidget(QTable):
             if str(newvalue) == '-':
                 #no element
                 #set line to -
-                options  = QStringList()
+                options  = []
                 options.append('-')
                 self.peaks[peak]["elementline_item"].insertItems(0, options)
                 self.peaks[peak]["elementline_item"].setCurrentIndex(0)
             else:
                 #get the emission energies
                 ele = str(newvalue).split()[0]
-                options  = QStringList()
-                energies = QStringList()
+                options  = []
+                energies = []
                 options.append('-')
                 energies.append('0.000')
                 emax = 0.0
@@ -233,8 +224,8 @@ class PeakTableWidget(QTable):
                 energy = "0.0"
                 for rays in Elements.Element[ele]['rays']:
                     for transition in Elements.Element[ele][rays]:
-                        option = QString("%s (%.5f)" % (transition,
-                                    Elements.Element[ele][transition]['rate']))
+                        option = "%s (%.5f)" % (transition,
+                                    Elements.Element[ele][transition]['rate'])
                         if option == newvalue:
                             energy = "%.5f " % (Elements.Element[ele][transition]['energy'])
                             break
@@ -356,7 +347,7 @@ class PeakTableWidget(QTable):
                     col=self.peaks[name]['fields'].index(key)
                     oldvalue=self.peaks[name][key]
                     if key == 'code':
-                        newvalue = QString(str(kw[key]))
+                        newvalue = str(kw[key])
                     elif key == 'element':
                         newvalue = str(kw[key]).split()[0]
                         if newvalue == "-":
@@ -369,7 +360,7 @@ class PeakTableWidget(QTable):
                             _logger.warning("Error setting element")
                     elif key == 'elementline':
                         try:
-                            iv = self.peaks[name][key+"_item"].findText(QString(kw[key]))
+                            iv = self.peaks[name][key+"_item"].findText(str(kw[key]))
                             self.peaks[name][key+"_item"].setCurrentIndex(iv)
                         except Exception:
                             _logger.warning("Error setting elementline")
@@ -382,7 +373,7 @@ class PeakTableWidget(QTable):
                     elif key == 'number':
                         if len(str(kw[key])):
                             newvalue=float(str(kw[key]))
-                            newvalue= QString("%3d" % newvalue)
+                            newvalue= "%3d" % newvalue
                             self.peaks[name][key]=newvalue
                         else:
                             self.peaks[name][key]=oldvalue
@@ -398,7 +389,7 @@ class PeakTableWidget(QTable):
                         _logger.debug("setting channel in configure")
                         if len(str(kw[key])):
                             newvalue = float(str(kw[key]))
-                            newvalue = QString("%.3f" % newvalue)
+                            newvalue = "%.3f" % newvalue
                             self.peaks[name][key]=newvalue
                         else:
                             self.peaks[name][key]=oldvalue
@@ -413,7 +404,7 @@ class PeakTableWidget(QTable):
                     elif (key == 'setenergy') or (key == 'calenergy'):
                         if len(str(kw[key])):
                             newvalue=float(str(kw[key]))
-                            newvalue= QString("%.4f" % newvalue)
+                            newvalue= "%.4f" % newvalue
                             self.peaks[name][key]=newvalue
                         else:
                             self.peaks[name][key]=oldvalue
@@ -435,7 +426,7 @@ class PeakTableWidget(QTable):
                                 newvalue= "%8g" % newvalue
                         else:
                             newvalue=""
-                        newvalue=QString(newvalue)
+                        newvalue=str(newvalue)
         return error
 
 
@@ -502,7 +493,7 @@ class QPeriodicComboTableItem(QComboTableItem):
     """
     sigValueChanged = qt.pyqtSignal(int, int)
     def __init__(self, table=None, addnone=1, detailed=0, row=None, col=None):
-        strlist = QStringList()
+        strlist = []
         self.addnone= (addnone==1)
         if self.addnone: strlist.append("-")
         for (symbol, Z, x, y, name, mass, density) in Elements.ElementsInfo:

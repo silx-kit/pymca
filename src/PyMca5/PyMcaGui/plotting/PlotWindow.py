@@ -59,10 +59,6 @@ from .PyMca_Icons import IconDict
 from PyMca5.PyMcaGui import PyMcaQt as qt
 from PyMca5.PyMcaGui.io import PyMcaFileDialogs
 
-if hasattr(qt, 'QString'):
-    QString = qt.QString
-else:
-    QString = qt.safe_str
 
 QTVERSION = qt.qVersion()
 
@@ -194,11 +190,11 @@ class PlotWindow(PlotWidget.PlotWidget):
         if self._controlMenu is None:
             #create a default menu
             controlMenu = qt.QMenu()
-            controlMenu.addAction(QString("Show/Hide Legends"),
+            controlMenu.addAction("Show/Hide Legends",
                                        self.toggleLegendWidget)
-            controlMenu.addAction(QString("Toggle Crosshair"),
+            controlMenu.addAction("Toggle Crosshair",
                                        self.toggleCrosshairCursor)
-            controlMenu.addAction(QString("Toggle Arrow Keys Panning"),
+            controlMenu.addAction("Toggle Arrow Keys Panning",
                                        self.toggleArrowKeysPanning)
             controlMenu.exec(self.cursor().pos())
         else:
@@ -489,9 +485,9 @@ class PlotWindow(PlotWidget.PlotWidget):
             printMenu = qt.QMenu()
             #printMenu.addAction(QString("Select printer"),
             #                        self._printerSelect)
-            printMenu.addAction(QString("Customize printing"),
+            printMenu.addAction("Customize printing",
                             self._getPrintConfigurationFromDialog)
-            printMenu.addAction(QString("Print"),
+            printMenu.addAction("Print",
                                        self.printGraph)
             printMenu.exec(self.cursor().pos())
         else:
@@ -963,17 +959,17 @@ class PlotWindow(PlotWidget.PlotWidget):
     def _pluginClicked(self):
         actionList = []
         menu = qt.QMenu(self)
-        text = QString("Reload Plugins")
+        text = "Reload Plugins"
         menu.addAction(text)
         actionList.append(text)
-        text = QString("Set User Plugin Directory")
+        text = "Set User Plugin Directory"
         menu.addAction(text)
         actionList.append(text)
         global DEBUG
         if DEBUG:
-            text = QString("Toggle DEBUG mode OFF")
+            text = "Toggle DEBUG mode OFF"
         else:
-            text = QString("Toggle DEBUG mode ON")
+            text = "Toggle DEBUG mode ON"
         menu.addAction(text)
         actionList.append(text)
         menu.addSeparator()
@@ -983,20 +979,20 @@ class PlotWindow(PlotWidget.PlotWidget):
                 continue
             module = sys.modules[m]
             if hasattr(module, 'MENU_TEXT'):
-                text = QString(module.MENU_TEXT)
+                text = str(module.MENU_TEXT)
             else:
                 text = os.path.basename(module.__file__)
                 if text.endswith('.pyc'):
                     text = text[:-4]
                 elif text.endswith('.py'):
                     text = text[:-3]
-                text = QString(text)
+                text = str(text)
             methods = self.pluginInstanceDict[m].getMethods(plottype=self._plotType)
             if not len(methods):
                 continue
             elif len(methods) == 1:
                 pixmap = self.pluginInstanceDict[m].getMethodPixmap(methods[0])
-                tip = QString(self.pluginInstanceDict[m].getMethodToolTip(methods[0]))
+                tip = str(self.pluginInstanceDict[m].getMethodToolTip(methods[0]))
                 if pixmap is not None:
                     action = qt.QAction(qt.QIcon(qt.QPixmap(pixmap)), text, self)
                 else:
@@ -1052,9 +1048,9 @@ class PlotWindow(PlotWidget.PlotWidget):
             #methods.sort()
             menu = qt.QMenu(self)
             for method in methods:
-                text = QString(method)
+                text = str(method)
                 pixmap = self.pluginInstanceDict[key].getMethodPixmap(method)
-                tip = QString(self.pluginInstanceDict[key].getMethodToolTip(method))
+                tip = str(self.pluginInstanceDict[key].getMethodToolTip(method))
                 if pixmap is not None:
                     action = qt.QAction(qt.QIcon(qt.QPixmap(pixmap)), text, self)
                 else:
@@ -1562,10 +1558,7 @@ class PlotWindow(PlotWidget.PlotWidget):
             os.remove(filename)
         if filterused[0].upper() == "WIDGET":
             fformat = filename[-3:].upper()
-            if hasattr(qt.QPixmap,"grabWidget"):
-                pixmap = qt.QPixmap.grabWidget(self)
-            else:
-                pixmap = self.grab()
+            pixmap = self.grab()
             if not pixmap.save(filename, fformat):
                 msg = qt.QMessageBox(self)
                 msg.setIcon(qt.QMessageBox.Critical)

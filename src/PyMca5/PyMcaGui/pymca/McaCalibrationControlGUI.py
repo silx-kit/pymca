@@ -33,7 +33,6 @@ import logging
 
 from PyMca5.PyMcaGui import PyMcaQt as qt
 QTVERSION = qt.qVersion()
-QString = qt.safe_str
 
 from PyMca5 import PyMcaDirs
 from PyMca5.PyMcaGui.io import PyMcaFileDialogs
@@ -65,11 +64,11 @@ class McaCalibrationControlGUI(qt.QWidget):
         self.calinfo = McaCalibrationInfoLine(self)
 
         self.calmenu = qt.QMenu()
-        self.calmenu.addAction(QString("Edit"),    self._copysignal)
-        self.calmenu.addAction(QString("Compute") ,self._computesignal)
+        self.calmenu.addAction("Edit",    self._copysignal)
+        self.calmenu.addAction("Compute" ,self._computesignal)
         self.calmenu.addSeparator()
-        self.calmenu.addAction(QString("Load") ,   self._loadsignal)
-        self.calmenu.addAction(QString("Save") ,   self._savesignal)
+        self.calmenu.addAction("Load" ,   self._loadsignal)
+        self.calmenu.addAction("Save" ,   self._savesignal)
 
         layout.addWidget(calibration)
         layout.addWidget(self.calinfo)

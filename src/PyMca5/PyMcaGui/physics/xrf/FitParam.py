@@ -1017,43 +1017,6 @@ class FitParamWidget(FitParamForm):
         qt.QMessageBox.critical(self, "ERROR on %s"%tab, message,
             qt.QMessageBox.Ok, qt.QMessageBox.NoButton, qt.QMessageBox.NoButton)
 
-class SectionFileDialog(qt.QFileDialog):
-    def __init__(self, parent=None, name="SectionFileDialog", sections=[], labels=None,
-                     mode=None,modal =1, initdir=None):
-        qt.QFileDialog.__init__(self, parent)
-        self.setModal(modal)
-        self.setWindowTitle(name)
-        #layout = qt.QHBoxLayout(self)
-        if hasattr(qt, "QStringList"):
-            strlist = qt.QStringList()
-        else:
-            strlist = []
-        strlist.append("Config Files *.cfg")
-        strlist.append("All Files *")
-        self.setFilters(strlist)
-        if initdir is not None:
-            if os.path.isdir(initdir):
-                if hasattr(qt, "QString"):
-                    self.setDir(qt.QString(initdir))
-                else:
-                    self.setDir(qt.safe_str(initdir))
-
-        _logger.debug("right to be added")
-        if mode is not None:
-            self.setFileMode(mode)
-
-    def getFilename(self):
-        filename= qt.safe_str(self.selectedFiles()[0])
-        filetype= qt.safe_str(self.selectedFilter())
-        if filetype.find("Config")==0:
-            fileext= os.path.splitext(filename)[1]
-            if not len(fileext):
-                filename= "%s.cfg"%filename
-        return filename
-
-    def getSections(self):
-        return self.sectionWidget.getSections()
-
 class SectionFileWidget(qt.QWidget):
     def __init__(self, parent=None, name="FitParamSectionWidget", sections=[], labels=None, fl=0):
         qt.QWidget.__init__(self, parent)

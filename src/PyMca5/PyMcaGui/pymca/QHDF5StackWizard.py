@@ -97,20 +97,12 @@ class FileListPage(qt.QWizardPage):
         filedialog = qt.QFileDialog(self)
         filedialog.setWindowTitle("Open a set of files")
         filedialog.setDirectory(wdir)
-        if hasattr(filedialog, "setFilters"):
-            filedialog.setFilters(["HDF5 Files (*.nxs *.h5 *.hdf *.hdf5)",
+        filedialog.setNameFilters(["HDF5 Files (*.nxs *.h5 *.hdf *.hdf5)",
                                    "HDF5 Files (*.h5)",
                                    "HDF5 Files (*.hdf)",
                                    "HDF5 Files (*.hdf5)",
                                    "HDF5 Files (*.nxs)",
                                    "HDF5 Files (*)"])
-        else:
-            filedialog.setNameFilters(["HDF5 Files (*.nxs *.h5 *.hdf *.hdf5)",
-                                       "HDF5 Files (*.h5)",
-                                       "HDF5 Files (*.hdf)",
-                                       "HDF5 Files (*.hdf5)",
-                                       "HDF5 Files (*.nxs)",
-                                       "HDF5 Files (*)"])
         filedialog.setModal(1)
         filedialog.setFileMode(filedialog.ExistingFiles)
         ret = filedialog.exec()

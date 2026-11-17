@@ -44,12 +44,6 @@ from PyMca5.PyMcaGui.io import PyMcaFileDialogs
 from PyMca5.PyMcaGui.pymca import RGBCorrelator
 from PyMca5.PyMcaMisc import CliUtils
 
-if hasattr(qt, "QString"):
-    QString = qt.QString
-    QStringList = qt.QStringList
-else:
-    QString = qt.safe_str
-    QStringList = list
 QTVERSION = qt.qVersion()
 
 _logger = logging.getLogger(__name__)

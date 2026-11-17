@@ -306,10 +306,7 @@ class QSourceSelector(qt.QWidget):
             self.fileCombo.insertItem(nitems, key)
             self.fileCombo.setCurrentIndex(nitems)
         else:
-            if hasattr(qt, "QString"):
-                nitem = self.fileCombo.findText(qt.QString(key))
-            else:
-                nitem = self.fileCombo.findText(key)
+            nitem = self.fileCombo.findText(key)
             self.fileCombo.setCurrentIndex(nitem)
         self._updateAutoRefreshVisibility(ddict["sourcelist"])
         self.sigSourceSelectorSignal.emit(ddict)
@@ -325,10 +322,7 @@ class QSourceSelector(qt.QWidget):
         ddict["event"] = "SourceClosed"
         ddict["combokey"] = key
         ddict["sourcelist"] = self.mapCombo[key] * 1
-        if hasattr(qt, "QString"):
-            nitem = self.fileCombo.findText(qt.QString(key))
-        else:
-            nitem = self.fileCombo.findText(key)
+        nitem = self.fileCombo.findText(key)
         self.fileCombo.removeItem(nitem)
         del self.mapCombo[key]
         # Disables auto-refresh checkbox
@@ -358,12 +352,8 @@ class QSourceSelector(qt.QWidget):
 
         menu = qt.QMenu()
         for session in sessionList:
-            if hasattr(qt, "QString"):
-                menu.addAction(qt.QString(session),
-                        lambda i=session:self.openFile(i, specsession="bliss"))
-            else:
-                menu.addAction(session,
-                        lambda i=session:self.openFile(i, specsession="bliss"))
+            menu.addAction(session,
+                    lambda i=session:self.openFile(i, specsession="bliss"))
         menu.exec(self.cursor().pos())
         
 
@@ -377,12 +367,8 @@ class QSourceSelector(qt.QWidget):
 
         menu = qt.QMenu()
         for spec in speclist:
-            if hasattr(qt, "QString"):
-                menu.addAction(qt.QString(spec),
-                        lambda i=spec:self.openFile(i, specsession=True))
-            else:
-                menu.addAction(spec,
-                        lambda i=spec:self.openFile(i, specsession=True))
+            menu.addAction(spec,
+                    lambda i=spec:self.openFile(i, specsession=True))
         menu.exec(self.cursor().pos())
 
 

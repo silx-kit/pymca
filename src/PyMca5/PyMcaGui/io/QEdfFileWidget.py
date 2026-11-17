@@ -37,14 +37,7 @@ from PyMca5.PyMcaGui.io import PyMcaFileDialogs
 from PyMca5.PyMcaGui.plotting import PlotWidget
 
 
-if not hasattr(qt, 'QString'):
-    QString = qt.safe_str
-    QStringList = list
-else:
-    QString = qt.QString
-    QStringList = qt.QStringList
 QTVERSION = qt.qVersion()
-QT4=True
 from PyMca5.PyMcaGui.pymca import QPyMcaMatplotlibSave
 MATPLOTLIB = True
 from PyMca5.PyMcaGui.plotting.PyMca_Icons import IconDict
@@ -391,8 +384,8 @@ class QEdfFileWidget(qt.QWidget):
                                      self.__saveIconSignal,
                                      'Export Graph')
             self._saveMenu = qt.QMenu()
-            self._saveMenu.addAction(QString("Standard"),    self._saveIconSignal)
-            self._saveMenu.addAction(QString("Matplotlib") , self._saveMatplotlibImage)
+            self._saveMenu.addAction("Standard",    self._saveIconSignal)
+            self._saveMenu.addAction("Matplotlib" , self._saveMatplotlibImage)
         else:
             tb = self._addToolButton(self.saveIcon,
                                  self._saveIconSignal,
@@ -620,12 +613,7 @@ class QEdfFileWidget(qt.QWidget):
 
     def saveGraphWidget(self, filename):
         fformat = filename[-3:].upper()
-        if hasattr(qt.QPixmap, "grabWidget"):
-            # Qt4
-            pixmap = qt.QPixmap.grabWidget(self.graph)
-        else:
-            #Qt5
-            pixmap = self.graph.grab()
+        pixmap = self.graph.grab()
         if pixmap.save(filename, fformat):
             return
         else:
@@ -640,12 +628,7 @@ class QEdfFileWidget(qt.QWidget):
             return False
 
     def printGraph(self):
-        if hasattr(qt.QPixmap, "graphWidget"):
-            # Qt4
-            pixmap = qt.QPixmap.grabWidget(self.graph)
-        else:
-            #Qt5
-            pixmap = self.graph.grab()
+        pixmap = self.graph.grab()
         self.printPreview.addPixmap(pixmap)
         if self.printPreview.isHidden():
             self.printPreview.show()
@@ -689,31 +672,6 @@ class QEdfFileWidget(qt.QWidget):
         self.addButton.clicked.connect(self._addClicked)
         self.removeButton.clicked.connect(self._removeClicked)
         self.replaceButton.clicked.connect(self._replaceClicked)
-
-    def _buildActionsQt3(self):
-        self.buttonBox = qt.QWidget(self)
-        buttonBox = self.buttonBox
-        self.buttonBoxLayout = qt.QHBoxLayout(buttonBox)
-
-        self.addButton = qt.QPushButton(buttonBox)
-        self.addButton.setText("ADD")
-        self.removeButton = qt.QPushButton(buttonBox)
-        self.removeButton.setText("REMOVE")
-        self.replaceButton = qt.QPushButton(buttonBox)
-        self.replaceButton.setText("REPLACE")
-
-        self.buttonBoxLayout.addWidget(self.addButton)
-        self.buttonBoxLayout.addWidget(self.removeButton)
-        self.buttonBoxLayout.addWidget(self.replaceButton)
-
-        self.mainLayout.addWidget(buttonBox)
-
-        self.addButton.clicked.connect(self._addClicked)
-
-        self.removeButton.clicked.connect(self._removeClicked)
-
-        self.replaceButton.clicked.connect(self._replaceClicked)
-
 
     def groupSignal(self,i):
         self.allImages = i

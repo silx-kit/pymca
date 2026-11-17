@@ -41,10 +41,6 @@ import os
 import numpy
 from PyMca5.PyMcaGui.pymca import RGBCorrelatorWidget
 qt = RGBCorrelatorWidget.qt
-if hasattr(qt, 'QString'):
-    QString = qt.QString
-else:
-    QString = str
 from PyMca5.PyMcaGui.plotting import RGBCorrelatorGraph
 from PyMca5.PyMcaGui.pymca import QPyMcaMatplotlibSave
 from PyMca5.PyMcaMisc import CliUtils
@@ -92,8 +88,8 @@ class RGBCorrelator(qt.QWidget):
                 self.graphWidget.saveToolButton.clicked.connect( \
                          self._saveToolButtonSignal)
                 self._saveMenu = qt.QMenu()
-                self._saveMenu.addAction(QString("Standard"),    self.graphWidget._saveIconSignal)
-                self._saveMenu.addAction(QString("Matplotlib") , self._saveMatplotlibImage)
+                self._saveMenu.addAction("Standard",    self.graphWidget._saveIconSignal)
+                self._saveMenu.addAction("Matplotlib" , self._saveMatplotlibImage)
             self.graph = self.graphWidget.graph
             #add flip Icon
             self.graphWidget.hFlipToolButton.clicked.connect( \

@@ -41,10 +41,6 @@ from PyMca5.PyMcaGui.io import PyMcaFileDialogs
 from PyMca5.PyMcaCore import NexusTools
 safe_str = qt.safe_str
 
-if hasattr(qt, 'QString'):
-    QString = qt.QString
-else:
-    QString = str
 
 from . import HDF5Widget
 from . import NexusInfo
@@ -225,16 +221,16 @@ class QNexusWidget(qt.QWidget):
         self.cntTable.setContextMenuPolicy(qt.Qt.CustomContextMenu)
 
         self._cntTableMenu = qt.QMenu(self)
-        self._cntTableMenu.addAction(QString("Load"),
+        self._cntTableMenu.addAction("Load",
                                     self._loadCounterTableConfiguration)
-        self._cntTableMenu.addAction(QString("Merge"),
+        self._cntTableMenu.addAction("Merge",
                                     self._mergeCounterTableConfiguration)
-        self._cntTableMenu.addAction(QString("Save"),
+        self._cntTableMenu.addAction("Save",
                                     self._saveCounterTableConfiguration)
         self._cntTableMenu.addSeparator()
-        self._cntTableMenu.addAction(QString("Delete All"),
+        self._cntTableMenu.addAction("Delete All",
                                     self._deleteAllCountersFromTable)
-        self._cntTableMenu.addAction(QString("Delete Selected"),
+        self._cntTableMenu.addAction("Delete Selected",
                                     self._deleteSelectedCountersFromTable)
 
     def _counterTableCustomMenuSlot(self, qpoint):
@@ -661,19 +657,19 @@ class QNexusWidget(qt.QWidget):
         if ddict['dtype'].startswith('|S') or ddict['dtype'] == '' or \
            ddict['dtype'].startswith('object'):
             # handle a right click on a group or a dataset of string type
-            _hdf5WidgetDatasetMenu.addAction(QString("Show Information"),
+            _hdf5WidgetDatasetMenu.addAction("Show Information",
                                              self._showInfoWidgetSlot)
-            _hdf5WidgetDatasetMenu.addAction(QString("Copy Path to Clipboard"),
+            _hdf5WidgetDatasetMenu.addAction("Copy Path to Clipboard",
                                              self._copyPathSlot)
             _hdf5WidgetDatasetMenu.exec(qt.QCursor.pos())
         else:
             #handle a right click on a numeric dataset
-            _hdf5WidgetDatasetMenu.addAction(QString("Add to selection table"),
+            _hdf5WidgetDatasetMenu.addAction("Add to selection table",
                                              self._addToSelectionTable)
 
-            _hdf5WidgetDatasetMenu.addAction(QString("Show Information"),
+            _hdf5WidgetDatasetMenu.addAction("Show Information",
                                              self._showInfoWidgetSlot)
-            _hdf5WidgetDatasetMenu.addAction(QString("Copy Path to Clipboard"),
+            _hdf5WidgetDatasetMenu.addAction("Copy Path to Clipboard",
                                          self._copyPathSlot)
             _hdf5WidgetDatasetMenu.exec(qt.QCursor.pos())
         self._lastItemDict = None

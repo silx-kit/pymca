@@ -214,20 +214,12 @@ class PyMcaPrintPreview(qt.QDialog):
         if self.printer is None:
             self.targetLabel.setText("???")
             return
-        if hasattr(qt, "QString"):
-            if len(self.printer.outputFileName()):
-                self.targetLabel.setText(qt.QString("File:").append(
-                    self.printer.outputFileName()))
-            else:
-                self.targetLabel.setText(qt.QString("Printer:").append(
-                    self.printer.printerName()))
+        if len(self.printer.outputFileName()):
+            self.targetLabel.setText("File:"+\
+                self.printer.outputFileName())
         else:
-            if len(self.printer.outputFileName()):
-                self.targetLabel.setText("File:"+\
-                    self.printer.outputFileName())
-            else:
-                self.targetLabel.setText("Printer:"+\
-                    self.printer.printerName())
+            self.targetLabel.setText("Printer:"+\
+                self.printer.printerName())
 
     def __print(self):
         printer = self.printer

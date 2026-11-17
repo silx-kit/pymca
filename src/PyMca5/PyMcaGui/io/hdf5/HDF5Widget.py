@@ -68,14 +68,6 @@ from PyMca5.PyMcaIO.HDF5Utils import sort_h5items
 
 safe_str = qt.safe_str
 
-if hasattr(qt, 'QStringList'):
-    MyQVariant = qt.QVariant
-else:
-    def MyQVariant(x=None):
-        return x
-
-QVERSION = qt.qVersion()
-
 
 class BrokenLink(object):
     pass
@@ -462,16 +454,16 @@ class FileModel(qt.QAbstractItemModel):
                 if column == 0:
                     if isinstance(item, H5FileProxy):
                         try:
-                            return MyQVariant(os.path.basename(item.file.filename))
+                            return os.path.basename(item.file.filename)
                         except Exception:
                             _logger.critical("Cannot retrieve file name")
-                            return MyQVariant("Unknown file. Please refresh")
+                            return "Unknown file. Please refresh"
                     else:
                         if hasattr(item, "name"):
-                            return MyQVariant(posixpath.basename(item.name))
+                            return posixpath.basename(item.name)
                         else:
                             # this can only happen with the root
-                            return MyQVariant("/")
+                            return "/"
                 if column == 1:
                     showtitle = True
                     if showtitle:
@@ -488,41 +480,41 @@ class FileModel(qt.QAbstractItemModel):
                                             #return just the first item
                                             if hasattr(node, "asstr"):
                                                 try:
-                                                    return MyQVariant("%s" % node.asstr()[()][0])
+                                                    return "%s" % node.asstr()[()][0]
                                                 except Exception:
-                                                    return MyQVariant("%s" % node[()][0])
+                                                    return "%s" % node[()][0]
                                         else:
                                             #stored as a string
                                             try:
                                                 try:
-                                                    return MyQVariant("%s" % node.asstr()[()])
+                                                    return "%s" % node.asstr()[()]
                                                 except Exception:
-                                                    return MyQVariant("%s" % node[()])
+                                                    return "%s" % node[()]
                                             except Exception:
                                                 # issue #745
-                                                return MyQVariant("Unknown %s" % node)
+                                                return "Unknown %s" % node
                                 else:
                                     _logger.critical("Entry %s has no children" % item.name)
-                    return MyQVariant(item.type)
+                    return item.type
                 if column == 2:
-                    return MyQVariant(item.shape)
+                    return item.shape
                 if column == 3:
-                    return MyQVariant(item.dtype)
+                    return item.dtype
             elif role == qt.Qt.ForegroundRole:
                 item = self.getProxyFromIndex(index)
                 column = index.column()
                 if column == 0:
                     if hasattr(item, "color"):
-                        return MyQVariant(qt.QColor(item.color))
+                        return qt.QColor(item.color)
             elif role == qt.Qt.ToolTipRole:
                 item = self.getProxyFromIndex(index)
                 if hasattr(item, "color"):
                     # qt.QPalette.Link is used to indicate action possibility (it is not actual link). BrightText and HighlightedText are not good.
                     if item.color == qt.QApplication.instance().palette().color(qt.QPalette.Link) or item.color == qt.Qt.blue:
-                        return MyQVariant("Item has a double click NXdata associated action")
-            return MyQVariant()
+                        return "Item has a double click NXdata associated action"
+            return None
         except Exception:
-            return MyQVariant("Unhandled exception filling tree. Reload?")
+            return "Unhandled exception filling tree. Reload?"
 
     def getNodeFromIndex(self, index):
         try:
@@ -546,9 +538,9 @@ class FileModel(qt.QAbstractItemModel):
     def headerData(self, section, orientation, role):
         if orientation == qt.Qt.Horizontal and \
                 role == qt.Qt.DisplayRole:
-            return MyQVariant(self.rootItem.header[section])
+            return self.rootItem.header[section]
 
-        return MyQVariant()
+        return None
 
     def hasIndex(self, row, column, parent):
         parentItem = self.getProxyFromIndex(parent)
@@ -813,10 +805,9 @@ class HDF5Widget(FileView):
         qt.QTreeView.mousePressEvent(self, e)
         if self._lastMouse != "left":
             # Qt5 only sends itemClicked on left button mouse click
-            if QVERSION > "5":
-                event = "itemClicked"
-                modelIndex = self.indexAt(e.pos())
-                self.emitSignal(event, modelIndex)
+            event = "itemClicked"
+            modelIndex = self.indexAt(e.pos())
+            self.emitSignal(event, modelIndex)
 
     def itemActivated(self, modelIndex):
         event = "itemActivated"
@@ -840,11 +831,10 @@ class HDF5Widget(FileView):
         if self.model() is None:
             return
         item = self.model().getProxyFromIndex(modelIndex)
-        if QVERSION > "5":
-            # prevent crash clicking on empty space
-            if not hasattr(item, "file"):
-                # RootItem
-                return
+        # prevent crash clicking on empty space
+        if not hasattr(item, "file"):
+            # RootItem
+            return
         ddict = {}
         ddict['event'] = event
         ddict['file']  = item.file.filename

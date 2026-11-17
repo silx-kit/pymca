@@ -46,10 +46,6 @@ qt = RGBCorrelatorGraph.qt
 IconDict = RGBCorrelatorGraph.IconDict
 convertToRowAndColumn = RGBCorrelatorGraph.convertToRowAndColumn
 QTVERSION = qt.qVersion()
-if hasattr(qt, "QString"):
-    QString = qt.QString
-else:
-    QString = qt.safe_str
 MATPLOTLIB = False
 try:
     from PyMca5.PyMcaGui.pymca import QPyMcaMatplotlibSave
@@ -206,17 +202,17 @@ class MaskImageWidget(qt.QWidget):
     def buildStandaloneSaveMenu(self):
         self.graphWidget.saveToolButton.clicked.connect(self._saveToolButtonSignal)
         self._saveMenu = qt.QMenu()
-        self._saveMenu.addAction(QString("Image Data"),
+        self._saveMenu.addAction("Image Data",
                                  self.saveImageList)
-        self._saveMenu.addAction(QString("Colormap Clipped Seen Image Data"),
+        self._saveMenu.addAction("Colormap Clipped Seen Image Data",
                                  self.saveClippedSeenImageList)
-        self._saveMenu.addAction(QString("Clipped and Subtracted Seen Image Data"),
+        self._saveMenu.addAction("Clipped and Subtracted Seen Image Data",
                                  self.saveClippedAndSubtractedSeenImageList)
 
-        self._saveMenu.addAction(QString("Standard Graphics"),
+        self._saveMenu.addAction("Standard Graphics",
                                  self.graphWidget._saveIconSignal)
         if MATPLOTLIB:
-            self._saveMenu.addAction(QString("Matplotlib") ,
+            self._saveMenu.addAction("Matplotlib" ,
                              self._saveMatplotlibImage)
 
     def _buildMultipleRois(self):
@@ -270,15 +266,15 @@ class MaskImageWidget(qt.QWidget):
             self.graphWidget.additionalSelectionToolButton.clicked.connect(\
                 self._additionalSelectionMenuDialog)
             self._additionalSelectionMenu = qt.QMenu()
-            self._additionalSelectionMenu.addAction(QString("Reset Selection"),
+            self._additionalSelectionMenu.addAction("Reset Selection",
                                                     self.__resetSelection)
-            self._additionalSelectionMenu.addAction(QString("Invert Selection"),
+            self._additionalSelectionMenu.addAction("Invert Selection",
                                                     self._invertSelection)
-            self._additionalSelectionMenu.addAction(QString("I >= Colormap Max"),
+            self._additionalSelectionMenu.addAction("I >= Colormap Max",
                                                     self._selectMax)
-            self._additionalSelectionMenu.addAction(QString("Colormap Min < I < Colormap Max"),
+            self._additionalSelectionMenu.addAction("Colormap Min < I < Colormap Max",
                                                     self._selectMiddle)
-            self._additionalSelectionMenu.addAction(QString("I <= Colormap Min"),
+            self._additionalSelectionMenu.addAction("I <= Colormap Min",
                                                     self._selectMin)
         self.graphWidget.graph.sigPlotSignal.connect(self._graphSignal)
 
@@ -1000,17 +996,17 @@ class MaskImageWidget(qt.QWidget):
         _logger.debug("_setBrush")
         if self.__brushMenu is None:
             self.__brushMenu = qt.QMenu()
-            self.__brushMenu.addAction(QString(" 1 Image Pixel Width"),
+            self.__brushMenu.addAction(" 1 Image Pixel Width",
                                        self.__setBrush1)
-            self.__brushMenu.addAction(QString(" 2 Image Pixel Width"),
+            self.__brushMenu.addAction(" 2 Image Pixel Width",
                                        self.__setBrush2)
-            self.__brushMenu.addAction(QString(" 3 Image Pixel Width"),
+            self.__brushMenu.addAction(" 3 Image Pixel Width",
                                        self.__setBrush3)
-            self.__brushMenu.addAction(QString(" 5 Image Pixel Width"),
+            self.__brushMenu.addAction(" 5 Image Pixel Width",
                                        self.__setBrush4)
-            self.__brushMenu.addAction(QString("10 Image Pixel Width"),
+            self.__brushMenu.addAction("10 Image Pixel Width",
                                        self.__setBrush5)
-            self.__brushMenu.addAction(QString("20 Image Pixel Width"),
+            self.__brushMenu.addAction("20 Image Pixel Width",
                                        self.__setBrush6)
         self.__brushMenu.exec(self.cursor().pos())
 

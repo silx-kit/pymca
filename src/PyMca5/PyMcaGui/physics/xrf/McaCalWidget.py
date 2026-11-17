@@ -47,10 +47,6 @@ from numpy.linalg import inv as inverse
 from PyMca5.PyMcaGui import PyMcaQt as qt
 from PyMca5.PyMcaGui.plotting.PlotWidget import PlotWidget
 
-if hasattr(qt, "QString"):
-    QString = qt.QString
-else:
-    QString = str
 QTVERSION = qt.qVersion()
 from PyMca5.PyMcaMath.fitting import Gefit
 from PyMca5.PyMcaMath.fitting import Specfit
@@ -1067,7 +1063,7 @@ class CalibrationParameters(qt.QWidget):
         return self.caldict
 
     def _CFixSlot(self):
-        self.__orderbox(QString('TOF'))
+        self.__orderbox('TOF')
 
     def __orderbox(self,qstring):
         qstring = str(qstring)
@@ -1565,7 +1561,7 @@ class SimpleComboBox(qt.QComboBox):
     def setOptions(self,options=['1','2','3']):
         self.clear()
         for item in options:
-            self.addItem(QString(item))
+            self.addItem(str(item))
 
     def getCurrent(self):
         return   self.currentIndex(),str(self.currentText())

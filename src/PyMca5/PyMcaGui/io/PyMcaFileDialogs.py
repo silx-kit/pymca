@@ -209,18 +209,11 @@ def getFileList(parent=None, filetypelist=None, message=None, currentdir=None,
         fdialog = qt.QFileDialog(parent)
         fdialog.setModal(True)
         fdialog.setWindowTitle(message)
-        if hasattr(qt, "QStringList"):
-            strlist = qt.QStringList()
-        else:
-            strlist = []
-        strlist.append(currentfilter)
+        strlist = [currentfilter]
         for filetype in fileTypeList:
             if filetype != currentfilter:
                 strlist.append(filetype)
-        if hasattr(fdialog, "setFilters"):
-            fdialog.setFilters(strlist)
-        else:
-            fdialog.setNameFilters(strlist)
+        fdialog.setNameFilters(strlist)
 
         if mode == "OPEN":
             fdialog.setFileMode(qt.QFileDialog.FileMode.ExistingFiles)

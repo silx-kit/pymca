@@ -40,12 +40,6 @@ from PyMca5.PyMcaIO import specfilewrapper as specfile
 from PyMca5 import PyMcaDataDir
 from PyMca5.PyMcaGui.pymca import ScanWindow
 
-if hasattr(qt, "QString"):
-    QString = qt.QString
-    QStringList = qt.QStringList
-else:
-    QString = str
-    QStringList = list
 
 _logger = logging.getLogger(__name__)
 
@@ -365,7 +359,7 @@ class XMCDOptions(qt.QDialog):
                     name = self.normalizationMethod(name)
                 if option.startswith("Motor") and name == "None":
                     name = ""
-                idx = obj.findText(QString(name))
+                idx = obj.findText(str(name))
                 obj.setCurrentIndex(idx)
             elif isinstance(obj, qt.QButtonGroup):
                 try:
@@ -1967,7 +1961,7 @@ class XMCDWidget(qt.QWidget):
                         counter = cntList[yIdx]
                     except Exception:
                         counter = ""
-            tmp = QStringList([selection, filename, scanNo, counter])
+            tmp = [selection, filename, scanNo, counter]
             # Determine value for each motor
             for m in mList:
                 if len(m) == 0:
