@@ -4,7 +4,7 @@
 
 --trusted-host www.silx.org
 --find-links http://www.silx.org/pub/wheelhouse/
---only-binary numpy,h5py,PyQt5,PySide2
+--only-binary numpy,h5py,PyQt5
 
 # numpy >= 1.23 can be used, but be careful with its bundled OpenBLAS:
 # old versions can give wrong fit results on recent CPUs
@@ -16,10 +16,5 @@ h5py                      # For HDF5 file format support
 matplotlib >= 3.5         # For visualization
 qtconsole                 # For interactive console plugin
 
-# PyQt5 or PySide2 or PySide6  # For PyMca5.PyMcaGui
-# Try to install a Qt binding from a wheel
-# This is no available for all configurations
-
-# Require PyQt when wheel is available
-PyQt5; python_version >= '3.5'
-PySide2; sys_platform == 'darwin' and python_version == '2.7'
+# Qt binding for PyMca5.PyMcaGui: PyQt5, PySide6 or PyQt6
+PyQt5
