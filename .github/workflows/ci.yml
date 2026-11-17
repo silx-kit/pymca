@@ -34,7 +34,7 @@ jobs:
             os: ubuntu-latest
             python-version: "3.10"
             BUILD_COMMAND: --sdist
-            QT_BINDING: PyQt5==5.14.1
+            QT_BINDING: PyQt5==5.15.1
             NUMPY: numpy==2.0.2
             XVFB_RUN: xvfb-run -a
             WARNING_FLAGS: "-W ignore::DeprecationWarning"
