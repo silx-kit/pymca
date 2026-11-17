@@ -336,22 +336,26 @@ class StackBrowser(MaskImageWidget.MaskImageWidget):
         nBytes = nImages * shape[0] * shape[1] * 8
         text = "All images need about %.1f GBytes of memory.\n" % \
                 (nBytes / (1024**3))
-        text += "PyMca may not respond until all images are added."
         msg = qt.QMessageBox(self)
         # `WA_DeleteOnClose` to delete itself on close (to avoid a leak)
         msg.setAttribute(qt.Qt.WA_DeleteOnClose)
         msg.setWindowTitle("Add all images")
-        msg.setIcon(qt.QMessageBox.Information)
         if hasattr(PhysicalMemory, "getAvailablePhysicalMemoryOrNone"):
             physicalMemory = PhysicalMemory.getAvailablePhysicalMemoryOrNone()
-            extraText = "\n\nThis is more than the available physical memory "
+            extraText = "This is more than the available physical memory "
         else:
             physicalMemory = PhysicalMemory.getPhysicalMemoryOrNone()
-            extraText = "\n\nThis is more than the physical memory "
+            extraText = "This is more than the physical memory "
         if (physicalMemory is not None) and (nBytes >= physicalMemory):
-            msg.setIcon(qt.QMessageBox.Warning)
+            msg.setIcon(qt.QMessageBox.Critical)
             text += extraText
-            text += "(%.1f GBytes)." % (physicalMemory / (1024**3))
+            text += "(%.1f GBytes).\n" % (physicalMemory / (1024**3))
+            text += "The images cannot be added."
+            msg.setText(text)
+            msg.exec()
+            return False
+        msg.setIcon(qt.QMessageBox.Information)
+        text += "PyMca may not respond until all images are added."
         msg.setText(text)
         msg.setStandardButtons(qt.QMessageBox.Ok | qt.QMessageBox.Cancel)
         return msg.exec() == qt.QMessageBox.Ok
