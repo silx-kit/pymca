@@ -473,6 +473,7 @@ class PCAWindow(MaskImageWidget.MaskImageWidget):
     def __init__(self, *var, **kw):
         ddict = {}
         ddict["usetab"] = True
+        ddict["aspect"] = True
         ddict.update(kw)
         ddict["standalonesave"] = False
         MaskImageWidget.MaskImageWidget.__init__(self, *var, **ddict)
