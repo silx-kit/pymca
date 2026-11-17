@@ -130,6 +130,8 @@ def matchEntries(names, specs, positions=False):
             numbers.append((i + 1,))
     else:
         numbers = parseEntryNames(names)
+    if len(numbers) and len(specs) > len(numbers[0]):
+        raise ValueError("More specifications than numbers in the names")
     requested = []
     for i in range(len(specs)):
         available = set()
@@ -187,6 +189,13 @@ class HDF5SmartSelectionDialog(qt.QDialog):
             self.numberLines.append(line)
         row = len(self.numberLines) + 1
 
+        # the matching scans, updated while typing
+        self.previewLabel = qt.QLabel(self)
+        self.previewLine = qt.QLineEdit(self)
+        self.previewLine.setReadOnly(True)
+        for line in self.numberLines:
+            line.textChanged.connect(self._updatePreview)
+
         self.positionBox = qt.QCheckBox(self)
         self.positionBox.setText("Use the position in the tree (1 to %d)" %
                                  len(entryNames))
@@ -196,6 +205,8 @@ class HDF5SmartSelectionDialog(qt.QDialog):
             self.positionBox.setEnabled(False)
             self.positionBox.setToolTip("No scan number found in the names")
         self.mainLayout.addWidget(self.positionBox, row, 0, 1, 2)
+        self.mainLayout.addWidget(self.previewLabel, row + 1, 0)
+        self.mainLayout.addWidget(self.previewLine, row + 1, 1)
 
         helpBox = qt.QGroupBox(self)
         helpBox.setTitle("Accepted syntax")
@@ -205,7 +216,7 @@ class HDF5SmartSelectionDialog(qt.QDialog):
                 label = qt.QLabel(helpBox)
                 label.setText(SYNTAX_HELP[i][j])
                 helpBoxLayout.addWidget(label, i, j)
-        self.mainLayout.addWidget(helpBox, row + 1, 0, 1, 2)
+        self.mainLayout.addWidget(helpBox, row + 2, 0, 1, 2)
 
         self.selectButton = qt.QPushButton(self)
         self.selectButton.setText("Select")
@@ -214,10 +225,28 @@ class HDF5SmartSelectionDialog(qt.QDialog):
         buttonLayout = qt.QHBoxLayout()
         buttonLayout.addWidget(self.selectButton)
         buttonLayout.addWidget(self.cancelButton)
-        self.mainLayout.addLayout(buttonLayout, row + 2, 0, 1, 2)
+        self.mainLayout.addLayout(buttonLayout, row + 3, 0, 1, 2)
 
         self.selectButton.clicked.connect(self._selectClicked)
         self.cancelButton.clicked.connect(self.reject)
+        self._updatePreview()
+
+    def _getSpecs(self):
+        specs = []
+        for line in self.numberLines:
+            specs.append(line.text())
+        return specs
+
+    def _updatePreview(self):
+        try:
+            matches = matchEntries(self._entryNames, self._getSpecs(),
+                                   self.positionBox.isChecked())
+        except ValueError:
+            matches = []
+        self.previewLabel.setText("Matching scans (%d):" % len(matches))
+        self.previewLine.setText(", ".join(matches))
+        # show the first scans
+        self.previewLine.setCursorPosition(0)
 
     def _positionBoxToggled(self, checked):
         # the position goes in the first line, the other lines are unused
@@ -228,14 +257,12 @@ class HDF5SmartSelectionDialog(qt.QDialog):
         for i in range(1, len(self.numberLines)):
             self.numberLabels[i].setEnabled(not checked)
             self.numberLines[i].setEnabled(not checked)
+        self._updatePreview()
 
     def _selectClicked(self):
-        specs = []
-        for line in self.numberLines:
-            specs.append(line.text())
         # the dialog stays open until the request is valid
         try:
-            self.selected = matchEntries(self._entryNames, specs,
+            self.selected = matchEntries(self._entryNames, self._getSpecs(),
                                          self.positionBox.isChecked())
         except ValueError as error:
             msg = qt.QMessageBox(self)

@@ -677,6 +677,8 @@ class QNexusWidget(qt.QWidget):
                                              self._showInfoWidgetSlot)
             _hdf5WidgetDatasetMenu.addAction(QString("Copy Path to Clipboard"),
                                              self._copyPathSlot)
+            _hdf5WidgetDatasetMenu.addAction(QString("Numeric selection of scans"),
+                                             self.showSmartSelectionDialog)
             _hdf5WidgetDatasetMenu.exec(qt.QCursor.pos())
         else:
             #handle a right click on a numeric dataset
@@ -1470,7 +1472,7 @@ class QNexusWidget(qt.QWidget):
         dialog = HDF5SmartSelectionDialog.HDF5SmartSelectionDialog(self,
                             filename=fileIndex.data(),
                             entryNames=entryNames)
-        # to avoid a leak
+        # `WA_DeleteOnClose` to delete itself on close (to avoid a leak)
         dialog.setAttribute(qt.Qt.WA_DeleteOnClose)
         if not dialog.exec():
             return
