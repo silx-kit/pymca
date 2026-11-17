@@ -1644,10 +1644,10 @@ class MyQTextBrowser(qt.QTextBrowser):
                 self.report.show()
             except Exception:
                 self.report = qt.QTextBrowser()
-                self.report.setCaption(QString("PyMca Report"))
+                self.report.setWindowTitle("PyMca Report")
                 ddir=PyMcaDataDir.PYMCA_DOC_DIR
-                self.report.mimeSourceFactory().addFilePath(QString(ddir+"/HTML"))
-                self.report.mimeSourceFactory().addFilePath(QString(ddir+"/HTML/PyMCA_files"))
+                self.report.setSearchPaths([ddir+"/HTML",
+                                            ddir+"/HTML/PyMCA_files"])
                 self.report.setSource(name)
             if self.report.isHidden():
                 self.report.show()

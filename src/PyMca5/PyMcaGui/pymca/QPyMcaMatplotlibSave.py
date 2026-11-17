@@ -183,7 +183,7 @@ class SaveImageSetup(qt.QWidget):
 
     def printClicked(self):
         try:
-            pixmap = qt.QPixmap.grabWidget(self.imageWidget)
+            pixmap = self.imageWidget.grab()
             self.printPreview.addPixmap(pixmap)
             if self.printPreview.isHidden():
                 self.printPreview.show()
