@@ -33,8 +33,6 @@ import logging
 _logger = logging.getLogger(__name__)
 
 from PyMca5.PyMcaGui import PyMcaQt as qt
-safe_str = qt.safe_str
-
 import copy
 import posixpath
 
@@ -107,7 +105,7 @@ class SimpleInfoGroupBox(qt.QGroupBox):
         if type(value) == type(""):
             self.keyDict[key][1].setText(value)
         else:
-            self.keyDict[key][1].setText(safe_str(value))
+            self.keyDict[key][1].setText(str(value))
 
 class NameGroupBox(SimpleInfoGroupBox):
     def __init__(self, parent, title=None, keys=[]):
@@ -373,9 +371,9 @@ def getInfo(hdf5File, node):
             name = hdf5File.file.filename
         if data.name != node:
             path += " external link to %s" % data.name
-            path += " in %s" % safe_str(data.file.filename)
+            path += " in %s" % str(data.file.filename)
             name += " external link to %s" % data.name
-            name += " in %s" % safe_str(data.file.filename)
+            name += " in %s" % str(data.file.filename)
         else:
             name = data.name
         ddict['general']['Path'] = path
@@ -386,7 +384,7 @@ def getInfo(hdf5File, node):
             ddict['general']['Name'] = posixpath.basename(data.name)
         else:
             ddict['general']['Name'] = data.file.filename
-    ddict['general']['Type'] = safe_str(data)
+    ddict['general']['Type'] = str(data)
     if hasattr(data, 'dtype'):
         dataw = data
         if hasattr(data, "asstr"):
@@ -427,13 +425,13 @@ def getInfo(hdf5File, node):
         ddict['general']['members'] = []
     for member in list(ddict['general']['members']):
         ddict['general'][member] = {}
-        ddict['general'][member]['Name'] = safe_str(member)
+        ddict['general'][member]['Name'] = str(member)
         if ddict['general']['Path'] == "/":
-            ddict['general'][member]['Type'] = safe_str(hdf5File[node+"/"+member])
+            ddict['general'][member]['Type'] = str(hdf5File[node+"/"+member])
             continue
         memberObject = hdf5File[node][member]
         if hasattr(memberObject, 'shape'):
-            ddict['general'][member]['Type'] = safe_str(hdf5File[node+"/"+member])
+            ddict['general'][member]['Type'] = str(hdf5File[node+"/"+member])
             dtype = memberObject.dtype
             if hasattr(memberObject, 'shape'):
                 shape = memberObject.shape
@@ -478,7 +476,7 @@ def getInfo(hdf5File, node):
                 else:
                     _logger.info("Not showing value information for %dd data" % len(shape))
         else:
-            ddict['general'][member]['Type'] = safe_str(hdf5File[node+"/"+member])
+            ddict['general'][member]['Type'] = str(hdf5File[node+"/"+member])
 
     if hasattr(data.attrs, "keys"):
         ddict['attributes']['names'] = data.attrs.keys()
@@ -492,17 +490,17 @@ def getInfo(hdf5File, node):
         ddict['attributes'][key] = {}
         Name = key
         Value = data.attrs[key]
-        Type =  safe_str(type(Value))
+        Type =  str(type(Value))
         if type(Value) == type(""):
             Size = "%d" % len(Value)
         elif type(Value) in [type(1), type(0.0)]:
-            Value = safe_str(Value)
+            Value = str(Value)
             Size = "1"
         elif hasattr(Value, "size"):
             Size = "%s" % Value.size
-            Value = safe_str(Value)
+            Value = str(Value)
         else:
-            Value = safe_str(Value)
+            Value = str(Value)
             Size = "Unknown"
         ddict['attributes'][key]['Name']  = Name
         ddict['attributes'][key]['Value'] = Value

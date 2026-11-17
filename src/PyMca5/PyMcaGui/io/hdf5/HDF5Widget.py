@@ -66,9 +66,6 @@ except ImportError:
 from PyMca5.PyMcaGui import PyMcaQt as qt
 from PyMca5.PyMcaIO.HDF5Utils import sort_h5items
 
-safe_str = qt.safe_str
-
-
 class BrokenLink(object):
     pass
 
@@ -184,7 +181,7 @@ class H5NodeProxy(object):
                         if not len(dataset.shape):
                             # it can still be a string or a scalar
                             if hasattr(dataset, "dtype"):
-                                dataset_dtype_print = safe_str(dataset.dtype)
+                                dataset_dtype_print = str(dataset.dtype)
                                 if dataset_dtype_print.startswith("|S"):
                                     pass
                                 elif dataset_dtype_print.startswith("float"):
@@ -197,7 +194,7 @@ class H5NodeProxy(object):
                                     pass
                                 elif dataset_dtype_print.startswith("complex"):
                                     pass
-                                elif safe_str(dataset.dtype) == "object":
+                                elif str(dataset.dtype) == "object":
                                     # issue 1059
                                     pass
                                 else:
@@ -327,7 +324,7 @@ class H5NodeProxy(object):
                     #self._type = _type[2].upper() + _type[3:]
         self._children = []
         if hasattr(node, 'dtype'):
-            self._dtype = safe_str(node.dtype)
+            self._dtype = str(node.dtype)
         else:
             self._dtype = ""
         if hasattr(node, 'shape'):
@@ -797,7 +794,7 @@ class HDF5Widget(FileView):
             self._lastMouse = "left"
         elif button == qt.Qt.RightButton:
             self._lastMouse = "right"
-        elif button == qt.Qt.MidButton:
+        elif button == qt.Qt.MiddleButton:
             self._lastMouse = "middle"
         else:
             #Should I set it to no button?

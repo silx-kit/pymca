@@ -63,7 +63,7 @@ class TopWidget(qt.QWidget):
         self.fitFunctionLabel.setFont(font)
         self.fitFunctionLabel.setText("Fit:")
         self.fitFunctionCombo = qt.QComboBox(self)
-        self.fitFunctionCombo.addItem(qt.safe_str("None"))
+        self.fitFunctionCombo.addItem(str("None"))
         self.fitFunctionCombo.setSizeAdjustPolicy(qt.QComboBox.AdjustToContents)
         self.fitFunctionCombo.setMinimumWidth(100)
 
@@ -72,7 +72,7 @@ class TopWidget(qt.QWidget):
         self.backgroundLabel.setFont(font)
         self.backgroundLabel.setText("Background:")
         self.backgroundCombo  = qt.QComboBox(self)
-        self.backgroundCombo.addItem(qt.safe_str("None"))
+        self.backgroundCombo.addItem(str("None"))
         self.backgroundCombo.setSizeAdjustPolicy(qt.QComboBox.AdjustToContents)
         self.backgroundCombo.setMinimumWidth(100)
 
@@ -91,15 +91,15 @@ class TopWidget(qt.QWidget):
         self.mainLayout.addWidget(self.configureButton,   0, 8)
 
     def setFunctions(self, functionList):
-        currentFunction = qt.safe_str(self.fitFunctionCombo.currentText())
-        currentBackground = qt.safe_str(self.backgroundCombo.currentText())
+        currentFunction = str(self.fitFunctionCombo.currentText())
+        currentBackground = str(self.backgroundCombo.currentText())
         self.fitFunctionCombo.clear()
         self.backgroundCombo.clear()
         self.fitFunctionCombo.addItem('None')
         self.backgroundCombo.addItem('None')
         for key in functionList:
-            self.fitFunctionCombo.addItem(qt.safe_str(key))
-            self.backgroundCombo.addItem(qt.safe_str(key))
+            self.fitFunctionCombo.addItem(str(key))
+            self.backgroundCombo.addItem(str(key))
 
         #restore previous values
         idx = self.fitFunctionCombo.findText(currentFunction)
@@ -115,16 +115,16 @@ class StatusWidget(qt.QWidget):
         self.mainLayout.setSpacing(2)
 
         self.statusLabel = qt.QLabel(self)
-        self.statusLabel.setText(qt.safe_str("Status:"))
+        self.statusLabel.setText(str("Status:"))
         self.statusLine = qt.QLineEdit(self)
-        self.statusLine.setText(qt.safe_str("Ready"))
+        self.statusLine.setText(str("Ready"))
         self.statusLine.setReadOnly(1)
 
         self.chi2Label = qt.QLabel(self)
-        self.chi2Label.setText(qt.safe_str("Reduced Chi Square:"))
+        self.chi2Label.setText(str("Reduced Chi Square:"))
 
         self.chi2Line = qt.QLineEdit(self)
-        self.chi2Line.setText(qt.safe_str(""))
+        self.chi2Line.setText(str(""))
         self.chi2Line.setReadOnly(1)
 
         self.mainLayout.addWidget(self.statusLabel)
@@ -232,7 +232,7 @@ class SimpleFitGui(qt.QWidget):
                                         currentfilter=filetypelist[0],
                                         native=None)
             if len(fileList):
-                functionsfile= qt.safe_str(fileList[0])
+                functionsfile= str(fileList[0])
             else:
                 functionsfile = ""
             if not len(functionsfile):
@@ -258,14 +258,14 @@ class SimpleFitGui(qt.QWidget):
         if idx <= 0:
             fname = "None"
         else:
-            fname = qt.safe_str(self.topWidget.fitFunctionCombo.itemText(idx))
+            fname = str(self.topWidget.fitFunctionCombo.itemText(idx))
         self.fitModule.setFitFunction(fname)
 
     def backgroundComboSlot(self, idx):
         if idx <= 0:
             fname = "None"
         else:
-            fname = qt.safe_str(self.topWidget.backgroundCombo.itemText(idx))
+            fname = str(self.topWidget.backgroundCombo.itemText(idx))
         self.setBackgroundFunction(fname)
 
     def configureButtonSlot(self):

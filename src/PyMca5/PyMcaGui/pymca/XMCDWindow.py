@@ -292,13 +292,13 @@ class XMCDOptions(qt.QDialog):
         ffilter = "PyMca (*.cfg)"
         filename = qt.QFileDialog.getOpenFileName(
             self, "Load XLD/XMCD Analysis Configuration", openDir, ffilter
-        )
+        )[0]
         confDict = ConfigDict.ConfigDict()
         try:
             confDict.read(filename)
         except IOError:
             msg = qt.QMessageBox()
-            msg.setTitle("XMCD Options Error")
+            msg.setWindowTitle("XMCD Options Error")
             msg.setText("Unable to read configuration file '%s'" % filename)
             return
         if "XMCDOptions" not in confDict:
@@ -2099,7 +2099,7 @@ def getSaveFileName(parent, caption, directory, filter):
         comment = str(dial.commentBox.toPlainText())
         if comment == "Enter comment":
             comment = ""
-        files = [qt.safe_str(fn) for fn in dial.selectedFiles()]
+        files = [str(fn) for fn in dial.selectedFiles()]
     return (files, append, comment)
 
 

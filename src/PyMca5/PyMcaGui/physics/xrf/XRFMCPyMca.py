@@ -122,8 +122,8 @@ class GetFileList(qt.QGroupBox):
                 else:
                     text += "\n%s" % ffile
             if len(self.fileList):
-                self.inputDir = os.path.dirname(qt.safe_str(self.fileList[0]))
-                xrfmc_dirs.inputDir = os.path.dirname(qt.safe_str(self.fileList[0]))
+                self.inputDir = os.path.dirname(str(self.fileList[0]))
+                xrfmc_dirs.inputDir = os.path.dirname(str(self.fileList[0]))
         self.__listView.clear()
         self.__listView.insertPlainText(text)
         ddict = {}

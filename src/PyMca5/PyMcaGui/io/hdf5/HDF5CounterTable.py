@@ -31,8 +31,6 @@ import posixpath
 import logging
 import re
 from PyMca5.PyMcaGui import PyMcaQt as qt
-safe_str = qt.safe_str
-
 _logger = logging.getLogger(__name__)
 
 class CntSelectionType(qt.QWidget):
@@ -431,7 +429,7 @@ class HDF5CounterTable(qt.QTableWidget):
         if col != 5:
             return
         item = self.item(row, 5)
-        self.aliasList[row] = safe_str(item.text())
+        self.aliasList[row] = str(item.text())
 
     def _mySlot(self, ddict):
         _logger.debug("HDF5CounterTable._mySlot %s", ddict)

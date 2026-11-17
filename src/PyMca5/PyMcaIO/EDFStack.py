@@ -198,10 +198,9 @@ class EDFStack(DataObject.DataObject):
                                 hdf5file = qt.QFileDialog.getSaveFileName(None,
                                             "Please select output file name",
                                             os.path.dirname(filelist[0]),
-                                            "HDF5 files *.h5")
+                                            "HDF5 files *.h5")[0]
                                 if not len(hdf5file):
                                     raise IOError("Invalid output file")
-                                hdf5file = qt.safe_str(hdf5file)
                                 if not hdf5file.endswith(".h5"):
                                     hdf5file += ".h5"
                                 hdf, self.data =  ArraySave.getHDF5FileInstanceAndBuffer(hdf5file,

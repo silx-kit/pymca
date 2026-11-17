@@ -95,7 +95,7 @@ class LegendIcon(qt.QWidget):
 
     # Modify Symbol
     def setSymbol(self, symbol):
-        symbol = qt.safe_str(symbol)
+        symbol = str(symbol)
         if symbol not in [None, "None", "", " "]:
             if symbol not in Symbols:
                 raise ValueError("Unknown symbol: <%s>" % symbol)
@@ -731,14 +731,14 @@ class LegendListView(qt.QListView):
         # item is tupel: (legend, icon, checkState, curveType)
         item  = model[idx]
         ddict = {
-            'legend'   : qt.safe_str(modelIndex.data(qt.Qt.DisplayRole)),
+            'legend'   : str(modelIndex.data(qt.Qt.DisplayRole)),
             'icon'     : {
-                'linewidth' : qt.safe_str(modelIndex.data(LegendModel.iconLineWidthRole)),
-                'symbol'    : qt.safe_str(modelIndex.data(LegendModel.iconSymbolRole)),
+                'linewidth' : str(modelIndex.data(LegendModel.iconLineWidthRole)),
+                'symbol'    : str(modelIndex.data(LegendModel.iconSymbolRole)),
                 'color'     : modelIndex.data(LegendModel.legendTypeRole)
             },
             'selected' : modelIndex.data(qt.Qt.CheckStateRole),
-            'type'     : qt.safe_str(modelIndex.data())
+            'type'     : str(modelIndex.data())
         }
         if self.__lastButton == qt.Qt.RightButton:
             if DEBUG == 1:
@@ -789,12 +789,12 @@ class LegendListContextMenu(qt.QMenu):
         if DEBUG:
             print('LegendListContextMenu.mapToLeftAction called')
         modelIndex = self.currentIdx()
-        legend = qt.safe_str(modelIndex.data(qt.Qt.DisplayRole))
+        legend = str(modelIndex.data(qt.Qt.DisplayRole))
         ddict = {
             'legend'   : legend,
             'label'    : legend,
             'selected' : modelIndex.data(qt.Qt.CheckStateRole),
-            'type'     : qt.safe_str(modelIndex.data()),
+            'type'     : str(modelIndex.data()),
             'event': "mapToLeft"
         }
         self.sigContextMenu.emit(ddict)
@@ -803,12 +803,12 @@ class LegendListContextMenu(qt.QMenu):
         if DEBUG:
             print('LegendListContextMenu.mapToRightAction called')
         modelIndex = self.currentIdx()
-        legend = qt.safe_str(modelIndex.data(qt.Qt.DisplayRole))
+        legend = str(modelIndex.data(qt.Qt.DisplayRole))
         ddict = {
             'legend'   : legend,
             'label'    : legend,
             'selected' : modelIndex.data(qt.Qt.CheckStateRole),
-            'type'     : qt.safe_str(modelIndex.data()),
+            'type'     : str(modelIndex.data()),
             'event': "mapToRight"
         }
         self.sigContextMenu.emit(ddict)
@@ -817,12 +817,12 @@ class LegendListContextMenu(qt.QMenu):
         if DEBUG == 1:
             print('LegendListContextMenu.removeCurveAction called')
         modelIndex = self.currentIdx()
-        legend = qt.safe_str(modelIndex.data(qt.Qt.DisplayRole))
+        legend = str(modelIndex.data(qt.Qt.DisplayRole))
         ddict = {
             'legend'   : legend,
             'label'    : legend,
             'selected' : modelIndex.data(qt.Qt.CheckStateRole),
-            'type'     : qt.safe_str(modelIndex.data()),
+            'type'     : str(modelIndex.data()),
             'event': "removeCurve"
         }
         self.sigContextMenu.emit(ddict)
@@ -832,24 +832,24 @@ class LegendListContextMenu(qt.QMenu):
         if DEBUG == 1:
             print('LegendListContextMenu.renameCurveAction called')
         modelIndex = self.currentIdx()
-        legend = qt.safe_str(modelIndex.data(qt.Qt.DisplayRole))
+        legend = str(modelIndex.data(qt.Qt.DisplayRole))
         ddict = {
             'legend'   : legend,
             'label'    : legend,
             'selected' : modelIndex.data(qt.Qt.CheckStateRole),
-            'type'     : qt.safe_str(modelIndex.data()),
+            'type'     : str(modelIndex.data()),
             'event': "renameCurve"
         }
         self.sigContextMenu.emit(ddict)
 
     def toggleLinesAction(self):
         modelIndex = self.currentIdx()
-        legend = qt.safe_str(modelIndex.data(qt.Qt.DisplayRole))
+        legend = str(modelIndex.data(qt.Qt.DisplayRole))
         ddict = {
             'legend'   : legend,
             'label'    : legend,
             'selected' : modelIndex.data(qt.Qt.CheckStateRole),
-            'type'     : qt.safe_str(modelIndex.data()),
+            'type'     : str(modelIndex.data()),
         }
         flag = modelIndex.data(LegendModel.showLineRole)
         if flag:
@@ -869,12 +869,12 @@ class LegendListContextMenu(qt.QMenu):
 
     def togglePointsAction(self):
         modelIndex = self.currentIdx()
-        legend = qt.safe_str(modelIndex.data(qt.Qt.DisplayRole))
+        legend = str(modelIndex.data(qt.Qt.DisplayRole))
         ddict = {
             'legend'   : legend,
             'label'    : legend,
             'selected' : modelIndex.data(qt.Qt.CheckStateRole),
-            'type'     : qt.safe_str(modelIndex.data()),
+            'type'     : str(modelIndex.data()),
         }
         flag = modelIndex.data(LegendModel.showSymbolRole)
         symbol = modelIndex.data(LegendModel.iconSymbolRole)
@@ -895,14 +895,14 @@ class LegendListContextMenu(qt.QMenu):
 
     def setActiveAction(self):
         modelIndex = self.currentIdx()
-        legend = qt.safe_str(modelIndex.data(qt.Qt.DisplayRole))
+        legend = str(modelIndex.data(qt.Qt.DisplayRole))
         if DEBUG:
             print('setActiveAction -- active curve:',legend)
         ddict = {
             'legend'   : legend,
             'label'    : legend,
             'selected' : modelIndex.data(qt.Qt.CheckStateRole),
-            'type'     : qt.safe_str(modelIndex.data()),
+            'type'     : str(modelIndex.data()),
             'event': "setActiveCurve",
         }
         self.sigContextMenu.emit(ddict)

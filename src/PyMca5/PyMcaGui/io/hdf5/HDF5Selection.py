@@ -29,9 +29,6 @@ __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 
 from PyMca5.PyMcaGui import PyMcaQt as qt
-safe_str = qt.safe_str
-
-
 class HDF5Selection(qt.QWidget):
     def __init__(self, parent=None):
         qt.QWidget.__init__(self, parent)
@@ -88,7 +85,7 @@ class HDF5Selection(qt.QWidget):
         selection = {}
         for key in ['entry', 'x', 'y', 'm']:
             selection[key] = []
-            text = safe_str(self.selectionWidgetsDict[key].text())
+            text = str(self.selectionWidgetsDict[key].text())
             text = text.replace(" ","")
             if len(text):
                 selection[key] = text.split(',')

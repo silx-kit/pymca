@@ -152,9 +152,7 @@ class NumpyArrayTableModel(qt.QAbstractTableModel):
             if role == qt.Qt.DisplayRole:
                 row = index.row()
                 col = index.column()
-                return self._format % self._array[self._index,
-                                                                  row,
-                                                                  col]
+                return self._format % self._array[self._index, row, col]
         return None
 
     def _data3DIndex1(self, index, role=qt.Qt.DisplayRole):
@@ -162,9 +160,7 @@ class NumpyArrayTableModel(qt.QAbstractTableModel):
             if role == qt.Qt.DisplayRole:
                 row = index.row()
                 col = index.column()
-                return self._format % self._array[row,
-                                                                  self._index,
-                                                                  col]
+                return self._format % self._array[row, self._index, col]
         return None
 
     def _data3DIndex2(self, index, role=qt.Qt.DisplayRole):
@@ -172,9 +168,7 @@ class NumpyArrayTableModel(qt.QAbstractTableModel):
             if role == qt.Qt.DisplayRole:
                 row = index.row()
                 col = index.column()
-                return self._format % self._array[row,
-                                                                  col,
-                                                                  self._index]
+                return self._format % self._array[row, col, self._index]
         return None
 
     def setArrayData(self, data, perspective=0):

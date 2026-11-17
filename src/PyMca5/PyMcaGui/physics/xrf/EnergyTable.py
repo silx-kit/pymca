@@ -119,7 +119,7 @@ class EnergyTab(qt.QWidget):
                             currentdir=wdir,
                             single=True)
         if len(filename):
-            filename = qt.safe_str(filename[0])
+            filename = str(filename[0])
             if len(filename):
                 try:
                     self.loadEnergyTableParameters(filename)
@@ -212,10 +212,10 @@ class EnergyTab(qt.QWidget):
                                         getfilter=True,
                                         single=True)
         if len(outfile):
-            outputFile = qt.safe_str(outfile[0])
+            outputFile = str(outfile[0])
         else:
             return
-        self.outputFilter = qt.safe_str(filterused)
+        self.outputFilter = str(filterused)
         filterused = self.outputFilter.split()
         try:
             self.outputDir  = os.path.dirname(outputFile)

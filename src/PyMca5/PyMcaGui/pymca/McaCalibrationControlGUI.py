@@ -81,7 +81,7 @@ class McaCalibrationControlGUI(qt.QWidget):
         self.calbut.clicked.connect(self._calbuttonclicked)
 
     def _calboxactivated(self, item=None):
-        _logger.debug("Calibration box activated %s", qt.safe_str(item))
+        _logger.debug("Calibration box activated %s", str(item))
         comboitem, combotext = self.calbox.getCurrent()
         self._emitpysignal(box=[comboitem, combotext],
                            boxname='Calibration',
@@ -123,7 +123,7 @@ class McaCalibrationControlGUI(qt.QWidget):
                                  currentfilter=self.lastInputFilter)
         if not len(filelist):
             return
-        filename = qt.safe_str(filelist[0])
+        filename = str(filelist[0])
         if len(filename) < 6:
             filename = filename + ".calib"
         elif filename[-6:] != ".calib":
@@ -155,7 +155,7 @@ class McaCalibrationControlGUI(qt.QWidget):
                                  currentfilter=self.lastInputFilter)
         if not len(filelist):
             return
-        filename = qt.safe_str(filelist[0])
+        filename = str(filelist[0])
         if len(filename) < 6:
             filename = filename + ".calib"
         elif filename[-6:] != ".calib":
@@ -301,7 +301,7 @@ class SimpleComboBox(qt.QComboBox):
                 self.addItem(item)
 
         def getCurrent(self):
-            return   self.currentIndex(), qt.safe_str(self.currentText())
+            return   self.currentIndex(), str(self.currentText())
 
 
 if __name__ == '__main__':

@@ -153,7 +153,7 @@ class QSourceSelector(qt.QWidget):
         qstring = self.fileCombo.currentText()
         if not len(qstring):
             return
-        key = qt.safe_str(qstring)
+        key = str(qstring)
         ddict = {}
         ddict["combokey"] = key
         ddict["sourcelist"] = self.mapCombo[key] * 1
@@ -253,7 +253,7 @@ class QSourceSelector(qt.QWidget):
                     return
                 filename=[]
                 for f in filelist:
-                    filename.append(qt.safe_str(f))
+                    filename.append(str(f))
                 if not len(filename):
                     return
                 if len(filename):
@@ -317,7 +317,7 @@ class QSourceSelector(qt.QWidget):
         qstring = self.fileCombo.currentText()
         if not len(qstring):
             return
-        key = qt.safe_str(qstring)
+        key = str(qstring)
         ddict = {}
         ddict["event"] = "SourceClosed"
         ddict["combokey"] = key
@@ -327,7 +327,7 @@ class QSourceSelector(qt.QWidget):
         del self.mapCombo[key]
         # Disables auto-refresh checkbox
         # when the remaining source is not HDF5 or none is left.
-        newkey = qt.safe_str(self.fileCombo.currentText())
+        newkey = str(self.fileCombo.currentText())
         if newkey in self.mapCombo:
             self._updateAutoRefreshVisibility(self.mapCombo[newkey])
         else:

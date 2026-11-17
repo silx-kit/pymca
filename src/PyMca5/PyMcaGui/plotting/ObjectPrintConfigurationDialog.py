@@ -121,10 +121,10 @@ class ObjectPrintConfigurationWidget(qt.QWidget):
         else:
             ddict['units'] = "page"
 
-        ddict['xOffset'] = float(qt.safe_str(self._xOffset.text()))
-        ddict['yOffset'] = float(qt.safe_str(self._yOffset.text()))
-        ddict['width'] = float(qt.safe_str(self._width.text()))
-        ddict['height'] = float(qt.safe_str(self._height.text()))
+        ddict['xOffset'] = float(str(self._xOffset.text()))
+        ddict['yOffset'] = float(str(self._yOffset.text()))
+        ddict['width'] = float(str(self._width.text()))
+        ddict['height'] = float(str(self._height.text()))
 
         if self._aspect.isChecked():
             ddict['keepAspectRatio'] = True

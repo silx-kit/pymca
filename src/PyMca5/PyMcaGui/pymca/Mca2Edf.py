@@ -226,7 +226,7 @@ class Mca2EdfGUI(qt.QWidget):
                                           os.path.basename(self.fileList[-1]))
 
         window =  Mca2EdfWindow(name="Mca 2 Edf "+name,actions=1)
-        self.fileStep = int(qt.safe_str(self.__fileSpin.text()))
+        self.fileStep = int(str(self.__fileSpin.text()))
         b = Mca2EdfBatch(window,self.fileList,self.outputDir, self.fileStep)
         def cleanup():
             b.pleasePause = 0

@@ -31,7 +31,6 @@ import sys
 import os
 import posixpath
 from PyMca5.PyMcaGui import PyMcaQt as qt
-safe_str = qt.safe_str
 from PyMca5.PyMcaGui.io.hdf5 import QNexusWidget
 from PyMca5.PyMcaCore import NexusDataSource
 from PyMca5 import PyMcaDirs
@@ -113,7 +112,7 @@ class FileListPage(qt.QWizardPage):
             return
         filelist = []
         for f in filelist0:
-            filelist.append(safe_str(f))
+            filelist.append(str(f))
         if len(filelist):
             self.setFileList(filelist)
         PyMcaDirs.inputDir = os.path.dirname(filelist[0])

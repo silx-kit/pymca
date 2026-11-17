@@ -37,19 +37,6 @@ QTVERSION = qt.qVersion()
 QLabelAlignRight = qt.Qt.AlignRight
 QLabelAlignCenter = qt.Qt.AlignCenter
 QLabelAlignVCenter= qt.Qt.AlignVCenter
-class Q3SpinBox(qt.QSpinBox):
-    def setMinValue(self, v):
-        self.setMinimum(v)
-
-    def setMaxValue(self, v):
-        self.setMaximum(v)
-
-    def setLineStep(self, v):
-        self.setSingleStep(v)
-
-class Q3GridLayout(qt.QGridLayout):
-    def addMultiCellWidget(self, w, r0, r1, c0, c1, *var):
-        self.addWidget(w, r0, c0, 1 + r1 - r0, 1 + c1 - c0)
 
 
 class FitParamForm(qt.QWidget):
@@ -63,7 +50,7 @@ class FitParamForm(qt.QWidget):
         tabFitLayout = qt.QVBoxLayout(self.tabFit)
         tabFitLayout.setContentsMargins(11, 11, 11, 11)
         tabFitLayout.setSpacing(6)
-        layout5 = Q3GridLayout(None)
+        layout5 = qt.QGridLayout(None)
         #,1,1,
         layout5.setContentsMargins(11, 11, 11, 11)
         layout5.setSpacing(6)
@@ -160,43 +147,43 @@ class FitParamForm(qt.QWidget):
         self.stripCombo.insertItem(str("SNIP"))
         self.stripCombo.activated[int].connect(self._stripComboActivated)
 
-        self.snipWidthSpin = Q3SpinBox(self.tabFit)
-        self.snipWidthSpin.setMaxValue(300)
-        self.snipWidthSpin.setMinValue(0)
+        self.snipWidthSpin = qt.QSpinBox(self.tabFit)
+        self.snipWidthSpin.setMaximum(300)
+        self.snipWidthSpin.setMinimum(0)
 
-        self.stripWidthSpin = Q3SpinBox(self.tabFit)
-        self.stripWidthSpin.setMaxValue(100)
-        self.stripWidthSpin.setMinValue(1)
+        self.stripWidthSpin = qt.QSpinBox(self.tabFit)
+        self.stripWidthSpin.setMaximum(100)
+        self.stripWidthSpin.setMinimum(1)
 
 
-        self.orderSpin = Q3SpinBox(self.tabFit)
-        self.orderSpin.setMaxValue(10)
-        self.orderSpin.setMinValue(1)
+        self.orderSpin = qt.QSpinBox(self.tabFit)
+        self.orderSpin.setMaximum(10)
+        self.orderSpin.setMinimum(1)
 
         maxnchannel  = 16384*4
 
-        self.maxSpin = Q3SpinBox(self.tabFit)
-        self.maxSpin.setMaxValue(maxnchannel)
-        self.maxSpin.setLineStep(128)
+        self.maxSpin = qt.QSpinBox(self.tabFit)
+        self.maxSpin.setMaximum(maxnchannel)
+        self.maxSpin.setSingleStep(128)
 
-        self.minSpin = Q3SpinBox(self.tabFit)
-        self.minSpin.setMaxValue(maxnchannel)
-        self.minSpin.setLineStep(128)
+        self.minSpin = qt.QSpinBox(self.tabFit)
+        self.minSpin.setMaximum(maxnchannel)
+        self.minSpin.setSingleStep(128)
 
         self.stripIterLabel = qt.QLabel(self.tabFit)
         self.stripIterLabel.setText(str("Strip Background Iterations"))
 
-        self.iterSpin = Q3SpinBox(self.tabFit)
-        self.iterSpin.setMaxValue(1000)
-        self.iterSpin.setMinValue(1)
+        self.iterSpin = qt.QSpinBox(self.tabFit)
+        self.iterSpin.setMaximum(1000)
+        self.iterSpin.setMinimum(1)
 
         self.stripFilterLabel = qt.QLabel(self.tabFit)
         self.stripFilterLabel.setText(str("Strip Background Smoothing Width (Savitsky-Golay)"))
 
-        self.stripFilterSpin = Q3SpinBox(self.tabFit)
-        self.stripFilterSpin.setMinValue(1)
-        self.stripFilterSpin.setMaxValue(40)
-        self.stripFilterSpin.setLineStep(2)
+        self.stripFilterSpin = qt.QSpinBox(self.tabFit)
+        self.stripFilterSpin.setMinimum(1)
+        self.stripFilterSpin.setMaximum(40)
+        self.stripFilterSpin.setSingleStep(2)
 
         ########
         self.anchorsContainer = qt.QWidget(self.tabFit)
@@ -209,9 +196,9 @@ class FitParamForm(qt.QWidget):
 
         self.stripAnchorsList = []
         for i in range(4):
-            anchorSpin = Q3SpinBox(self.anchorsContainer)
-            anchorSpin.setMinValue(0)
-            anchorSpin.setMaxValue(maxnchannel)
+            anchorSpin = qt.QSpinBox(self.anchorsContainer)
+            anchorSpin.setMinimum(0)
+            anchorSpin.setMaximum(maxnchannel)
             anchorsContainerLayout.addWidget(anchorSpin)
             self.stripAnchorsList.append(anchorSpin)
         #######
@@ -235,68 +222,68 @@ class FitParamForm(qt.QWidget):
         self.bottomLine.setFrameShadow(qt.QFrame.Sunken)
         self.bottomLine.setFrameShape(qt.QFrame.HLine)
 
-        layout5.addMultiCellWidget(self.functionLabel,0,0,0,1)
-        layout5.addMultiCellWidget(self.functionCombo,0,0,3,4)
+        layout5.addWidget(self.functionLabel, 0, 0, 1, 2)
+        layout5.addWidget(self.functionCombo, 0, 3, 1, 2)
 
 
-        layout5.addMultiCellWidget(self.typeLabel,1,1,0,1)
-        layout5.addMultiCellWidget(self.contCombo,1,1,3,4)
+        layout5.addWidget(self.typeLabel, 1, 0, 1, 2)
+        layout5.addWidget(self.contCombo, 1, 3, 1, 2)
 
-        layout5.addMultiCellWidget(self.orderLabel,2,2,0,1)
-        layout5.addMultiCellWidget(self.orderSpin,2,2,3,4)
+        layout5.addWidget(self.orderLabel, 2, 0, 1, 2)
+        layout5.addWidget(self.orderSpin, 2, 3, 1, 2)
 
 
-        layout5.addMultiCellWidget(self.stripComboLabel, 3, 3, 0, 1)
+        layout5.addWidget(self.stripComboLabel, 3, 0, 1, 2)
         self.stripSetupButton = qt.QPushButton(self.tabFit)
         self.stripSetupButton.setText('SETUP')
         self.stripSetupButton.setAutoDefault(False)
         layout5.addWidget(self.stripCombo, 3, 3)
         layout5.addWidget(self.stripSetupButton, 3, 4)
 
-        layout5.addMultiCellWidget(self.snipWidthLabel,4,4,0,1)
-        layout5.addMultiCellWidget(self.snipWidthSpin,4,4,3,4)
+        layout5.addWidget(self.snipWidthLabel, 4, 0, 1, 2)
+        layout5.addWidget(self.snipWidthSpin, 4, 3, 1, 2)
 
-        layout5.addMultiCellWidget(self.stripWidthLabel,5,5,0,1)
-        layout5.addMultiCellWidget(self.stripWidthSpin,5,5,3,4)
+        layout5.addWidget(self.stripWidthLabel, 5, 0, 1, 2)
+        layout5.addWidget(self.stripWidthSpin, 5, 3, 1, 2)
 
-        layout5.addMultiCellWidget(self.stripIterLabel,6,6,0,1)
-        layout5.addMultiCellWidget(self.stripIterValue,6,6,3,4)
+        layout5.addWidget(self.stripIterLabel, 6, 0, 1, 2)
+        layout5.addWidget(self.stripIterValue, 6, 3, 1, 2)
 
-        layout5.addMultiCellWidget(self.stripFilterLabel,7,7,0,1)
-        layout5.addMultiCellWidget(self.stripFilterSpin,7,7,3,4)
+        layout5.addWidget(self.stripFilterLabel, 7, 0, 1, 2)
+        layout5.addWidget(self.stripFilterSpin, 7, 3, 1, 2)
 
-        layout5.addMultiCellWidget(self.anchorsContainer,8,8,0,4)
+        layout5.addWidget(self.anchorsContainer, 8, 0, 1, 5)
 
         layout5.addWidget(self.weightLabel,9,0)
-        layout5.addMultiCellWidget(self.weightCombo,9,9,3,4)
+        layout5.addWidget(self.weightCombo, 9, 3, 1, 2)
 
         layout5.addWidget(self.iterLabel,10,0)
         layout5.addWidget(qt.HorizontalSpacer(self.tabFit),10,1)
-        layout5.addMultiCellWidget(self.iterSpin,10,10,3,4)
+        layout5.addWidget(self.iterSpin, 10, 3, 1, 2)
 
         layout5.addWidget(self.chi2Label, 11, 0)
-        layout5.addMultiCellWidget(self.chi2Value, 11, 11,3,4)
+        layout5.addWidget(self.chi2Value, 11, 3, 1, 2)
 
-        layout5.addMultiCellWidget(self.strategyCheckBox, 12, 12, 0, 4)
+        layout5.addWidget(self.strategyCheckBox, 12, 0, 1, 5)
         layout5.addWidget(self.strategyCombo, 12, 3)
         layout5.addWidget(self.strategySetupButton, 12, 4)
-        layout5.addMultiCellWidget(self.linearFitFlagCheck, 13, 13, 0, 4)
+        layout5.addWidget(self.linearFitFlagCheck, 13, 0, 1, 5)
 
-        layout5.addMultiCellWidget(self.topLine, 14, 15,0,4)
+        layout5.addWidget(self.topLine, 14, 0, 2, 5)
 
-        layout5.addMultiCellWidget(self.minSpin,15, 16,4,4)
+        layout5.addWidget(self.minSpin, 15, 4, 2, 1)
 
         layout5.addWidget(self.regionCheck,16,0)
-        layout5.addMultiCellWidget(self.firstLabel,16, 16,2,3)
+        layout5.addWidget(self.firstLabel, 16, 2, 1, 2)
 
-        layout5.addMultiCellWidget(self.lastLabel,17,17,2,3)
+        layout5.addWidget(self.lastLabel, 17, 2, 1, 2)
         layout5.addWidget(self.maxSpin,17,4)
-        layout5.addMultiCellWidget(self.bottomLine,18,18,0,4)
+        layout5.addWidget(self.bottomLine, 18, 0, 1, 5)
 
         tabFitLayout.addLayout(layout5)
 
         includeWidget = qt.QWidget(self.tabFit)
-        includeLayout = Q3GridLayout(includeWidget)
+        includeLayout = qt.QGridLayout(includeWidget)
         includeLayout.setContentsMargins(0, 0, 0, 0)
         includeLayout.setSpacing(3)
 
@@ -343,7 +330,7 @@ class FitParamForm(qt.QWidget):
 
         includeLayout.addWidget(self.shortCheck,2,0)
         #tabFitLayout.addLayout(includeLayout)
-        layout5.addMultiCellWidget(includeWidget,18,19,0,4)
+        layout5.addWidget(includeWidget, 18, 0, 2, 5)
 
         spacer_2 = qt.QSpacerItem(20, 40,\
                                   qt.QSizePolicy.Minimum,\
@@ -356,7 +343,7 @@ class FitParamForm(qt.QWidget):
         tabDetectorLayout.setContentsMargins(11, 11, 11, 11)
         tabDetectorLayout.setSpacing(6)
 
-        detLayout = Q3GridLayout(None)
+        detLayout = qt.QGridLayout(None)
         detLayout.setContentsMargins(0, 0, 0, 0)
         detLayout.setSpacing(2)
         self.elementCombo = qt.QComboBox(self.tabDetector)
@@ -377,14 +364,14 @@ class FitParamForm(qt.QWidget):
         detLayout.addWidget(self.elementLabel,0,0)
         self.escapeLabel = qt.QLabel(self.tabDetector)
         self.escapeLabel.setText(str("Maximum Number of Escape energies"))
-        detLayout.addMultiCellWidget(self.escapeLabel,3,4,0,0)
+        detLayout.addWidget(self.escapeLabel, 3, 0, 2, 1)
 
         #self.intensityValue0 = QLineEdit(self.tabDetector,"intensityValue0")
         #self.intensityValue0.setText(str("1.0"))
         #self.intensityValue0.setReadOnly(1)
-        self.nEscapeThreshold = Q3SpinBox(self.tabDetector)
-        self.nEscapeThreshold.setMaxValue(20)
-        self.nEscapeThreshold.setMinValue(1)
+        self.nEscapeThreshold = qt.QSpinBox(self.tabDetector)
+        self.nEscapeThreshold.setMaximum(20)
+        self.nEscapeThreshold.setMinimum(1)
         self.nEscapeThreshold.setValue(4)
         #detLayout.addWidget(self.intensityValue0,3,3)
         detLayout.addWidget(self.nEscapeThreshold,3,3)
@@ -400,7 +387,7 @@ class FitParamForm(qt.QWidget):
         self.calibLine.setFrameShape(qt.QFrame.HLine)
         tabDetectorLayout.addWidget(self.calibLine)
 
-        layout5_2 = Q3GridLayout(None)
+        layout5_2 = qt.QGridLayout(None)
         layout5_2.setContentsMargins(11, 11, 11, 11)
         layout5_2.setSpacing(2)
         self.zeroError = qt.QLineEdit(self.tabDetector)
@@ -584,7 +571,7 @@ class FitParamForm(qt.QWidget):
         self.mainTab.addTab(self.TabPeaks,str("PEAKS"))
 
         self.tabPeakShape = qt.QWidget()
-        tabPeakShapeLayout = Q3GridLayout(self.tabPeakShape)
+        tabPeakShapeLayout = qt.QGridLayout(self.tabPeakShape)
         tabPeakShapeLayout.setContentsMargins(11, 11, 11, 11)
         tabPeakShapeLayout.setSpacing(2)
 

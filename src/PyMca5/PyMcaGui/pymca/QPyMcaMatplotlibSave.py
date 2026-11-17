@@ -73,7 +73,7 @@ class TopWidget(qt.QWidget):
         ddict = {}
         i = 0
         for label in self.keyList:
-            ddict[label] = qt.safe_str(self.lineEditList[i].text())
+            ddict[label] = str(self.lineEditList[i].text())
             i = i + 1
         return ddict
 
@@ -282,7 +282,7 @@ class SimpleComboBox(qt.QComboBox):
 
     def setCurrentText(self, text):
         for i in range(self.count()):
-            if qt.safe_str(self.itemText(i)) == text:
+            if str(self.itemText(i)) == text:
                 self.setCurrentIndex(i)
                 break
 
@@ -433,7 +433,7 @@ class RightWidget(qt.QWidget):
             elif i == self.labelList.index('Contour Line Width'):
                 ddict[label] = self.comboBoxList[i].value()
             elif i > self.labelList.index('Image Background'):
-                text = qt.safe_str(self.comboBoxList[i].text())
+                text = str(self.comboBoxList[i].text())
                 if len(text):
                     if label in ['Output dpi', "N X Labels", "N Y Labels"]:
                         if ddict[label] in ['Auto', 'auto', '0', 0]:
@@ -445,7 +445,7 @@ class RightWidget(qt.QWidget):
                 else:
                     ddict[label] = None
             else:
-                ddict[label] = qt.safe_str(self.comboBoxList[i].currentText()).lower()
+                ddict[label] = str(self.comboBoxList[i].currentText()).lower()
             if (ddict[label] == 'none') or (ddict[label] == 'default'):
                 ddict[label] = None
             i = i + 1

@@ -1095,7 +1095,7 @@ class CalibrationParameters(qt.QWidget):
     def __savebox(self, qstring=None):
         if qstring is None:
             qstring = self.savebox.currentText()
-        key = qt.safe_str(qstring)
+        key = str(qstring)
         if key not in self.caldict.keys():
             self.caldict[key] = {}
         self.caldict[key]['order'] = self.orderbox.currentIndex()+1

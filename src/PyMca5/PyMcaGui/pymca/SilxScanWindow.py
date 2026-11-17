@@ -1002,7 +1002,7 @@ class ScanWindow(BaseScanWindow):
         filterused = self.outputFilter.split()
         filetype = filterused[1]
         extension = filterused[2]
-        outdir = qt.safe_str(fileList[0])
+        outdir = str(fileList[0])
         try:
             self.outputDir = os.path.dirname(outdir)
             PyMcaDirs.outputDir = os.path.dirname(outdir)

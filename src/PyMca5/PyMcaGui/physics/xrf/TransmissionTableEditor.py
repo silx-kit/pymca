@@ -119,7 +119,7 @@ class TransmissionTableEditor(qt.QWidget):
     def _lineSlot(self):
         ddict = {}
         for key in ["name", "comment"]:
-            txt = qt.safe_str(self.lineEditDict[key].text())
+            txt = str(self.lineEditDict[key].text())
             ddict[key] = txt.strip()
         self.setTransmissionTable(ddict, updating=True)
 
@@ -140,7 +140,7 @@ class TransmissionTableEditor(qt.QWidget):
                             currentdir=wdir,
                             single=True)
         if len(filename):
-            filename = qt.safe_str(filename[0])
+            filename = str(filename[0])
             if len(filename):
                 try:
                     self.loadTransmissionTable(filename)
@@ -210,10 +210,10 @@ class TransmissionTableEditor(qt.QWidget):
                                         getfilter=True,
                                         single=True)
         if len(outfile):
-            outputFile = qt.safe_str(outfile[0])
+            outputFile = str(outfile[0])
         else:
             return
-        self.outputFilter = qt.safe_str(filterused)
+        self.outputFilter = str(filterused)
         filterused = self.outputFilter.split()
         try:
             self.outputDir  = os.path.dirname(outputFile)

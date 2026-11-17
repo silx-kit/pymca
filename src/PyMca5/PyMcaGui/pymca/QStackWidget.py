@@ -308,10 +308,10 @@ class QStackWidget(StackBase.StackBase,
             if 'SourceName' in self._stack.info:
                 if type(self._stack.info['SourceName']) == type([]):
                     if len(self._stack.info['SourceName']) == 1:
-                        title = qt.safe_str(self._stack.info['SourceName'][0])
+                        title = str(self._stack.info['SourceName'][0])
                     else:
-                        f0 = qt.safe_str(self._stack.info['SourceName'][0])
-                        f1 = qt.safe_str(self._stack.info['SourceName'][-1])
+                        f0 = str(self._stack.info['SourceName'][0])
+                        f1 = str(self._stack.info['SourceName'][-1])
                         try:
                             f0 = os.path.basename(f0)
                             f1 = os.path.basename(f1)
@@ -319,7 +319,7 @@ class QStackWidget(StackBase.StackBase,
                             pass
                         title = "Stack from %s to %s"  % (f0, f1)
                 else:
-                    title = qt.safe_str(self._stack.info['SourceName'])
+                    title = str(self._stack.info['SourceName'])
                 self.setWindowTitle(title)
         except Exception:
             # TODO: give a reasonable title
@@ -366,7 +366,7 @@ class QStackWidget(StackBase.StackBase,
             filename = filename[0]
         if len(filename):
             try:
-                fname = qt.safe_str(filename)
+                fname = str(filename)
                 if fname.endswith('.h5') or\
                    fname.endswith('.hdf'):
                     return fname
@@ -395,7 +395,7 @@ class QStackWidget(StackBase.StackBase,
             filename = filename[0]
         if len(filename):
             try:
-                fname = qt.safe_str(filename)
+                fname = str(filename)
                 if fname.endswith('.tif') or\
                    fname.endswith('.tiff') or\
                    fname.endswith('.TIF') or\
@@ -520,7 +520,7 @@ class QStackWidget(StackBase.StackBase,
     def getActiveCurveCalibration(self):
         calibration = None
         try:
-            xLabel = qt.safe_str(self.getGraphXLabel())
+            xLabel = str(self.getGraphXLabel())
             xData, y, legend, info = self.mcaWidget.getActiveCurve()[:4]
             if xLabel not in [None, 'Channels']:
                 calibration = info.get("McaCalib", None)
@@ -548,7 +548,7 @@ class QStackWidget(StackBase.StackBase,
         axes = [None] * len(self._stack.data.shape)
         labels = [None] * len(self._stack.data.shape)
         try:
-            xLabel = qt.safe_str(self.mcaWidget.getGraphXLabel())
+            xLabel = str(self.mcaWidget.getGraphXLabel())
         except Exception:
             xLabel = None
         try:
@@ -577,7 +577,7 @@ class QStackWidget(StackBase.StackBase,
             msg.setIcon(qt.QMessageBox.Critical)
             msg.setWindowTitle("Save error")
             msg.setText("An error has occured while saving the data:")
-            msg.setInformativeText(qt.safe_str(sys.exc_info()[1]))
+            msg.setInformativeText(str(sys.exc_info()[1]))
             msg.setDetailedText(traceback.format_exc())
             msg.exec()
 
@@ -669,19 +669,19 @@ class QStackWidget(StackBase.StackBase,
             a = menu.exec(qt.QCursor.pos())
             if a is None:
                 return None
-            if qt.safe_str(a.text()).startswith("Replace"):
+            if str(a.text()).startswith("Replace"):
                 _logger.info("Replacing secondary stacks")
                 self._closeSecondary()
-            elif qt.safe_str(a.text()).startswith("Load"):
+            elif str(a.text()).startswith("Load"):
                 _logger.info("Loading an additional secondary stack")
                 #self._closeSecondary()
-            elif qt.safe_str(a.text()).startswith("Show"):
+            elif str(a.text()).startswith("Show"):
                 _logger.info("Showing all the secondary stacks")
                 for secondary in self._secondaryList:
                     secondary.show()
                     secondary.raise_()
                 return
-            elif qt.safe_str(a.text()).startswith("Merge"):
+            elif str(a.text()).startswith("Merge"):
                 primaryStackDataObject = self.getStackDataObject()
                 try:
                     # Use views to ensure no casting is done in case of
@@ -697,7 +697,7 @@ class QStackWidget(StackBase.StackBase,
                     msg.setIcon(qt.QMessageBox.Critical)
                     msg.setWindowTitle("Stack Summing Error")
                     msg.setText("An error has occurred while summing the primary and secondary stacks")
-                    msg.setInformativeText(qt.safe_str(sys.exc_info()[1]))
+                    msg.setInformativeText(str(sys.exc_info()[1]))
                     msg.setDetailedText(traceback.format_exc())
                     msg.exec()
                 if "McaLiveTime" in primaryStackDataObject.info:
@@ -718,7 +718,7 @@ class QStackWidget(StackBase.StackBase,
                         txt += "Time information is lost"
                         del primaryStackDataObject.info["McaLiveTime"]
                         msg.setText(txt)
-                        msg.setInformativeText(qt.safe_str(sys.exc_info()[1]))
+                        msg.setInformativeText(str(sys.exc_info()[1]))
                         msg.setDetailedText(traceback.format_exc())
                         msg.exec()
                 self._closeSecondary()
@@ -877,7 +877,7 @@ class QStackWidget(StackBase.StackBase,
                 msg.exec()
             return
         if idx == 1:
-            dirName = qt.safe_str(qt.QFileDialog.getExistingDirectory(self,
+            dirName = str(qt.QFileDialog.getExistingDirectory(self,
                                 "Enter user plugins directory",
                                 os.getcwd()))
             if len(dirName):
@@ -931,7 +931,7 @@ class QStackWidget(StackBase.StackBase,
             msg.setIcon(qt.QMessageBox.Critical)
             msg.setWindowTitle("Plugin error")
             msg.setText("An error has occured while executing the plugin:")
-            msg.setInformativeText(qt.safe_str(sys.exc_info()[1]))
+            msg.setInformativeText(str(sys.exc_info()[1]))
             msg.setDetailedText(traceback.format_exc())
             msg.exec()
             if _logger.getEffectiveLevel() == logging.DEBUG:
@@ -1141,7 +1141,7 @@ class QStackWidget(StackBase.StackBase,
         elif self._selectionMask.sum() == 0:
             legend = "Stack SUM"
         else:
-            title = qt.safe_str(self.roiGraphWidget.graph.getGraphTitle())
+            title = str(self.roiGraphWidget.graph.getGraphTitle())
             legend = "Stack " + title + " selection"
         return legend
 

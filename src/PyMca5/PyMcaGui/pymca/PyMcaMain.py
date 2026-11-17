@@ -1461,7 +1461,7 @@ class PyMcaMain(PyMcaMdi.PyMcaMdi):
             source = None
             selectedAction = self.trainingDataMenu.exec(qt.QCursor.pos())
             if selectedAction is not None:
-                key = qt.safe_str(selectedAction.text())
+                key = str(selectedAction.text())
                 source = self.trainingSources[key]
                 self.sourceWidget.sourceSelector.openSource(source)
                 # only in case of the steel sample we set the input dir to simplify accessing the supplied cfg file

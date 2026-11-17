@@ -1067,7 +1067,7 @@ class SumRulesWindow(qt.QMainWindow):
             baseFilename = qt.QFileDialog.getSaveFileName(self,
                                    'Save Sum Rule Analysis Data',
                                    saveDir,
-                                   filters)
+                                   filters)[0]
             if len(baseFilename) == 0:
                 # Leave self.baseFilename as it is..
                 #self.baseFilename = None
@@ -1164,7 +1164,7 @@ class SumRulesWindow(qt.QMainWindow):
             filename = qt.QFileDialog.getSaveFileName(self,
                                    'Save Sum Rule Analysis Configuration',
                                    saveDir,
-                                   filters)
+                                   filters)[0]
             if len(filename) == 0:
                 return False
             else:
@@ -1195,11 +1195,7 @@ class SumRulesWindow(qt.QMainWindow):
         filename = qt.QFileDialog.getOpenFileName(self,
                                'Load Sum Rule Analysis Configuration',
                                loadDir,
-                               filters)
-
-        if type(filename) in [type(list()), type(tuple())]:
-            if len(filename):
-                filename = filename[0]
+                               filters)[0]
 
         if len(filename) == 0:
             return

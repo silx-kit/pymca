@@ -184,7 +184,7 @@ class McaROIWidget(qt.QWidget):
                                      mode="OPEN",
                                      single=True)
         if len(fileList):
-            outputFile = qt.safe_str(fileList[0])
+            outputFile = str(fileList[0])
             if os.path.exists(outputFile):
                 self.roiDir = os.path.dirname(outputFile)
             self.load(outputFile)

@@ -675,7 +675,7 @@ class McaAdvancedFit(qt.QWidget):
         config = self.mcafit.configure()
         x = self.mcafit.xdata0[:]
         y = self.mcafit.ydata0[:]
-        legend = "Calibration for " + qt.safe_str(self.headerLabel.text())
+        legend = "Calibration for " + str(self.headerLabel.text())
         ndict={}
         ndict[legend] = {'A':config['detector']['zero'],
                'B':config['detector']['gain'],
@@ -1484,7 +1484,7 @@ class McaAdvancedFit(qt.QWidget):
             self.sigMcaAdvancedFitSignal.emit(ddict)
 
     def __htmlheader(self):
-        header = "%s" % qt.safe_str(self.headerLabel.text())
+        header = "%s" % str(self.headerLabel.text())
         if header[0] == "<":
             header = header[3:-3]
         if self.mcafit.config['fit']['sumflag']:
@@ -1503,8 +1503,8 @@ class McaAdvancedFit(qt.QWidget):
             stripflag = "N"
         #bkg = self.mcafit.config['fit']['continuum']
         #theory = "Hypermet"
-        bkg    = "%s" % qt.safe_str(self.top.BkgComBox.currentText())
-        theory = "%s" % qt.safe_str(self.top.FunComBox.currentText())
+        bkg    = "%s" % str(self.top.BkgComBox.currentText())
+        theory = "%s" % str(self.top.FunComBox.currentText())
         hypermetflag=self.mcafit.config['fit']['hypermetflag']
         # g_term  = hypermetflag & 1
         st_term   = (hypermetflag >>1) & 1

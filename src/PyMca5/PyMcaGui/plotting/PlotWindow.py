@@ -1024,7 +1024,7 @@ class PlotWindow(PlotWidget.PlotWidget):
                 msg.exec()
             return
         if idx == 1:
-            dirName = qt.safe_str(qt.QFileDialog.getExistingDirectory(self,
+            dirName = str(qt.QFileDialog.getExistingDirectory(self,
                                 "Enter user plugins directory",
                                 os.getcwd()))
             if len(dirName):

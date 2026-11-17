@@ -1132,7 +1132,7 @@ class McaBatchGUI(qt.QWidget):
         if roifit or noProcesses():
             # single thread
             return 0
-        n = int(qt.safe_str(self.__splitSpin.text()))
+        n = int(str(self.__splitSpin.text()))
         if not self.__splitBox.isChecked():
             # single thread or single process
             n = min(n, 1)
@@ -1160,7 +1160,7 @@ class McaBatchGUI(qt.QWidget):
         #            self.raise_()
         #            return
         #    if len(self.fileList) == 1:
-        #        if int(qt.safe_str(self.__splitSpin.text())) > 1:
+        #        if int(str(self.__splitSpin.text())) > 1:
         #            allowSingleFileSplitProcesses = True
         #            if HDF5SUPPORT:
         #                if h5py.is_hdf5(self.fileList[0]):
@@ -1215,7 +1215,7 @@ class McaBatchGUI(qt.QWidget):
             table = 0
         cmd.addOption('table', value=table, format="{:d}")
 
-        #htmlindex = qt.safe_str(self.__htmlIndex.text())
+        #htmlindex = str(self.__htmlIndex.text())
         htmlindex = "index.html"
         if cmd.html:
             if  len(htmlindex)<5:
@@ -1226,15 +1226,15 @@ class McaBatchGUI(qt.QWidget):
                 htmlindex+=".html"
         cmd.addOption('htmlindex', value=htmlindex)
 
-        #filestep = int(qt.safe_str(self.__fileSpin.text()))
-        #mcastep = int(qt.safe_str(self.__mcaSpin.text()))
+        #filestep = int(str(self.__fileSpin.text()))
+        #mcastep = int(str(self.__mcaSpin.text()))
         cmd.addOption('filestep', value=1)
         cmd.addOption('mcastep', value=1)
         cmd.addOption('fitfiles', value=self.__fitBox.isChecked(), format="{:d}")
         cmd.addOption('selection', value=self._selection, format="{:d}", convert=bool)
 
         if cmd.roifit:
-            cmd.addOption('roiwidth', value=float(qt.safe_str(self.__roiSpin.text())))
+            cmd.addOption('roiwidth', value=float(str(self.__roiSpin.text())))
             cmd.table = 0
             cmd.concentrations = 0
             cmd.filestep = 1

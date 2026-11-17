@@ -78,10 +78,10 @@ class OutputParameters(qt.QWidget):
         self.mainLayout.addWidget(self.outputFileLine, 1, 1)
 
     def getOutputDirectory(self):
-        return qt.safe_str(self.outputDirLine.text())
+        return str(self.outputDirLine.text())
 
     def getOutputFileName(self):
-        return qt.safe_str(self.outputFileLine.text())
+        return str(self.outputFileLine.text())
 
     def setOutputDirectory(self, txt):
         if os.path.exists(txt):
@@ -101,7 +101,7 @@ class OutputParameters(qt.QWidget):
         outputDir = qt.QFileDialog.getExistingDirectory(
                 self, "Please select output directory", wdir)
         if len(outputDir):
-            self.setOutputDirectory(qt.safe_str(outputDir))
+            self.setOutputDirectory(str(outputDir))
 
 
 class SimpleFitAllGui(SimpleFitGui):
@@ -204,7 +204,7 @@ class SimpleFitAllGui(SimpleFitGui):
             msg.setIcon(qt.QMessageBox.Critical)
             msg.setWindowTitle("Fitting All Error")
             msg.setText("Error has occurred while processing the data")
-            msg.setInformativeText(qt.safe_str(sys.exc_info()[1]))
+            msg.setInformativeText(str(sys.exc_info()[1]))
             msg.setDetailedText(traceback.format_exc())
             msg.exec()
         finally:

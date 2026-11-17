@@ -115,15 +115,15 @@ class ScatterPlotCorrelatorWidget(MaskScatterWidget.MaskScatterWidget):
 
         ddict = self.table.getSelection()
         index = self._itemLabels.index(label)
-        xKey = qt.safe_str(self.table.horizontalHeaderItem(1).text()).lower()
-        yKey = qt.safe_str(self.table.horizontalHeaderItem(2).text()).lower()
+        xKey = str(self.table.horizontalHeaderItem(1).text()).lower()
+        yKey = str(self.table.horizontalHeaderItem(2).text()).lower()
         if index in (ddict[xKey] + ddict[yKey]):
             self.selectionTableSlot(ddict)
 
     def selectionTableSlot(self, ddict):
-        legendKey = qt.safe_str(self.table.horizontalHeaderItem(0).text()).lower()
-        xKey = qt.safe_str(self.table.horizontalHeaderItem(1).text()).lower()
-        yKey = qt.safe_str(self.table.horizontalHeaderItem(2).text()).lower()
+        legendKey = str(self.table.horizontalHeaderItem(0).text()).lower()
+        xKey = str(self.table.horizontalHeaderItem(1).text()).lower()
+        yKey = str(self.table.horizontalHeaderItem(2).text()).lower()
         if len(ddict[xKey]):
             x0 = self._itemList[ddict[xKey][0]]
         else:
