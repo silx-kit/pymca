@@ -918,7 +918,7 @@ if use_gui():
     # and additonal optional dependencies.
     install_requires += ["PyOpenGL",
                          "qtconsole",
-                         "PyQt5",   # either PySide6 or PySide2 supported too
+                         "PySide6",   # PyQt6 or PyQt5 supported too
                         ]
 
 setup_requires = ["numpy"]

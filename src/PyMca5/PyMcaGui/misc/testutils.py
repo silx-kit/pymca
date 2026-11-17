@@ -200,7 +200,7 @@ class TestCaseQt(unittest.TestCase):
 
         self.__previousWidgets = None
 
-        if qt.BINDING in ('PySide', 'PySide2', 'PySide6', 'PyQt5', 'PyQt6', 'PyQt4'):
+        if qt.BINDING in ('PySide6', 'PyQt5', 'PyQt6'):
             # TODO: many leaks with PyQt5 as well...
             # With PyQt6 only the thread case with the fit
             return  # Do not test for leaking widgets
@@ -415,13 +415,6 @@ class TestCaseQt(unittest.TestCase):
         :rtype: bool
         """
         cls._qobject_destroyed = False
-        if qt.BINDING == 'PyQt4':
-            # Without this, QWidget will be still alive on PyQt4
-            # (at least on Windows Python 2.7)
-            # If it is not skipped on PySide, silx.gui.dialog tests will
-            # segfault (at least on Windows Python 2.7)
-            import gc
-            gc.collect()
         qobject = ref()
         if qobject is None:
             return True
@@ -550,7 +543,7 @@ def getQToolButtonFromAction(action):
 
 
 def findChildren(parent, kind, name=None):
-    if qt.BINDING in ("PySide", "PySide2", "PySide6") and name is not None:
+    if qt.BINDING == "PySide6" and name is not None:
         result = []
         for obj in parent.findChildren(kind):
             if obj.objectName() == name:

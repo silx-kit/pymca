@@ -40,14 +40,11 @@ if 'PyQt5.QtCore' in sys.modules:
 elif 'PyQt6.QtCore' in sys.modules:
     from PyQt6 import QtCore
     from PyQt6.QtWidgets import QApplication
-elif 'PySide2.QtCore' in sys.modules:
-    from PySide2 import QtCore
-    from PySide2.QtWidgets import QApplication
 elif 'PySide6.QtCore' in sys.modules:
     from PySide6 import QtCore
     from PySide6.QtWidgets import QApplication
 else:
-    raise ImportError("This module expects PySide2, PySide6 or PyQt5")
+    raise ImportError("This module expects PySide6, PyQt6 or PyQt5")
 
 def patch_backend_qt():
     import matplotlib.backends.backend_qt5

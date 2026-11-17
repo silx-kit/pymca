@@ -152,8 +152,6 @@ def _init_qt_binding(binding):
     binding = binding.lower()
     if binding == "pyqt5":
         import PyQt5.QtCore
-    elif binding == "pyside2":
-        import PySide2.QtCore
     elif binding == "pyside6":
         import PySide6.QtCore
     elif binding == "pyqt6":
@@ -168,12 +166,12 @@ def _init_qt_version(qtversion):
     elif qtversion == "4":
         raise NotImplementedError("Qt4 is no longer supported")
     elif qtversion == "5":
-        try:
-            import PyQt5.QtCore
-        except ImportError:
-            import PySide2.QtCore
+        import PyQt5.QtCore
     elif qtversion == "6":
-        import PySide6.QtCore
+        try:
+            import PySide6.QtCore
+        except ImportError:
+            import PyQt6.QtCore
     else:
         raise ValueError(f"Unsupported Qt version {qtversion!r}")
 

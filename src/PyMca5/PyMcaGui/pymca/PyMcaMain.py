@@ -98,7 +98,6 @@ try:
     import OpenGL.GL
     OBJECT3D = False
     if ("PySide6.QtOpenGL") in sys.modules or \
-       ("PySide2.QtOpenGL") in sys.modules or \
        ("PyQt5.QtOpenGL") in sys.modules:
         OBJECT3D = True
 except Exception:

@@ -40,7 +40,7 @@ This module simplifies writing code that has to deal with with PySideX and PyQtX
 _logger = logging.getLogger(__name__)
 
 BINDING = None
-"""The name of the Qt binding in use: PyQt5, PySide6, PySide2, PyQt6"""
+"""The name of the Qt binding in use: PySide6, PyQt6, PyQt5"""
 
 HAS_SVG = False
 """True if Qt provides support for Scalable Vector Graphics (QtSVG)."""
@@ -50,20 +50,14 @@ HAS_OPENGL = False
 
 # force cx_freeze to consider sip among the modules to add
 # to the binary packages
-if 'PySide2.QtCore' in sys.modules:
-    BINDING = 'PySide2'
-
-elif 'PySide6.QtCore' in sys.modules:
+if 'PySide6.QtCore' in sys.modules:
     BINDING = 'PySide6'
-
-elif 'PyQt5.QtCore' in sys.modules:
-    BINDING = 'PyQt5'
 
 elif 'PyQt6.QtCore' in sys.modules:
     BINDING = 'PyQt6'
 
-elif hasattr(sys, 'argv') and ('--binding=PySide2' in sys.argv):
-    BINDING = 'PySide2'
+elif 'PyQt5.QtCore' in sys.modules:
+    BINDING = 'PyQt5'
 
 elif hasattr(sys, 'argv') and ('--binding=PySide6' in sys.argv):
     # argv might not be defined for embedded python (e.g., in Qt designer)
@@ -73,31 +67,25 @@ else:
 
 if BINDING is None: # Try the different bindings
     try:
-        import PyQt5.QtCore
-        BINDING = "PyQt5"
+        import PySide6.QtCore
+        BINDING = "PySide6"
     except ImportError:
-        if "PyQt5" in sys.modules:
-            del sys.modules["PyQt5"]
+        if "PySide6" in sys.modules:
+            del sys.modules["PySide6"]
         try:
-            import PySide6.QtCore
-            BINDING = "PySide6"
+            import PyQt6.QtCore
+            BINDING = "PyQt6"
         except ImportError:
-            if "PySide6" in sys.modules:
-                del sys.modules["PySide6"]
+            if "PyQt6" in sys.modules:
+                del sys.modules["PyQt6"]
             try:
-                import PyQt6.QtCore
-                BINDING = "PyQt6"
+                import PyQt5.QtCore
+                BINDING = "PyQt5"
             except ImportError:
-                if 'PyQt6' in sys.modules:
-                    del sys.modules["PyQt6"]
-                try:
-                    import PySide2.QtCore  # noqa
-                    BINDING = "PySide2"
-                except ImportError:
-                    if 'PySide2' in sys.modules:
-                        del sys.modules["PySide2"]
-                    raise ImportError(
-                    'No Qt wrapper found. Install PyQt5, PySide6 or PyQt6.')
+                if 'PyQt5' in sys.modules:
+                    del sys.modules["PyQt5"]
+                raise ImportError(
+                'No Qt wrapper found. Install PySide6, PyQt6 or PyQt5.')
 
     _logger.info("BINDING set to %s" % BINDING)
 
@@ -123,73 +111,6 @@ if BINDING.lower() == "pyqt5":
     Signal = pyqtSignal
     Slot = pyqtSlot
 
-elif BINDING.lower() == "pyside2":
-    BINDING = "PySide2"
-    from PySide2.QtCore import *
-    from PySide2.QtGui import *
-    from PySide2.QtWidgets import *
-    from PySide2.QtPrintSupport import *
-
-    try:
-        from PySide2.QtOpenGL import *
-        HAS_OPENGL = True
-    except Exception:
-        _logger.info("PySide2.QtOpenGL not available")
-
-
-    try:
-        from PySide2.QtSvg import *
-        HAS_SVG = True
-    except Exception:
-        _logger.info("PySide2.QtSVG not available")
-    pyqtSignal = Signal
-    pyqtSlot = Slot
-
-    # Qt6 compatibility:
-    # with PySide2 `exec` method has a special behavior
-    class _ExecMixIn:
-        """Mix-in class providind `exec` compatibility"""
-        def exec(self, *args, **kwargs):
-            return super().exec_(*args, **kwargs)
-
-    # QtWidgets
-    QApplication.exec = QApplication.exec_
-    class QColorDialog(_ExecMixIn, QColorDialog): pass
-    class QDialog(_ExecMixIn, QDialog): pass
-    class QErrorMessage(_ExecMixIn, QErrorMessage): pass
-    class QFileDialog(_ExecMixIn, QFileDialog): pass
-    class QFontDialog(_ExecMixIn, QFontDialog): pass
-    class QInputDialog(_ExecMixIn, QInputDialog): pass
-    class QMenu(_ExecMixIn, QMenu): pass
-    class QMessageBox(_ExecMixIn, QMessageBox): pass
-    class QProgressDialog(_ExecMixIn, QProgressDialog): pass
-    #QtCore
-    class QCoreApplication(_ExecMixIn, QCoreApplication): pass
-    class QEventLoop(_ExecMixIn, QEventLoop): pass
-    if hasattr(QTextStreamManipulator, "exec_"):
-        # exec_ only wrapped in PySide2 and NOT in PyQt5
-        class QTextStreamManipulator(_ExecMixIn, QTextStreamManipulator): pass
-    class QThread(_ExecMixIn, QThread): pass
-
-    # workaround not finding the Qt platform plugin "windows" in "" error
-    # when creating a QApplication
-    if sys.platform.startswith("win")and QApplication.instance() is None:
-        _platform_plugin_path = os.environ.get("QT_QPA_PLATFORM_PLUGIN_PATH",
-                                                 None)
-        if _platform_plugin_path:
-            if not os.path.exists(_platform_plugin_path):
-                _logger.info("QT_QPA_PLATFORM_PLUGIN_PATH <%s> ignored" % \
-                             _platform_plugin_path)
-                _platform_plugin_path = None
-        if not _platform_plugin_path:
-            import PySide2
-            _platform_plugin_path = os.path.join( \
-                            os.path.dirname(PySide2.__file__),
-                            "plugins", "platforms")
-            os.environ["QT_QPA_PLATFORM_PLUGIN_PATH"] = \
-                                                _platform_plugin_path
-            _logger.info("QT_QPA_PLATFORM_PLUGIN_PATH set to <%s>" % \
-                             _platform_plugin_path)
 elif BINDING.lower() == 'pyside6':
     _logger.debug('Using PySide6 bindings')
     BINDING = "PySide6"
@@ -430,7 +351,7 @@ elif BINDING.lower() == 'pyqt6':
     class QObject(QObject, _Foo): pass
 
 else:
-    raise ImportError('No Qt wrapper found. Install one of PyQt5, PySide6, PyQt6')
+    raise ImportError('No Qt wrapper found. Install one of PySide6, PyQt6, PyQt5')
 
 _logger.info("PyMcaQt.BINDING set to %s" % BINDING)
 
@@ -489,9 +410,6 @@ class QToolButton(_QToolButton):
                 pass
 
 safe_str = str
-
-if BINDING.lower()=="pyside2":
-    _logger = logging.warning("PyMca PySide2 support deprecated and not reliable")
 
 class CLocaleQDoubleValidator(QDoubleValidator):
     """

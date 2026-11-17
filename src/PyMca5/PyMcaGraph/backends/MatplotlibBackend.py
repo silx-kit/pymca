@@ -68,11 +68,8 @@ TK = False
 if ("tk" in sys.argv) or ("Tkinter" in sys.modules) or ("tkinter" in sys.modules):
     TK = True
 if TK and ("PyQt5.QtCore" not in sys.modules) and ("PyQt6.QtCore" not in sys.modules) and \
-    ("PySide6.QtCore" not in sys.modules) and ("PySide2.QtCore" not in sys.modules):
+    ("PySide6.QtCore" not in sys.modules):
     import tkinter as Tk
-elif 'PySide2.QtCore' in sys.modules:
-    from PySide2 import QtCore, QtGui, QtWidgets
-    QtGui.QApplication = QtWidgets.QApplication
 elif 'PyQt5.QtCore' in sys.modules:
     from PyQt5 import QtCore, QtGui, QtWidgets
     QtGui.QApplication = QtWidgets.QApplication
@@ -84,16 +81,16 @@ elif 'PyQt6.QtCore' in sys.modules:
     QtGui.QApplication = QtWidgets.QApplication
 else:
     try:
-        from PyQt5 import QtCore, QtGui, QtWidgets
+        from PySide6 import QtCore, QtGui, QtWidgets
         QtGui.QApplication = QtWidgets.QApplication
     except ImportError:
         try:
             from PyQt6 import QtCore, QtGui, QtWidgets
             QtGui.QApplication = QtWidgets.QApplication
         except ImportError:
-            from PySide6 import QtCore, QtGui, QtWidgets
+            from PyQt5 import QtCore, QtGui, QtWidgets
             QtGui.QApplication = QtWidgets.QApplication
-if ("PyQt5.QtCore" in sys.modules) or ("PySide2.QtCore" in sys.modules):
+if "PyQt5.QtCore" in sys.modules:
     from ._patch_matplotlib import patch_backend_qt
     patch_backend_qt()
     from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
