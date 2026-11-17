@@ -31,7 +31,7 @@ jobs:
           
           python -m pip install --upgrade pip setuptools wheel
           pip install qtconsole==5.6.1
-          pip install matplotlib==3.10.5
+          pip install matplotlib==3.10.9
           pip install lief==0.16.6
           pip install cx_Freeze==8.3.0
           pip install $(python -c "import glob; print(' '.join(glob.glob('wheels/*cp313*.whl')))") 

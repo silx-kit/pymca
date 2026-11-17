@@ -59,7 +59,7 @@ jobs:
           pip install packaging==23.2
           pip install pyparsing==3.1.1
           pip install python_dateutil==2.8.2
-          pip install matplotlib==3.10.5
+          pip install matplotlib==3.10.9
           pip install hdf5plugin
           pip install PySide6==6.7.3
           pip install lxml==4.9.3
@@ -155,7 +155,7 @@ jobs:
           arch -x86_64 pip install packaging==23.2
           arch -x86_64 pip install pyparsing==3.1.1
           arch -x86_64 pip install python_dateutil==2.8.2
-          arch -x86_64 pip install matplotlib==3.10.5
+          arch -x86_64 pip install matplotlib==3.10.9
           arch -x86_64 pip install hdf5plugin
           arch -x86_64 pip install PySide6==6.7.3
           arch -x86_64 pip install lxml==4.9.3
