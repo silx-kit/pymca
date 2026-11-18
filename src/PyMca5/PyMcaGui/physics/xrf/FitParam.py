@@ -195,7 +195,7 @@ class FitParamWidget(FitParamForm):
         self.tabLabel= []
         n = self.mainTab.count()
         for idx in range(n):
-            self.tabLabel.append(str(self.mainTab.tabText(idx)))
+            self.tabLabel.append(qt.safe_str(self.mainTab.tabText(idx)))
         self.mainTab.currentChanged[int].connect(self.__tabChanged)
         self.contCombo.activated[int].connect(self.__contComboActivated)
         self.functionCombo.activated[int].connect(self.__functionComboActivated)
@@ -254,7 +254,7 @@ class FitParamWidget(FitParamForm):
                     else:
                         attenuators.append(pars[key][1:])
 
-        maxenergy = str(self.peakTable.energy.text())
+        maxenergy = qt.safe_str(self.peakTable.energy.text())
         if maxenergy=='None':
             maxenergy = 100.
             energies = numpy.arange(0.3, maxenergy, 0.1)
@@ -352,7 +352,7 @@ class FitParamWidget(FitParamForm):
 
     def _strategyCheckBoxClicked(self, *var):
         if self.strategyCheckBox.isChecked():
-            maxEnergy = str(self.peakTable.energy.text())
+            maxEnergy = qt.safe_str(self.peakTable.energy.text())
             if maxEnergy == 'None':
                 self.strategyCheckBox.setChecked(False)
                 msg=qt.QMessageBox(self)
@@ -365,7 +365,7 @@ class FitParamWidget(FitParamForm):
         #_logger.debug("TO check for peaks")
 
     def _strategySetupButtonClicked(self):
-        maxEnergy = str(self.peakTable.energy.text())
+        maxEnergy = qt.safe_str(self.peakTable.energy.text())
         if maxEnergy == 'None':
             self.strategyCheckBox.setChecked(False)
             msg=qt.QMessageBox(self)
@@ -388,10 +388,10 @@ class FitParamWidget(FitParamForm):
         except Exception:
             msg=qt.QMessageBox(self)
             msg.setWindowTitle("Strategy Error: %s" % \
-                               str(sys.exc_info()[1]))
+                               qt.safe_str(sys.exc_info()[1]))
             msg.setIcon(qt.QMessageBox.Critical)
             msg.setText("Error configuring strategy")
-            msg.setInformativeText(str(sys.exc_info()[1]))
+            msg.setInformativeText(qt.safe_str(sys.exc_info()[1]))
             msg.setDetailedText(traceback.format_exc())
             msg.exec()
             return
@@ -1017,6 +1017,43 @@ class FitParamWidget(FitParamForm):
         qt.QMessageBox.critical(self, "ERROR on %s"%tab, message,
             qt.QMessageBox.Ok, qt.QMessageBox.NoButton, qt.QMessageBox.NoButton)
 
+class SectionFileDialog(qt.QFileDialog):
+    def __init__(self, parent=None, name="SectionFileDialog", sections=[], labels=None,
+                     mode=None,modal =1, initdir=None):
+        qt.QFileDialog.__init__(self, parent)
+        self.setModal(modal)
+        self.setWindowTitle(name)
+        #layout = qt.QHBoxLayout(self)
+        if hasattr(qt, "QStringList"):
+            strlist = qt.QStringList()
+        else:
+            strlist = []
+        strlist.append("Config Files *.cfg")
+        strlist.append("All Files *")
+        self.setFilters(strlist)
+        if initdir is not None:
+            if os.path.isdir(initdir):
+                if hasattr(qt, "QString"):
+                    self.setDir(qt.QString(initdir))
+                else:
+                    self.setDir(qt.safe_str(initdir))
+
+        _logger.debug("right to be added")
+        if mode is not None:
+            self.setFileMode(mode)
+
+    def getFilename(self):
+        filename= qt.safe_str(self.selectedFiles()[0])
+        filetype= qt.safe_str(self.selectedFilter())
+        if filetype.find("Config")==0:
+            fileext= os.path.splitext(filename)[1]
+            if not len(fileext):
+                filename= "%s.cfg"%filename
+        return filename
+
+    def getSections(self):
+        return self.sectionWidget.getSections()
+
 class SectionFileWidget(qt.QWidget):
     def __init__(self, parent=None, name="FitParamSectionWidget", sections=[], labels=None, fl=0):
         qt.QWidget.__init__(self, parent)
@@ -1292,7 +1329,7 @@ class FitParamDialog(qt.QDialog):
                             currentdir=self.initDir,
                             single=True)
         if fileList:
-            filename = str(fileList[0])
+            filename = qt.safe_str(fileList[0])
             if filename:
                 self.loadParameters(filename, None)
                 self.initDir = os.path.dirname(filename)
@@ -1308,7 +1345,7 @@ class FitParamDialog(qt.QDialog):
                             currentdir=self.initDir,
                             single=True)
         if fileList:
-            filename = str(fileList[0])
+            filename = qt.safe_str(fileList[0])
             if len(filename):
                 if not filename.endswith(".cfg"):
                     filename += ".cfg"

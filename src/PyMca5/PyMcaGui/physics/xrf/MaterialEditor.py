@@ -40,6 +40,10 @@ from PyMca5.PyMcaPhysics import Elements
 from PyMca5.PyMcaGui.plotting import PlotWindow
 ScanWindow = PlotWindow.PlotWindow
 
+if hasattr(qt, "QString"):
+    QString = qt.QString
+else:
+    QString = str
 
 _logger = logging.getLogger(__name__)
 
@@ -406,7 +410,7 @@ class MaterialValidator(qt.QValidator):
         text = str(qstring)
         key  = Elements.getMaterialKey(text)
         if key is not None:
-            return str(key)
+            return QString(key)
         else:
             return qstring
 

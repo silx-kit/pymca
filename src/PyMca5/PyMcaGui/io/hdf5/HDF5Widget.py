@@ -66,6 +66,17 @@ except ImportError:
 from PyMca5.PyMcaGui import PyMcaQt as qt
 from PyMca5.PyMcaIO.HDF5Utils import sort_h5items
 
+safe_str = qt.safe_str
+
+if hasattr(qt, 'QStringList'):
+    MyQVariant = qt.QVariant
+else:
+    def MyQVariant(x=None):
+        return x
+
+QVERSION = qt.qVersion()
+
+
 class BrokenLink(object):
     pass
 
@@ -181,7 +192,7 @@ class H5NodeProxy(object):
                         if not len(dataset.shape):
                             # it can still be a string or a scalar
                             if hasattr(dataset, "dtype"):
-                                dataset_dtype_print = str(dataset.dtype)
+                                dataset_dtype_print = safe_str(dataset.dtype)
                                 if dataset_dtype_print.startswith("|S"):
                                     pass
                                 elif dataset_dtype_print.startswith("float"):
@@ -194,7 +205,7 @@ class H5NodeProxy(object):
                                     pass
                                 elif dataset_dtype_print.startswith("complex"):
                                     pass
-                                elif str(dataset.dtype) == "object":
+                                elif safe_str(dataset.dtype) == "object":
                                     # issue 1059
                                     pass
                                 else:
@@ -324,7 +335,7 @@ class H5NodeProxy(object):
                     #self._type = _type[2].upper() + _type[3:]
         self._children = []
         if hasattr(node, 'dtype'):
-            self._dtype = str(node.dtype)
+            self._dtype = safe_str(node.dtype)
         else:
             self._dtype = ""
         if hasattr(node, 'shape'):
@@ -451,16 +462,16 @@ class FileModel(qt.QAbstractItemModel):
                 if column == 0:
                     if isinstance(item, H5FileProxy):
                         try:
-                            return os.path.basename(item.file.filename)
+                            return MyQVariant(os.path.basename(item.file.filename))
                         except Exception:
                             _logger.critical("Cannot retrieve file name")
-                            return "Unknown file. Please refresh"
+                            return MyQVariant("Unknown file. Please refresh")
                     else:
                         if hasattr(item, "name"):
-                            return posixpath.basename(item.name)
+                            return MyQVariant(posixpath.basename(item.name))
                         else:
                             # this can only happen with the root
-                            return "/"
+                            return MyQVariant("/")
                 if column == 1:
                     showtitle = True
                     if showtitle:
@@ -477,41 +488,41 @@ class FileModel(qt.QAbstractItemModel):
                                             #return just the first item
                                             if hasattr(node, "asstr"):
                                                 try:
-                                                    return "%s" % node.asstr()[()][0]
+                                                    return MyQVariant("%s" % node.asstr()[()][0])
                                                 except Exception:
-                                                    return "%s" % node[()][0]
+                                                    return MyQVariant("%s" % node[()][0])
                                         else:
                                             #stored as a string
                                             try:
                                                 try:
-                                                    return "%s" % node.asstr()[()]
+                                                    return MyQVariant("%s" % node.asstr()[()])
                                                 except Exception:
-                                                    return "%s" % node[()]
+                                                    return MyQVariant("%s" % node[()])
                                             except Exception:
                                                 # issue #745
-                                                return "Unknown %s" % node
+                                                return MyQVariant("Unknown %s" % node)
                                 else:
                                     _logger.critical("Entry %s has no children" % item.name)
-                    return item.type
+                    return MyQVariant(item.type)
                 if column == 2:
-                    return item.shape
+                    return MyQVariant(item.shape)
                 if column == 3:
-                    return item.dtype
+                    return MyQVariant(item.dtype)
             elif role == qt.Qt.ForegroundRole:
                 item = self.getProxyFromIndex(index)
                 column = index.column()
                 if column == 0:
                     if hasattr(item, "color"):
-                        return qt.QColor(item.color)
+                        return MyQVariant(qt.QColor(item.color))
             elif role == qt.Qt.ToolTipRole:
                 item = self.getProxyFromIndex(index)
                 if hasattr(item, "color"):
                     # qt.QPalette.Link is used to indicate action possibility (it is not actual link). BrightText and HighlightedText are not good.
                     if item.color == qt.QApplication.instance().palette().color(qt.QPalette.Link) or item.color == qt.Qt.blue:
-                        return "Item has a double click NXdata associated action"
-            return None
+                        return MyQVariant("Item has a double click NXdata associated action")
+            return MyQVariant()
         except Exception:
-            return "Unhandled exception filling tree. Reload?"
+            return MyQVariant("Unhandled exception filling tree. Reload?")
 
     def getNodeFromIndex(self, index):
         try:
@@ -535,9 +546,9 @@ class FileModel(qt.QAbstractItemModel):
     def headerData(self, section, orientation, role):
         if orientation == qt.Qt.Horizontal and \
                 role == qt.Qt.DisplayRole:
-            return self.rootItem.header[section]
+            return MyQVariant(self.rootItem.header[section])
 
-        return None
+        return MyQVariant()
 
     def hasIndex(self, row, column, parent):
         parentItem = self.getProxyFromIndex(parent)
@@ -802,9 +813,10 @@ class HDF5Widget(FileView):
         qt.QTreeView.mousePressEvent(self, e)
         if self._lastMouse != "left":
             # Qt5 only sends itemClicked on left button mouse click
-            event = "itemClicked"
-            modelIndex = self.indexAt(e.pos())
-            self.emitSignal(event, modelIndex)
+            if QVERSION > "5":
+                event = "itemClicked"
+                modelIndex = self.indexAt(e.pos())
+                self.emitSignal(event, modelIndex)
 
     def itemActivated(self, modelIndex):
         event = "itemActivated"
@@ -828,10 +840,11 @@ class HDF5Widget(FileView):
         if self.model() is None:
             return
         item = self.model().getProxyFromIndex(modelIndex)
-        # prevent crash clicking on empty space
-        if not hasattr(item, "file"):
-            # RootItem
-            return
+        if QVERSION > "5":
+            # prevent crash clicking on empty space
+            if not hasattr(item, "file"):
+                # RootItem
+                return
         ddict = {}
         ddict['event'] = event
         ddict['file']  = item.file.filename

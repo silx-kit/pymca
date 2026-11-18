@@ -35,6 +35,14 @@ import logging
 from PyMca5.PyMcaGui import PyMcaQt as qt
 QTVERSION = qt.qVersion()
 
+qt.QLabel.AlignRight = qt.Qt.AlignRight
+qt.QLabel.AlignCenter = qt.Qt.AlignCenter
+qt.QLabel.AlignVCenter = qt.Qt.AlignVCenter
+
+class Q3GridLayout(qt.QGridLayout):
+    def addMultiCellWidget(self, w, r0, r1, c0, c1, *var):
+        self.addWidget(w, r0, c0, 1 + r1 - r0, 1 + c1 - c0)
+
 from PyMca5.PyMcaPhysics import Elements
 from . import MaterialEditor
 from . import MatrixEditor
@@ -135,13 +143,13 @@ class CompoundFittingTab(qt.QWidget):
         #hboxlayout.addWidget(qt.HorizontalSpacer(hbox))
         self._compoundFittingLabel = MyQLabel(hbox, color=qt.Qt.red)
         self._compoundFittingLabel.setText("Compound Fitting Mode is OFF")
-        self._compoundFittingLabel.setAlignment(qt.Qt.AlignCenter)
+        self._compoundFittingLabel.setAlignment(qt.QLabel.AlignCenter)
         hboxlayout.addWidget(self._compoundFittingLabel)
         #hboxlayout.addWidget(qt.HorizontalSpacer(hbox))
         layout.addWidget(hbox)
 
         grid = qt.QWidget(self)
-        glt = qt.QGridLayout(grid)
+        glt = Q3GridLayout(grid)
         glt.setContentsMargins(11, 11, 11, 11)
         glt.setSpacing(2)
 
@@ -186,7 +194,7 @@ class CompoundFittingTab0(qt.QWidget):
         layout = qt.QVBoxLayout(self)
 
         grid = qt.QWidget(self)
-        gl = qt.QGridLayout(grid)
+        gl = Q3GridLayout(grid)
         gl.setContentsMargins(11, 11, 11, 11)
         gl.setSpacing(2)
 
@@ -198,13 +206,13 @@ class CompoundFittingTab0(qt.QWidget):
         self.nameLine.setText("Compound fitting layer %d" % layerindex)
 
         gl.addWidget(nameLabel, 0, 0)
-        gl.addWidget(self.nameLine, 0, 1, 1, 5)
+        gl.addMultiCellWidget(self.nameLine, 0, 0, 1, 5)
 
         Line = qt.QFrame(grid)
         Line.setFrameShape(qt.QFrame.HLine)
         Line.setFrameShadow(qt.QFrame.Sunken)
         Line.setFrameShape(qt.QFrame.HLine)
-        gl.addWidget(Line, 1, 0, 1, 6)
+        gl.addMultiCellWidget(Line, 1, 1, 0, 5)
 
         #labels
         fixedLabel = qt.QLabel(grid)
@@ -219,7 +227,7 @@ class CompoundFittingTab0(qt.QWidget):
         valueLabel_font.setItalic(1)
         valueLabel.setFont(valueLabel_font)
         valueLabel.setText(str("Value"))
-        valueLabel.setAlignment(qt.Qt.AlignCenter)
+        valueLabel.setAlignment(qt.QLabel.AlignCenter)
 
 
         errorLabel = qt.QLabel(grid)
@@ -227,7 +235,7 @@ class CompoundFittingTab0(qt.QWidget):
         errorLabel_font.setItalic(1)
         errorLabel.setFont(errorLabel_font)
         errorLabel.setText(str("Error"))
-        errorLabel.setAlignment(qt.Qt.AlignCenter)
+        errorLabel.setAlignment(qt.QLabel.AlignCenter)
 
         gl.addWidget(fixedLabel, 2, 2)
         gl.addWidget(valueLabel, 2, 3)
@@ -282,7 +290,7 @@ class CompoundFittingTab0(qt.QWidget):
         Line.setFrameShape(qt.QFrame.HLine)
         Line.setFrameShadow(qt.QFrame.Sunken)
         Line.setFrameShape(qt.QFrame.HLine)
-        gl.addWidget(Line, 5, 0, 1, 6)
+        gl.addMultiCellWidget(Line, 5, 5, 0, 5)
 
         layout.addWidget(grid)
         """

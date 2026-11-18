@@ -314,6 +314,53 @@ class QPeriodicTable(qt.QWidget):
         b= self.eltButton[symbol]
         b.setSelected(not b.isSelected())
 
+class QPeriodicComboTableItem(qt.QComboBox):
+    """ Periodic Table Combo List to be used in a QTable
+        Init options:
+            table (mandatory)= parent QTable
+            addnone= 1 (default) add "-" in the list to provide possibility
+                        to select no specific element.
+                 0 only element list.
+            detailed= 1 (default) display element symbol, Z and name
+                  0 display only element symbol and Z
+        Public methods:
+            setSelection(eltsymbol):
+                Set the element selected given its symbol
+            getSelection():
+                Return symbol of element selected
+
+        Signals:
+            No specific signals. Use signals from QTable
+            valueChanged(int,int) for example.
+    """
+    def __init__(self, table, addnone=1, detailed=0):
+        strlist= qt.QStringList()
+        self.addnone= (addnone==1)
+        if self.addnone: strlist.append("-")
+        for (symbol, Z, x, y, name, mass, density) in Elements:
+            if detailed:
+                txt= "%2s (%d) - %s" % (symbol, Z, name)
+            else:
+                txt= "%2s (%d)" % (symbol, Z)
+            strlist.append(txt)
+        qt.QComboBox.__init__(self)
+        self.addItems(strlist)
+        print("still to continue")
+
+    def setSelection(self, symbol=None):
+        if symbol is None:
+            if self.addnone: self.setCurrentItem(0)
+        else:
+            idx= self.addnone+ElementList[symbol]
+            self.setCurrentItem(idx)
+
+    def getSelection(self):
+        idx = self.currentItem()
+        if self.addnone and not idx:
+            return None
+        else:
+            return ElementList[idx - self.addnone]
+
 class QPeriodicCombo(qt.QComboBox):
     """ Periodic Table Element list in a QComboBox
         Init options:
@@ -382,7 +429,12 @@ class QPeriodicList(qt.QTreeWidget):
 
         self.detailed= (detailed==1)
 
-        strlist = ["Z", "Symbol"]
+        try:
+            strlist= qt.QStringList()
+        except Exception:
+            strlist= []
+        strlist.append("Z")
+        strlist.append("Symbol")
         if detailed:
             strlist.append("Name")
             self.setColumnCount(3)

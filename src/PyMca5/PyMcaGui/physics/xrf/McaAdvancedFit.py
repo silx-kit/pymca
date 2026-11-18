@@ -41,6 +41,10 @@ import shutil
 import traceback
 
 from PyMca5.PyMcaGui import PyMcaQt as qt
+if hasattr(qt, "QString"):
+    QString = qt.QString
+else:
+    QString = qt.safe_str
 
 QTVERSION = qt.qVersion()
 
@@ -216,9 +220,9 @@ class McaAdvancedFit(qt.QWidget):
 
         self._energyAxis = False
         self.__printmenu = qt.QMenu()
-        self.__printmenu.addAction("Calibrate",     self._calibrate)
-        self.__printmenu.addAction("Identify Peaks",self.__peakIdentifier)
-        self.__printmenu.addAction("Elements Info", self.__elementsInfo)
+        self.__printmenu.addAction(QString("Calibrate"),     self._calibrate)
+        self.__printmenu.addAction(QString("Identify Peaks"),self.__peakIdentifier)
+        self.__printmenu.addAction(QString("Elements Info"), self.__elementsInfo)
         self.outdir      = None
         self.configDir   = None
         self.__lastreport= None
@@ -675,7 +679,7 @@ class McaAdvancedFit(qt.QWidget):
         config = self.mcafit.configure()
         x = self.mcafit.xdata0[:]
         y = self.mcafit.ydata0[:]
-        legend = "Calibration for " + str(self.headerLabel.text())
+        legend = "Calibration for " + qt.safe_str(self.headerLabel.text())
         ndict={}
         ndict[legend] = {'A':config['detector']['zero'],
                'B':config['detector']['gain'],
@@ -1420,12 +1424,12 @@ class McaAdvancedFit(qt.QWidget):
         self.__lastreport = report.writeReport(text=text) # if used with empty argument it will force to open and read the file
         if self.browser is None:
             self.browser= qt.QWidget()
-            self.browser.setWindowTitle(str(self.__lastreport))
+            self.browser.setWindowTitle(QString(self.__lastreport))
             self.browser.layout = qt.QVBoxLayout(self.browser)
             self.browser.layout.setContentsMargins(0, 0, 0, 0)
             self.browser.layout.setSpacing(0)
             self.__printmenu.addSeparator()
-            self.__printmenu.addAction("Last Report",self.showLastReport)
+            self.__printmenu.addAction(QString("Last Report"),self.showLastReport)
 
             self.browsertext = qt.QTextBrowser(self.browser)
             self.browsertext.setReadOnly(1)
@@ -1442,13 +1446,13 @@ class McaAdvancedFit(qt.QWidget):
 
             self.browser.layout.addWidget(self.browsertext)
         else:
-            self.browser.setWindowTitle(str(self.__lastreport))
+            self.browser.setWindowTitle(QString(self.__lastreport))
 
         dirname = os.path.dirname(self.__lastreport)
         # basename = os.path.basename(self.__lastreport)
         #self.browsertext.setMimeSourceFactory(qt.QMimeFactory.defaultFactory())
         #self.browsertext.mimeSourceFactory().addFilePath(QString(dirname))
-        self.browsertext.setSearchPaths([str(dirname)])
+        self.browsertext.setSearchPaths([QString(dirname)])
         #self.browsertext.setSource(qt.QUrl(QString(basename)))
         self.browsertext.clear()
         self.browsertext.setText(text)
@@ -1484,7 +1488,7 @@ class McaAdvancedFit(qt.QWidget):
             self.sigMcaAdvancedFitSignal.emit(ddict)
 
     def __htmlheader(self):
-        header = "%s" % str(self.headerLabel.text())
+        header = "%s" % qt.safe_str(self.headerLabel.text())
         if header[0] == "<":
             header = header[3:-3]
         if self.mcafit.config['fit']['sumflag']:
@@ -1503,8 +1507,8 @@ class McaAdvancedFit(qt.QWidget):
             stripflag = "N"
         #bkg = self.mcafit.config['fit']['continuum']
         #theory = "Hypermet"
-        bkg    = "%s" % str(self.top.BkgComBox.currentText())
-        theory = "%s" % str(self.top.FunComBox.currentText())
+        bkg    = "%s" % qt.safe_str(self.top.BkgComBox.currentText())
+        theory = "%s" % qt.safe_str(self.top.FunComBox.currentText())
         hypermetflag=self.mcafit.config['fit']['hypermetflag']
         # g_term  = hypermetflag & 1
         st_term   = (hypermetflag >>1) & 1
@@ -2674,7 +2678,10 @@ class McaGraphWindow(PlotWindow.PlotWindow):
 
     def printGraph(self):
         widget = self.getWidgetHandle()
-        pixmap = widget.grab()
+        if hasattr(qt.QPixmap, "grabWidget"):
+            pixmap = qt.QPixmap.grabWidget(widget)
+        else:
+            pixmap = widget.grab()
         self.printPreview.addPixmap(pixmap)
         if self.printPreview.isHidden():
             self.printPreview.show()

@@ -151,7 +151,7 @@ class PeakIdentifier(qt.QWidget):
     def _energySlot(self):
         qstring = self.energy.text()
         try:
-            value = float(str(qstring))
+            value = float(qt.safe_str(qstring))
             self.energyvalue = value
             self.mySlot()
             self.energy.setPaletteBackgroundColor(
@@ -184,7 +184,7 @@ class PeakIdentifier(qt.QWidget):
     def mySlot(self, energy=None):
         if energy is None:
             try:
-                energy  = float(str(self.energy.text()))
+                energy  = float(qt.safe_str(self.energy.text()))
             except ValueError:
                 msg=qt.QMessageBox(self.energy)
                 msg.setIcon(qt.QMessageBox.Critical)

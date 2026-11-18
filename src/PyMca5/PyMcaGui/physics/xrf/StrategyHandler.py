@@ -254,7 +254,7 @@ class SingleLayerStrategyWidget(qt.QWidget):
                         layersPresent.append(layer)
                 if len(layersPresent) == 1:
                     layerPeaks[layersPresent[0]].append(peak)
-        oldOption  = str(self._layerOptions.currentText())
+        oldOption  = qt.safe_str(self._layerOptions.currentText())
         self._layerOptions.clear()
         for item in layerList:
             self._layerOptions.addItem(item)

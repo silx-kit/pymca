@@ -42,6 +42,10 @@ import logging
 
 from PyMca5.PyMcaGui import PyMcaQt as qt
 
+if hasattr(qt, 'QString'):
+    QString = qt.QString
+else:
+    QString = str
 
 QTVERSION = qt.qVersion()
 
@@ -507,10 +511,10 @@ class ConcentrationsWidget(qt.QWidget):
             self.attenuatorsCheckBox.setChecked(False)
         if 'reference' in ddict:
             #self.referenceCombo.setCurrentText(QString(ddict['reference']))
-            self.referenceLine.setText(str(ddict['reference']))
+            self.referenceLine.setText(QString(ddict['reference']))
         else:
             #self.referenceCombo.setCurrentText(QString("Auto"))
-            self.referenceLine.setText("Auto")
+            self.referenceLine.setText(QString("Auto"))
 
         self.fundamentalWidget.flux.setText("%.8g" % ddict['flux'])
         self.fundamentalWidget.area.setText("%.8g" % ddict['area'])
@@ -533,6 +537,20 @@ class ConcentrationsWidget(qt.QWidget):
             self.referenceLine.setEnabled(False)
         if signal:
             self._mySignal()
+
+    def setReferenceOptions(self, options=None):
+        if options is None:
+            options = ['Auto']
+        old = self.referenceCombo.currentText()
+        if 'Auto' not in options:
+            options = ['Auto'] + options
+        self.referenceCombo.clear()
+        self.referenceCombo.insertStrList(options)
+        if old in options:
+            self.referenceCombo.setCurrentText(old)
+        else:
+            self.referenceCombo.setCurrentText('Auto')
+
 
 class FundamentalWidget(qt.QWidget):
     def __init__(self, parent=None, name=""):
@@ -680,16 +698,16 @@ class ConcentrationsTable(QTable):
         for group in groupsList:
             element, group0 = group.split()
             # transitions = group0 + " xrays"
-            fitarea = "%.6e" % (result['fitarea'][group])
-            sigmaarea = "%.2e" % (result['sigmaarea'][group])
-            area = "%.6e" % (result['area'][group])
+            fitarea = QString("%.6e" % (result['fitarea'][group]))
+            sigmaarea = QString("%.2e" % (result['sigmaarea'][group]))
+            area = QString("%.6e" % (result['area'][group]))
             if result['mass fraction'][group] < 0.0:
-                fraction = "Unknown"
+                fraction = QString("Unknown")
             else:
                 if mmolarflag:
-                    fraction = "%.4g" % (result['mmolar'][group])
+                    fraction = QString("%.4g" % (result['mmolar'][group]))
                 else:
-                    fraction = "%.4g" % (result['mass fraction'][group])
+                    fraction = QString("%.4g" % (result['mass fraction'][group]))
             if line % 2:
                 color = qt.QApplication.instance().palette().color(qt.QPalette.AlternateBase)
             else:
@@ -701,12 +719,12 @@ class ConcentrationsTable(QTable):
             if 'layerlist' in result:
                 for layer in result['layerlist']:
                     if result[layer]['mass fraction'][group] < 0.0:
-                        fraction = "Unknown"
+                        fraction = QString("Unknown")
                     else:
                         if mmolarflag:
-                            fraction = "%.4g" % (result[layer]['mmolar'][group])
+                            fraction = QString("%.4g" % (result[layer]['mmolar'][group]))
                         else:
-                            fraction = "%.4g" % (result[layer]['mass fraction'][group])
+                            fraction = QString("%.4g" % (result[layer]['mass fraction'][group]))
                     fields += [fraction]
             col = 0
             for field in fields:
@@ -717,7 +735,12 @@ class ConcentrationsTable(QTable):
                     self.setItem(line, col, item)
                 else:
                     item.setText(field)
-                item.setBackground(color)
+                if hasattr(item, "setBackground"):
+                    # Qt5
+                    item.setBackground(color)
+                else:
+                    # Qt4
+                    item.setBackgroundColor(color)
                 item.setFlags(qt.Qt.ItemIsSelectable |
                               qt.Qt.ItemIsEnabled)
                 col += 1
