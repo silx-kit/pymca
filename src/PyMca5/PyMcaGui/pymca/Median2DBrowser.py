@@ -73,6 +73,8 @@ class Median2DBrowser(StackBrowser.StackBrowser):
     def __init__(self, *var, **kw):
         StackBrowser.StackBrowser.__init__(self, *var, **kw)
         self.setWindowTitle("Image Browser with Median Filter")
+        # all the images would be added without the median filter
+        self.addAllImageButton.hide()
         self._medianParameters = {'use':True,
                                   'row_width':5,
                                   'column_width':5,

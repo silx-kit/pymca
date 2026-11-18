@@ -33,6 +33,7 @@ import logging
 from PyMca5.PyMcaGui.plotting import MaskImageWidget
 from PyMca5.PyMcaGui.misc import FrameBrowser
 from PyMca5.PyMcaCore import DataObject
+from PyMca5.PyMcaMisc import PhysicalMemory
 qt = MaskImageWidget.qt
 IconDict = MaskImageWidget.IconDict
 
@@ -93,7 +94,7 @@ class StackBrowser(MaskImageWidget.MaskImageWidget):
 
         self._backgroundSubtraction = False
         self.slider.hide()
-        self.buildAndConnectImageButtonBox(replace=True)
+        self.buildAndConnectImageButtonBox(replace=True, multiple=True)
 
     def setBackgroundImage(self, image=None):
         self._backgroundImage = image
@@ -306,6 +307,58 @@ class StackBrowser(MaskImageWidget.MaskImageWidget):
         if moveslider:
             self.slider.setValue(index)
         self.updateProfileSelectionWindow()
+
+    def _addAllImageClicked(self):
+        if not len(self.dataObjectsList):
+            return
+        shape = self._getImageDataFromSingleIndex(0).shape
+        if not self._addAllConfirmed(self._nImages, shape):
+            return
+        legend = self.dataObjectsList[0]
+        images = []
+        titles = []
+        for index in range(self._nImages):
+            data = self._getImageDataFromSingleIndex(index)
+            if self._backgroundSubtraction and \
+               (self._backgroundImage is not None):
+                data = data - self._backgroundImage
+            images.append(data)
+            titles.append(self._buildTitle(legend, index))
+        ddict = {}
+        ddict['event'] = "addAllClicked"
+        ddict['images'] = images
+        ddict['titles'] = titles
+        ddict['id'] = id(self)
+        self.emitMaskImageSignal(ddict)
+
+    def _addAllConfirmed(self, nImages, shape):
+        # the RGB correlator keeps a float64 copy of each image
+        nBytes = nImages * shape[0] * shape[1] * 8
+        text = "All images need about %.1f GBytes of memory.\n" % \
+                (nBytes / (1024**3))
+        msg = qt.QMessageBox(self)
+        # `WA_DeleteOnClose` to delete itself on close (to avoid a leak)
+        msg.setAttribute(qt.Qt.WA_DeleteOnClose)
+        msg.setWindowTitle("Add all images")
+        if hasattr(PhysicalMemory, "getAvailablePhysicalMemoryOrNone"):
+            physicalMemory = PhysicalMemory.getAvailablePhysicalMemoryOrNone()
+            extraText = "This is more than the available physical memory "
+        else:
+            physicalMemory = PhysicalMemory.getPhysicalMemoryOrNone()
+            extraText = "This is more than the physical memory "
+        if (physicalMemory is not None) and (nBytes >= physicalMemory):
+            msg.setIcon(qt.QMessageBox.Critical)
+            text += extraText
+            text += "(%.1f GBytes).\n" % (physicalMemory / (1024**3))
+            text += "The images cannot be added."
+            msg.setText(text)
+            msg.exec()
+            return False
+        msg.setIcon(qt.QMessageBox.Information)
+        text += "PyMca may not respond until all images are added."
+        msg.setText(text)
+        msg.setStandardButtons(qt.QMessageBox.Ok | qt.QMessageBox.Cancel)
+        return msg.exec() == qt.QMessageBox.Ok
 
 if __name__ == "__main__":
     #create a dummy stack
