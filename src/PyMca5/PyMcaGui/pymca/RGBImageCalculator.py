@@ -304,7 +304,7 @@ class RGBImageCalculator(qt.QWidget):
             msg.setIcon(qt.QMessageBox.Critical)
             msg.setWindowTitle("Save error")
             msg.setText(text)
-            msg.setInformativeText(qt.safe_str(sys.exc_info()[1]))
+            msg.setInformativeText(str(sys.exc_info()[1]))
             msg.setDetailedText(traceback.format_exc())
             msg.exec()
             return 1

@@ -31,7 +31,6 @@ import sys
 import os
 import posixpath
 from PyMca5.PyMcaGui import PyMcaQt as qt
-safe_str = qt.safe_str
 from PyMca5.PyMcaGui.io.hdf5 import QNexusWidget
 from PyMca5.PyMcaCore import NexusDataSource
 from PyMca5 import PyMcaDirs
@@ -97,20 +96,12 @@ class FileListPage(qt.QWizardPage):
         filedialog = qt.QFileDialog(self)
         filedialog.setWindowTitle("Open a set of files")
         filedialog.setDirectory(wdir)
-        if hasattr(filedialog, "setFilters"):
-            filedialog.setFilters(["HDF5 Files (*.nxs *.h5 *.hdf *.hdf5)",
+        filedialog.setNameFilters(["HDF5 Files (*.nxs *.h5 *.hdf *.hdf5)",
                                    "HDF5 Files (*.h5)",
                                    "HDF5 Files (*.hdf)",
                                    "HDF5 Files (*.hdf5)",
                                    "HDF5 Files (*.nxs)",
                                    "HDF5 Files (*)"])
-        else:
-            filedialog.setNameFilters(["HDF5 Files (*.nxs *.h5 *.hdf *.hdf5)",
-                                       "HDF5 Files (*.h5)",
-                                       "HDF5 Files (*.hdf)",
-                                       "HDF5 Files (*.hdf5)",
-                                       "HDF5 Files (*.nxs)",
-                                       "HDF5 Files (*)"])
         filedialog.setModal(1)
         filedialog.setFileMode(filedialog.ExistingFiles)
         ret = filedialog.exec()
@@ -121,7 +112,7 @@ class FileListPage(qt.QWizardPage):
             return
         filelist = []
         for f in filelist0:
-            filelist.append(safe_str(f))
+            filelist.append(str(f))
         if len(filelist):
             self.setFileList(filelist)
         PyMcaDirs.inputDir = os.path.dirname(filelist[0])

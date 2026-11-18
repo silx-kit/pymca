@@ -32,10 +32,6 @@ import sys
 import numpy
 from PyMca5.PyMcaGui import PyMcaQt as qt
 
-if hasattr(qt, "QString"):
-    QString = qt.QString
-else:
-    QString = str
 from PyMca5.PyMcaGui.plotting.PyMca_Icons import IconDict
 from PyMca5.PyMcaGui.plotting import MaskImageWidget
 from PyMca5.PyMcaGui.plotting import ScatterPlotCorrelatorWidget
@@ -65,10 +61,10 @@ class StackPluginResultsWindow(MaskImageWidget.MaskImageWidget):
             self.spectrumGraph.sigIconSignal.connect(self._spectrumGraphIconSlot)
             self.spectrumGraph.saveMenu = qt.QMenu()
             self.spectrumGraph.saveMenu.addAction(
-                QString("Save From Current"), self.saveCurrentSpectrum
+                "Save From Current", self.saveCurrentSpectrum
             )
             self.spectrumGraph.saveMenu.addAction(
-                QString("Save From All"), self.saveAllSpectra
+                "Save From All", self.saveAllSpectra
             )
             self.mainTab.addTab(self.spectrumGraph, "VECTORS")
 
@@ -84,11 +80,11 @@ class StackPluginResultsWindow(MaskImageWidget.MaskImageWidget):
         if standalonesave:
             self.graphWidget.saveToolButton.clicked.connect(self._saveToolButtonSignal)
             self._saveMenu = qt.QMenu()
-            self._saveMenu.addAction(QString("Image Data"), self.saveImageList)
+            self._saveMenu.addAction("Image Data", self.saveImageList)
             self._saveMenu.addAction(
-                QString("Standard Graphics"), self.graphWidget._saveIconSignal
+                "Standard Graphics", self.graphWidget._saveIconSignal
             )
-            self._saveMenu.addAction(QString("Matplotlib"), self._saveMatplotlibImage)
+            self._saveMenu.addAction("Matplotlib", self._saveMatplotlibImage)
         self.multiplyIcon = qt.QIcon(qt.QPixmap(IconDict["swapsign"]))
         infotext = "Multiply image by -1"
         self.multiplyButton = self.graphWidget._addToolButton(
@@ -116,7 +112,7 @@ class StackPluginResultsWindow(MaskImageWidget.MaskImageWidget):
 
         # add the command to show it to the menu
         self.additionalSelectionMenu().addAction(
-            QString("Show scatter plot"), self.showScatterPlot
+            "Show scatter plot", self.showScatterPlot
         )
 
         # The stats widget

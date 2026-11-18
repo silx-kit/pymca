@@ -38,8 +38,6 @@ from PyMca5.PyMcaGui.plotting.PyMca_Icons import IconDict
 from PyMca5.PyMcaMath.fitting import StackSimpleFit
 from PyMca5.PyMcaIO import ArraySave
 from PyMca5.PyMcaGui.misc import CalculationThread
-safe_str = qt.safe_str
-
 class OutputParameters(qt.QWidget):
     def __init__(self, parent=None):
         qt.QWidget.__init__(self, parent)
@@ -71,10 +69,10 @@ class OutputParameters(qt.QWidget):
         self.outputDirButton.clicked.connect(self.browseDirectory)
 
     def getOutputDirectory(self):
-        return safe_str(self.outputDirLine.text())
+        return str(self.outputDirLine.text())
 
     def getOutputFileBaseName(self):
-        return safe_str(self.outputFileLine.text())
+        return str(self.outputFileLine.text())
 
     def setOutputDirectory(self, txt):
         if os.path.exists(txt):
@@ -96,7 +94,7 @@ class OutputParameters(qt.QWidget):
                                                         "Please select output directory",
                                                         wdir)
         if len(outputDir):
-            self.setOutputDirectory(safe_str(outputDir))
+            self.setOutputDirectory(str(outputDir))
 
 class StackSimpleFitWindow(qt.QWidget):
     def __init__(self, parent=None):
@@ -203,7 +201,7 @@ class StackSimpleFitWindow(qt.QWidget):
             msg.setIcon(qt.QMessageBox.Critical)
             msg.setWindowTitle("Stack Fitting Error")
             msg.setText("Error has occured while processing the data")
-            msg.setInformativeText(safe_str(sys.exc_info()[1]))
+            msg.setInformativeText(str(sys.exc_info()[1]))
             msg.setDetailedText(traceback.format_exc())
             msg.exec()
         finally:

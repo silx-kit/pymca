@@ -38,10 +38,6 @@ from PyMca5.PyMcaGui.math.fitting import SimpleFitGui
 from PyMca5.PyMcaGui.pymca import ScanFit
 
 
-if hasattr(qt, 'QString'):
-    QString = qt.QString
-else:
-    QString = qt.safe_str
 
 
 class ScanFitToolButton(qt.QToolButton):
@@ -74,10 +70,10 @@ class ScanFitToolButton(qt.QToolButton):
 
         self.fitButtonMenu = qt.QMenu()
         self.fitButtonMenu.addAction(
-                QString("Simple Fit"),
+                "Simple Fit",
                 self._scanFitSignal)
         self.fitButtonMenu.addAction(
-                QString("Customized Fit"),
+                "Customized Fit",
                 self._customFitSignal)
 
         self._scanFitLegend = None

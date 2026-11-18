@@ -36,7 +36,6 @@ import traceback
 import logging
 
 from PyMca5.PyMcaGui import PyMcaQt as qt
-QString = qt.safe_str
 if __name__ == "__main__":
     app = qt.QApplication([])
 
@@ -122,9 +121,9 @@ class McaWindow(ScanWindow):
         self.setGraphYLabel('Counts')
 
         self.fitButtonMenu = qt.QMenu()
-        self.fitButtonMenu.addAction(QString("Simple"),
+        self.fitButtonMenu.addAction("Simple",
                                      self.mcaSimpleFitSignal)
-        self.fitButtonMenu.addAction(QString("Advanced") ,
+        self.fitButtonMenu.addAction("Advanced" ,
                                      self.mcaAdvancedFitSignal)
         #self.fitButtonMenu.addAction(QString("Simple Fit"),
         #                       self._simpleFitSignal)
@@ -1333,7 +1332,7 @@ class McaWindow(ScanWindow):
         filterused = self.outputFilter.split()
         filetype  = filterused[1]
         extension = filterused[2]
-        outdir=qt.safe_str(fileList[0])
+        outdir=str(fileList[0])
         try:
             self.outputDir  = os.path.dirname(outdir)
             PyMcaDirs.outputDir = os.path.dirname(outdir)
@@ -1418,10 +1417,7 @@ class McaWindow(ScanWindow):
         os.linesep = '\n'
         if filterused[0].upper() == "WIDGET":
             fformat = specFile[-3:].upper()
-            if hasattr(qt.QPixmap, "grabWidget"):
-                pixmap = qt.QPixmap.grabWidget(self.getWidgetHandle())
-            else:
-                pixmap = self.getWidgetHandle().grab()
+            pixmap = self.getWidgetHandle().grab()
             if not pixmap.save(specFile, fformat):
                 qt.QMessageBox.critical(self,
                         "Save Error",

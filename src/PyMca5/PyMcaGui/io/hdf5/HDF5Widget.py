@@ -805,7 +805,7 @@ class HDF5Widget(FileView):
             self._lastMouse = "left"
         elif button == qt.Qt.RightButton:
             self._lastMouse = "right"
-        elif button == qt.Qt.MidButton:
+        elif button == qt.Qt.MiddleButton:
             self._lastMouse = "middle"
         else:
             #Should I set it to no button?

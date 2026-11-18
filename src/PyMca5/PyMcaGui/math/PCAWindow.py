@@ -38,10 +38,6 @@ from PyMca5.PyMcaGui.pymca import ScanWindow
 from PyMca5.PyMcaMath.mva import PCAModule
 from PyMca5.PyMcaGui.plotting import ScatterPlotCorrelatorWidget
 
-if hasattr(qt, "QString"):
-    QString = qt.QString
-else:
-    QString = str
 
 MDP = PCAModule.MDP
 MATPLOTLIB = MaskImageWidget.MATPLOTLIB
@@ -499,13 +495,13 @@ class PCAWindow(MaskImageWidget.MaskImageWidget):
         if standalonesave:
             self.graphWidget.saveToolButton.clicked.connect(self._saveToolButtonSignal)
             self._saveMenu = qt.QMenu()
-            self._saveMenu.addAction(QString("Image Data"), self.saveImageList)
+            self._saveMenu.addAction("Image Data", self.saveImageList)
             self._saveMenu.addAction(
-                QString("Standard Graphics"), self.graphWidget._saveIconSignal
+                "Standard Graphics", self.graphWidget._saveIconSignal
             )
             if MATPLOTLIB:
                 self._saveMenu.addAction(
-                    QString("Matplotlib"), self._saveMatplotlibImage
+                    "Matplotlib", self._saveMatplotlibImage
                 )
         self.multiplyIcon = qt.QIcon(qt.QPixmap(IconDict["swapsign"]))
         infotext = "Multiply image by -1"
@@ -534,7 +530,7 @@ class PCAWindow(MaskImageWidget.MaskImageWidget):
         # add the command to show it to the menu
         if hasattr(self, "_additionalSelectionMenu"):
             self.additionalSelectionMenu().addAction(
-                QString("Show scatter plot"), self.showScatterPlot
+                "Show scatter plot", self.showScatterPlot
             )
 
     def sizeHint(self):

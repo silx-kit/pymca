@@ -42,7 +42,6 @@ from PyMca5.PyMcaGui import PyMcaQt as qt
 from PyMca5.PyMcaMath import SimpleMath
 from PyMca5.PyMcaGui.plotting.PyMca_Icons import IconDict
 
-QString = qt.safe_str
 
 _simpleMath = SimpleMath.SimpleMath()
 

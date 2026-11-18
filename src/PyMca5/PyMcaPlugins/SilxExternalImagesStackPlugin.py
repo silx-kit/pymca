@@ -236,7 +236,7 @@ class SilxExternalImagesStackPlugin(ExternalImagesStackPluginBase.ExternalImages
         """Create a show menu allowing to show any of the existing external
         image windows"""
         if len(self.windows) == 1:
-            label = self.windows.keys()[0]
+            label = list(self.windows.keys())[0]
             self.windows[label].showAndRaise()
             return
         showMenu = qt.QMenu()
@@ -246,7 +246,7 @@ class SilxExternalImagesStackPlugin(ExternalImagesStackPluginBase.ExternalImages
             action.triggered.connect(self.windows[label].showAndRaise)
             showMenu.addAction(action)
 
-        showMenu.exec_(qt.QCursor.pos())
+        showMenu.exec(qt.QCursor.pos())
 
     def _clearAllWidgets(self):
         # delete widgets

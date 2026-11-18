@@ -36,10 +36,6 @@ import traceback
 import logging
 
 from PyMca5.PyMcaGui import PyMcaQt as qt
-if hasattr(qt, 'QString'):
-    QString = qt.QString
-else:
-    QString = qt.safe_str
 if __name__ == "__main__":
     app = qt.QApplication([])
 
@@ -126,9 +122,9 @@ class McaWindow(ScanWindow.ScanWindow):
         self.fitToolButton.clicked.connect(self._fitButtonClicked)
 
         self.fitButtonMenu = qt.QMenu()
-        self.fitButtonMenu.addAction(QString("Simple"),
+        self.fitButtonMenu.addAction("Simple",
                                      self.mcaSimpleFitSignal)
-        self.fitButtonMenu.addAction(QString("Advanced"),
+        self.fitButtonMenu.addAction("Advanced",
                                      self.mcaAdvancedFitSignal)
 
         if fit:

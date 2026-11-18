@@ -30,9 +30,7 @@ __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 import sys
 import logging
 from PyMca5.PyMcaGui import PyMcaQt as qt
-QString = str
 
-QStringList = list
 
 QTVERSION = qt.qVersion()
 QTable = qt.QTableWidget
@@ -135,22 +133,22 @@ class Parameters(QTable):
                                              'code',
                                              'val1',
                                              'val2'],
-                                  'estimation': QString('0'),
-                                  'fitresult': QString(),
-                                  'sigma': QString(),
-                                  'code': QString('FREE'),
-                                  'val1': QString(),
-                                  'val2': QString(),
+                                  'estimation': '0',
+                                  'fitresult': "",
+                                  'sigma': "",
+                                  'code': 'FREE',
+                                  'val1': "",
+                                  'val2': "",
                                   'cons1': 0,
                                   'cons2': 0,
-                                  'vmin': QString('0'),
-                                  'vmax': QString('1'),
-                                  'relatedto': QString(),
-                                  'factor': QString('1.0'),
-                                  'delta': QString('0.0'),
-                                  'sum': QString('0.0'),
-                                  'group': QString(),
-                                  'name': QString(param),
+                                  'vmin': '0',
+                                  'vmax': '1',
+                                  'relatedto': "",
+                                  'factor': '1.0',
+                                  'delta': '0.0',
+                                  'sum': '0.0',
+                                  'group': "",
+                                  'name': str(param),
                                   'xmin': None,
                                   'xmax': None}
         self.paramlist.append(param)
@@ -159,7 +157,7 @@ class Parameters(QTable):
         self.setReadOnly(param, ['name', 'fitresult', 'sigma', 'val1', 'val2'])
 
         #the code
-        a = QStringList()
+        a = []
         for option in self.code_options:
             a.append(option)
         cellWidget = self.cellWidget(linew,
@@ -273,13 +271,13 @@ class Parameters(QTable):
             return
         param = self.paramlist[row]
         field = self.parameters[param]['fields'][col]
-        oldvalue = QString(self.parameters[param][field])
+        oldvalue = str(self.parameters[param][field])
         if col != 4:
             item = self.item(row, col)
             if item is not None:
                 newvalue = item.text()
             else:
-                newvalue = QString()
+                newvalue = ""
         else:
             #this is the combobox
             widget = self.cellWidget(row, col)
@@ -602,7 +600,7 @@ class Parameters(QTable):
                     if key in self.parameters[name]['fields']:
                         oldvalue = self.parameters[name][key]
                         if key == 'code':
-                            newvalue = QString(str(kw[key]))
+                            newvalue = str(kw[key])
                         else:
                             if len(str(kw[key])):
                                 keyDone = False
@@ -619,7 +617,7 @@ class Parameters(QTable):
                                         newvalue = "%8g" % newvalue
                             else:
                                 newvalue = ""
-                            newvalue = QString(newvalue)
+                            newvalue = str(newvalue)
                         #avoid endless recursivity
                         if key != 'code':
                             if self.validate(name, key, oldvalue, newvalue):
@@ -628,11 +626,11 @@ class Parameters(QTable):
                                 self.parameters[name][key] = oldvalue
                                 error = 1
                     elif key in self.parameters[name].keys():
-                        newvalue = QString(str(kw[key]))
+                        newvalue = str(kw[key])
                         self.parameters[name][key] = newvalue
             _logger.debug("error = %s", error)
             if 'code' in kw:
-                newvalue = QString(kw['code'])
+                newvalue = str(kw['code'])
                 self.parameters[name]['code'] = newvalue
                 for i in range(self.parameters[name]['code_item'].count()):
                     if str(newvalue) == str(self.parameters[name]['code_item'].itemText(i)):
@@ -692,8 +690,8 @@ class Parameters(QTable):
                str(self.parameters[name]['code']) == 'POSITIVE' or \
                str(self.parameters[name]['code']) == 'IGNORE' or\
                str(self.parameters[name]['code']) == 'FIXED':
-                self.parameters[name]['val1'] = QString()
-                self.parameters[name]['val2'] = QString()
+                self.parameters[name]['val1'] = ""
+                self.parameters[name]['val2'] = ""
                 self.parameters[name]['cons1'] = 0
                 self.parameters[name]['cons2'] = 0
                 self.setReadWrite(name, 'estimation')

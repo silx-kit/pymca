@@ -29,7 +29,6 @@ __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 import logging
 from PyMca5.PyMcaGui import PyMcaQt as qt
-QString = str
 
 QTVERSION = qt.qVersion()
 
@@ -85,11 +84,11 @@ class McaTable(QTable):
         for result in mcaresult:
             region=region+1
             if result['chisq'] is not None:
-                chisq=QString("%6.2f" % (result['chisq']))
+                chisq="%6.2f" % (result['chisq'])
             else:
-                chisq=QString("Fit Error")
-            xbegin=QString("%6g" % (result['xbegin']))
-            xend=QString("%6g" % (result['xend']))
+                chisq="Fit Error"
+            xbegin="%6g" % (result['xbegin'])
+            xend="%6g" % (result['xend'])
             fitlabel,fitpars, fitsigmas = self.__getfitpar(result)
             item = self.horizontalHeaderItem(1)
             item.setText("Fit "+fitlabel)
@@ -104,15 +103,15 @@ class McaTable(QTable):
                 #area=QString(str(area))
                 #sigma=QString(str(sigma))
                 #fwhm=QString(str(fwhm))
-                tregion=QString(str(region))
-                pos=QString("%6g" % (pos))
-                fitpar = QString("%6g" % (fitpars[i]))
+                tregion=str(region)
+                pos="%6g" % (pos)
+                fitpar = "%6g" % (fitpars[i])
                 if fitlabel == 'Area':
                     sigma = max(sigma,fitsigmas[i])
-                areastr=QString("%6g" % (area))
-                sigmastr=QString("%6.3g" % (sigma))
-                fwhm=QString("%6g" % (fwhm))
-                tregion=QString("%6g" % (region))
+                areastr="%6g" % (area)
+                sigmastr="%6.3g" % (sigma)
+                fwhm="%6g" % (fwhm)
+                tregion="%6g" % (region)
                 fields=[pos,fitpar,areastr,sigmastr,fwhm,chisq,tregion,xbegin,xend]
                 col=0
                 recolor = 0

@@ -617,7 +617,7 @@ class McaBatchGUI(qt.QWidget):
                     self.raise_()
                     return
             if len(self.fileList) == 1:
-                if int(qt.safe_str(self.__splitSpin.text())) > 1:
+                if int(str(self.__splitSpin.text())) > 1:
                     allowSingleFileSplitProcesses = False
                     if HDF5SUPPORT:
                         if h5py.is_hdf5(self.fileList[0]):
@@ -659,7 +659,7 @@ class McaBatchGUI(qt.QWidget):
                 table = 1
         else:   table =0
 
-        #htmlindex = qt.safe_str(self.__htmlIndex.text())
+        #htmlindex = str(self.__htmlIndex.text())
         htmlindex = "index.html"
         if html:
             if  len(htmlindex)<5:
@@ -668,13 +668,13 @@ class McaBatchGUI(qt.QWidget):
                 htmlindex = "index.html"
             if htmlindex[-5:] != "html":
                 htmlindex+=".html"
-        roiwidth = float(qt.safe_str(self.__roiSpin.text()))
+        roiwidth = float(str(self.__roiSpin.text()))
         overwrite= 1
         filestep = 1
         mcastep = 1
         if len(self.fileList) == 1:
             if self.__splitBox.isChecked():
-                nbatches = int(qt.safe_str(self.__splitSpin.text()))
+                nbatches = int(str(self.__splitSpin.text()))
                 mcastep = nbatches
 
         fitfiles = self.__fitBox.isChecked()
@@ -849,7 +849,7 @@ class McaBatchGUI(qt.QWidget):
             qApp.processEvents()
             _logger.debug("cmd = %s", cmd)
             if self.__splitBox.isChecked():
-                nbatches = int(qt.safe_str(self.__splitSpin.text()))
+                nbatches = int(str(self.__splitSpin.text()))
                 if len(self.fileList) > 1:
                     filechunk = int(len(self.fileList)/nbatches)
                     processList = []
@@ -978,7 +978,7 @@ class McaBatchGUI(qt.QWidget):
             if self.__splitBox.isChecked():
                 qApp = qt.QApplication.instance()
                 qApp.processEvents()
-                nbatches = int(qt.safe_str(self.__splitSpin.text()))
+                nbatches = int(str(self.__splitSpin.text()))
                 filechunk = int(len(self.fileList)/nbatches)
                 processList = []
                 for i in range(nbatches):

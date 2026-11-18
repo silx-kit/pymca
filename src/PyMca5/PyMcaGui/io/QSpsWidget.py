@@ -40,10 +40,6 @@ _logger = logging.getLogger(__name__)
 SOURCE_TYPE = 'SPS'
 SCAN_MODE = True
 
-class QGridLayout(qt.QGridLayout):
-    def addMultiCellWidget(self, w, r0, r1, c0, c1, *var):
-        self.addWidget(w, r0, c0, 1 + r1 - r0, 1 + c1 - c0)
-
 class SPSFramesMcaWidget(qt.QWidget):
     def __init__(self, parent=None):
         qt.QWidget.__init__(self, parent)
@@ -171,7 +167,7 @@ class SPSMcaArrayWidget(qt.QWidget):
     def __init__(self, parent=None, name="SPS_MCA_DATA", fl=0, title="MCA", size=(0,8192)):
         qt.QWidget.__init__(self, parent)
         self.setWindowTitle(name)
-        layout= QGridLayout(self)
+        layout= qt.QGridLayout(self)
         layout.setContentsMargins(5, 5, 5, 5)
         layout.setSpacing(0)
 
@@ -255,7 +251,7 @@ class SPS_ImageArray(qt.QWidget):
     def __init__(self, parent=None, name="SPS_ImageArray", fl=0, title="MCA", size=(0,8192)):
         qt.QWidget.__init__(self, parent)
         self.setWindowTitle(name)
-        layout= QGridLayout(self)
+        layout= qt.QGridLayout(self)
         layout.setContentsMargins(5, 5, 5, 5)
         layout.setSpacing(0)
 

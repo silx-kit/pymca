@@ -40,12 +40,6 @@ from PyMca5.PyMcaIO import specfilewrapper as specfile
 from PyMca5 import PyMcaDataDir
 from PyMca5.PyMcaGui.pymca import ScanWindow
 
-if hasattr(qt, "QString"):
-    QString = qt.QString
-    QStringList = qt.QStringList
-else:
-    QString = str
-    QStringList = list
 
 _logger = logging.getLogger(__name__)
 
@@ -298,13 +292,13 @@ class XMCDOptions(qt.QDialog):
         ffilter = "PyMca (*.cfg)"
         filename = qt.QFileDialog.getOpenFileName(
             self, "Load XLD/XMCD Analysis Configuration", openDir, ffilter
-        )
+        )[0]
         confDict = ConfigDict.ConfigDict()
         try:
             confDict.read(filename)
         except IOError:
             msg = qt.QMessageBox()
-            msg.setTitle("XMCD Options Error")
+            msg.setWindowTitle("XMCD Options Error")
             msg.setText("Unable to read configuration file '%s'" % filename)
             return
         if "XMCDOptions" not in confDict:
@@ -365,7 +359,7 @@ class XMCDOptions(qt.QDialog):
                     name = self.normalizationMethod(name)
                 if option.startswith("Motor") and name == "None":
                     name = ""
-                idx = obj.findText(QString(name))
+                idx = obj.findText(str(name))
                 obj.setCurrentIndex(idx)
             elif isinstance(obj, qt.QButtonGroup):
                 try:
@@ -387,7 +381,7 @@ class XMCDScanWindow(ScanWindow.ScanWindow):
     }
 
     plotModifiedSignal = qt.pyqtSignal()
-    saveOptionsSignal = qt.pyqtSignal("QString")
+    saveOptionsSignal = qt.pyqtSignal(str)
 
     def __init__(self, origin, parent=None):
         """
@@ -1967,7 +1961,7 @@ class XMCDWidget(qt.QWidget):
                         counter = cntList[yIdx]
                     except Exception:
                         counter = ""
-            tmp = QStringList([selection, filename, scanNo, counter])
+            tmp = [selection, filename, scanNo, counter]
             # Determine value for each motor
             for m in mList:
                 if len(m) == 0:
@@ -2105,7 +2099,7 @@ def getSaveFileName(parent, caption, directory, filter):
         comment = str(dial.commentBox.toPlainText())
         if comment == "Enter comment":
             comment = ""
-        files = [qt.safe_str(fn) for fn in dial.selectedFiles()]
+        files = [str(fn) for fn in dial.selectedFiles()]
     return (files, append, comment)
 
 

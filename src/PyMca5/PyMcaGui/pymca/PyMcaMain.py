@@ -62,7 +62,6 @@ except Exception:
 from PyMca5.PyMcaGui.pymca import PyMcaMdi
 IconDict = PyMcaMdi.IconDict
 IconDict0 = PyMcaMdi.IconDict0
-QString = qt.safe_str
 
 try:
     from PyMca5.PyMcaGui.physics.xrf import XRFMCPyMca
@@ -916,13 +915,13 @@ class PyMcaMain(PyMcaMdi.PyMcaMdi):
             #build the actions
             #fileopen
             self.actionOpen = qt.QAction(self)
-            self.actionOpen.setText(QString("&Open"))
+            self.actionOpen.setText("&Open")
             self.actionOpen.setIcon(self.Icons["fileopen"])
             self.actionOpen.setShortcut(qt.QKeySequence(qt.Qt.CTRL|qt.Qt.Key_O))
             self.actionOpen.triggered[bool].connect(self.onOpen)
             #filesaveas
             self.actionSaveAs = qt.QAction(self)
-            self.actionSaveAs.setText(QString("&Save"))
+            self.actionSaveAs.setText("&Save")
             self.actionSaveAs.setIcon(self.Icons["filesave"])
             self.actionSaveAs.setShortcut(\
                 qt.QKeySequence(qt.Qt.CTRL|qt.Qt.Key_S))
@@ -930,19 +929,19 @@ class PyMcaMain(PyMcaMdi.PyMcaMdi):
 
             #filesave
             self.actionSave = qt.QAction(self)
-            self.actionSave.setText(QString("Save &Default Settings"))
+            self.actionSave.setText("Save &Default Settings")
             #self.actionSave.setIcon(self.Icons["filesave"])
             #self.actionSave.setShortcut(qt.Qt.CTRL|qt.Qt.Key_S)
             self.actionSave.triggered[bool].connect(self.onSave)
 
             #filepurge
             self.actionPurge = qt.QAction(self)
-            self.actionPurge.setText(QString("Purge Default Settings"))
+            self.actionPurge.setText("Purge Default Settings")
             self.actionPurge.triggered[bool].connect(self.onPurge)
 
             #fileprint
             self.actionPrint = qt.QAction(self)
-            self.actionPrint.setText(QString("&Print"))
+            self.actionPrint.setText("&Print")
             self.actionPrint.setIcon(self.Icons["fileprint"])
             self.actionPrint.setShortcut(\
                 qt.QKeySequence(qt.Qt.CTRL|qt.Qt.Key_P))
@@ -950,7 +949,7 @@ class PyMcaMain(PyMcaMdi.PyMcaMdi):
 
             #filequit
             self.actionQuit = qt.QAction(self)
-            self.actionQuit.setText(QString("&Quit"))
+            self.actionQuit.setText("&Quit")
             #self.actionQuit.setIcon(self.Icons["fileprint"])
             self.actionQuit.setShortcut(\
                                        qt.QKeySequence(qt.Qt.CTRL|qt.Qt.Key_Q))
@@ -1462,7 +1461,7 @@ class PyMcaMain(PyMcaMdi.PyMcaMdi):
             source = None
             selectedAction = self.trainingDataMenu.exec(qt.QCursor.pos())
             if selectedAction is not None:
-                key = qt.safe_str(selectedAction.text())
+                key = str(selectedAction.text())
                 source = self.trainingSources[key]
                 self.sourceWidget.sourceSelector.openSource(source)
                 # only in case of the steel sample we set the input dir to simplify accessing the supplied cfg file
@@ -1522,12 +1521,12 @@ class PyMcaMain(PyMcaMdi.PyMcaMdi):
     def onMenuHelp(self):
         if self.menuBrowser is None:
             self.menuBrowser= qt.QTextBrowser()
-            self.menuBrowser.setWindowTitle(QString("Main Menu Help"))
+            self.menuBrowser.setWindowTitle("Main Menu Help")
             ddir=PyMcaDataDir.PYMCA_DOC_DIR
             if not os.path.exists(os.path.join(ddir,"HTML","Menu.html")):
                 ddir = os.path.dirname(ddir)
             self.menuBrowser.setSearchPaths([os.path.join(ddir,"HTML")])
-            self.menuBrowser.setSource(qt.QUrl(QString("Menu.html")))
+            self.menuBrowser.setSource(qt.QUrl("Menu.html"))
             self.menuBrowser.show()
         if self.menuBrowser.isHidden():
             self.menuBrowser.show()
@@ -1536,12 +1535,12 @@ class PyMcaMain(PyMcaMdi.PyMcaMdi):
     def onDisplayHowto(self):
         if self.displayBrowser is None:
             self.displayBrowser= qt.QTextBrowser()
-            self.displayBrowser.setWindowTitle(QString("Data Display HOWTO"))
+            self.displayBrowser.setWindowTitle("Data Display HOWTO")
             ddir=PyMcaDataDir.PYMCA_DOC_DIR
             if not os.path.exists(os.path.join(ddir,"HTML","Display-HOWTO.html")):
                 ddir = os.path.dirname(ddir)
             self.displayBrowser.setSearchPaths([os.path.join(ddir,"HTML")])
-            self.displayBrowser.setSource(qt.QUrl(QString("Display-HOWTO.html")))
+            self.displayBrowser.setSource(qt.QUrl("Display-HOWTO.html"))
             self.displayBrowser.show()
         if self.displayBrowser.isHidden():
             self.displayBrowser.show()
@@ -1550,14 +1549,14 @@ class PyMcaMain(PyMcaMdi.PyMcaMdi):
     def onMcaHowto(self):
         if self.mcaBrowser is None:
             self.mcaBrowser= MyQTextBrowser()
-            self.mcaBrowser.setWindowTitle(QString("MCA HOWTO"))
+            self.mcaBrowser.setWindowTitle("MCA HOWTO")
             ddir=PyMcaDataDir.PYMCA_DOC_DIR
             if not os.path.exists(ddir+"/HTML"+"/MCA-HOWTO.html"):
                 ddir = os.path.dirname(ddir)
             self.mcaBrowser.setSearchPaths([os.path.join(ddir,"HTML"),
                                             os.path.join(ddir,"HTML", "PyMCA_files"),
                                             os.path.join(ddir,"HTML", "images")])
-            self.mcaBrowser.setSource(qt.QUrl(QString("MCA-HOWTO.html")))
+            self.mcaBrowser.setSource(qt.QUrl("MCA-HOWTO.html"))
             #f = open(os.path.join(dir,"HTML","MCA-HOWTO.html"))
             #self.mcaBrowser.setHtml(f.read())
             #f.close()
@@ -1632,7 +1631,7 @@ class PyMcaMain(PyMcaMdi.PyMcaMdi):
 
 class MyQTextBrowser(qt.QTextBrowser):
     def myWrappedSource(self, name, ignored=None):
-        if name == QString("./PyMCA.html") or ("PyMCA.html" in ("%s" % name)):
+        if name == "./PyMCA.html" or ("PyMCA.html" in ("%s" % name)):
             if sys.platform == 'win32':
                 ddir=PyMcaDataDir.PYMCA_DOC_DIR
                 if not os.path.exists(os.path.join(ddir, "HTML", "PyMCA.html")):
@@ -1644,10 +1643,10 @@ class MyQTextBrowser(qt.QTextBrowser):
                 self.report.show()
             except Exception:
                 self.report = qt.QTextBrowser()
-                self.report.setCaption(QString("PyMca Report"))
+                self.report.setWindowTitle("PyMca Report")
                 ddir=PyMcaDataDir.PYMCA_DOC_DIR
-                self.report.mimeSourceFactory().addFilePath(QString(ddir+"/HTML"))
-                self.report.mimeSourceFactory().addFilePath(QString(ddir+"/HTML/PyMCA_files"))
+                self.report.setSearchPaths([ddir+"/HTML",
+                                            ddir+"/HTML/PyMCA_files"])
                 self.report.setSource(name)
             if self.report.isHidden():
                 self.report.show()
@@ -1714,7 +1713,7 @@ def _splash_screen():
              break
 
     if os.path.exists(fname):
-        pixmap = qt.QPixmap(QString(fname))
+        pixmap = qt.QPixmap(str(fname))
         splash  = qt.QSplashScreen(pixmap)
     else:
         splash = qt.QSplashScreen()

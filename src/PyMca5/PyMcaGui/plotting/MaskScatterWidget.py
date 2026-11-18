@@ -46,10 +46,6 @@ from . import PlotWindow
 from . import MaskImageWidget
 from . import MaskImageTools
 qt = PlotWindow.qt
-if hasattr(qt, "QString"):
-    QString = qt.QString
-else:
-    QString = qt.safe_str
 IconDict = PlotWindow.IconDict
 
 class MaskScatterWidget(PlotWindow.PlotWindow):
@@ -626,17 +622,17 @@ class MaskScatterWidget(PlotWindow.PlotWindow):
             _logger.debug("brushIconSignal")
         if self._brushMenu is None:
             self._brushMenu = qt.QMenu()
-            self._brushMenu.addAction(QString(" 1 Image Pixel Width"),
+            self._brushMenu.addAction(" 1 Image Pixel Width",
                                        self._setBrush1)
-            self._brushMenu.addAction(QString(" 2 Image Pixel Width"),
+            self._brushMenu.addAction(" 2 Image Pixel Width",
                                        self._setBrush2)
-            self._brushMenu.addAction(QString(" 3 Image Pixel Width"),
+            self._brushMenu.addAction(" 3 Image Pixel Width",
                                        self._setBrush3)
-            self._brushMenu.addAction(QString(" 5 Image Pixel Width"),
+            self._brushMenu.addAction(" 5 Image Pixel Width",
                                        self._setBrush4)
-            self._brushMenu.addAction(QString("10 Image Pixel Width"),
+            self._brushMenu.addAction("10 Image Pixel Width",
                                        self._setBrush5)
-            self._brushMenu.addAction(QString("20 Image Pixel Width"),
+            self._brushMenu.addAction("20 Image Pixel Width",
                                        self._setBrush6)
         self._brushMenu.exec(self.cursor().pos())
 
@@ -746,22 +742,22 @@ class MaskScatterWidget(PlotWindow.PlotWindow):
         self._additionalSelectionMenu = {}
         #scatter view menu
         menu = qt.QMenu()
-        menu.addAction(QString("Density plot view"), self.__setDensityPlotView)
-        menu.addAction(QString("Reset Selection"), self.__resetSelection)
-        menu.addAction(QString("Invert Selection"), self._invertSelection)
+        menu.addAction("Density plot view", self.__setDensityPlotView)
+        menu.addAction("Reset Selection", self.__resetSelection)
+        menu.addAction("Invert Selection", self._invertSelection)
         self._additionalSelectionMenu["scatter"] = menu
 
         # density view menu
         menu = qt.QMenu()
-        menu.addAction(QString("Scatter plot view"), self.__setScatterPlotView)
-        menu.addAction(QString("Reset Selection"), self.__resetSelection)
-        menu.addAction(QString("Invert Selection"), self._invertSelection)
-        menu.addAction(QString("I >= Colormap Max"), self._selectMax)
-        menu.addAction(QString("Colormap Min < I < Colormap Max"),
+        menu.addAction("Scatter plot view", self.__setScatterPlotView)
+        menu.addAction("Reset Selection", self.__resetSelection)
+        menu.addAction("Invert Selection", self._invertSelection)
+        menu.addAction("I >= Colormap Max", self._selectMax)
+        menu.addAction("Colormap Min < I < Colormap Max",
                                                 self._selectMiddle)
-        menu.addAction(QString("I <= Colormap Min"), self._selectMin)
-        menu.addAction(QString("Increase mask alpha"), self._increaseMaskAlpha)
-        menu.addAction(QString("Decrease mask alpha"), self._decreaseMaskAlpha)
+        menu.addAction("I <= Colormap Min", self._selectMin)
+        menu.addAction("Increase mask alpha", self._increaseMaskAlpha)
+        menu.addAction("Decrease mask alpha", self._decreaseMaskAlpha)
         self._additionalSelectionMenu["density"] = menu
 
     def __setScatterPlotView(self):

@@ -84,7 +84,7 @@ class TaurusPlugin1D(Plugin1DBase.Plugin1DBase, QObjectTaurusListener):
                     attr = Attribute(str(model))
                 #force a read -> attr.read()
                 attr.addListener(self)
-                legend = qt.safe_str(attr.getNormalName())
+                legend = str(attr.getNormalName())
                 self._attrDict[legend] = attr
             self._oldModels = models
         else:
@@ -99,7 +99,7 @@ class TaurusPlugin1D(Plugin1DBase.Plugin1DBase, QObjectTaurusListener):
                 if model not in keptModels:
                     attr = Attribute(model)
                     attr.removeListener(self)
-                    legend = qt.safe_str(attr.getNormalName())
+                    legend = str(attr.getNormalName())
                     if legend in self._attrDict:
                         del self._attrDict[legend]
                     print("Trying to remove ", legend)
@@ -108,7 +108,7 @@ class TaurusPlugin1D(Plugin1DBase.Plugin1DBase, QObjectTaurusListener):
                 attr = Attribute(model)
                 # attr.read()
                 attr.addListener(self)
-                legend = qt.safe_str(attr.getNormalName())
+                legend = str(attr.getNormalName())
                 self._attrDict[legend] = attr
             self._oldModels = keptModels + newModels
 

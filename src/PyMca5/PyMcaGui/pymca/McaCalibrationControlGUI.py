@@ -33,7 +33,6 @@ import logging
 
 from PyMca5.PyMcaGui import PyMcaQt as qt
 QTVERSION = qt.qVersion()
-QString = qt.safe_str
 
 from PyMca5 import PyMcaDirs
 from PyMca5.PyMcaGui.io import PyMcaFileDialogs
@@ -65,11 +64,11 @@ class McaCalibrationControlGUI(qt.QWidget):
         self.calinfo = McaCalibrationInfoLine(self)
 
         self.calmenu = qt.QMenu()
-        self.calmenu.addAction(QString("Edit"),    self._copysignal)
-        self.calmenu.addAction(QString("Compute") ,self._computesignal)
+        self.calmenu.addAction("Edit",    self._copysignal)
+        self.calmenu.addAction("Compute" ,self._computesignal)
         self.calmenu.addSeparator()
-        self.calmenu.addAction(QString("Load") ,   self._loadsignal)
-        self.calmenu.addAction(QString("Save") ,   self._savesignal)
+        self.calmenu.addAction("Load" ,   self._loadsignal)
+        self.calmenu.addAction("Save" ,   self._savesignal)
 
         layout.addWidget(calibration)
         layout.addWidget(self.calinfo)
@@ -82,7 +81,7 @@ class McaCalibrationControlGUI(qt.QWidget):
         self.calbut.clicked.connect(self._calbuttonclicked)
 
     def _calboxactivated(self, item=None):
-        _logger.debug("Calibration box activated %s", qt.safe_str(item))
+        _logger.debug("Calibration box activated %s", str(item))
         comboitem, combotext = self.calbox.getCurrent()
         self._emitpysignal(box=[comboitem, combotext],
                            boxname='Calibration',
@@ -124,7 +123,7 @@ class McaCalibrationControlGUI(qt.QWidget):
                                  currentfilter=self.lastInputFilter)
         if not len(filelist):
             return
-        filename = qt.safe_str(filelist[0])
+        filename = str(filelist[0])
         if len(filename) < 6:
             filename = filename + ".calib"
         elif filename[-6:] != ".calib":
@@ -156,7 +155,7 @@ class McaCalibrationControlGUI(qt.QWidget):
                                  currentfilter=self.lastInputFilter)
         if not len(filelist):
             return
-        filename = qt.safe_str(filelist[0])
+        filename = str(filelist[0])
         if len(filename) < 6:
             filename = filename + ".calib"
         elif filename[-6:] != ".calib":
@@ -302,7 +301,7 @@ class SimpleComboBox(qt.QComboBox):
                 self.addItem(item)
 
         def getCurrent(self):
-            return   self.currentIndex(), qt.safe_str(self.currentText())
+            return   self.currentIndex(), str(self.currentText())
 
 
 if __name__ == '__main__':

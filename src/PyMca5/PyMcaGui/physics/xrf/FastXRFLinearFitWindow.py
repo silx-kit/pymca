@@ -282,23 +282,23 @@ class FastXRFLinearFitWindow(qt.QWidget):
         ddict = {}
         fit = {}
         ddict['fit'] = fit
-        fit['configuration'] = qt.safe_str(self._configLine.text())
+        fit['configuration'] = str(self._configLine.text())
         fit['weight'] = self._weightButtonGroup.checkedId()
         fit['concentrations'] = self._concentrationsBox.isChecked()
         fit['refit'] = self._fitAgainBox.isChecked()
         output = {}
         ddict['output'] = output
-        output['outputDir'] = qt.safe_str(self._outdirLine.text())
-        output['outputRoot'] = qt.safe_str(self._outrootLine.text())
+        output['outputDir'] = str(self._outdirLine.text())
+        output['outputRoot'] = str(self._outrootLine.text())
 
         # do not allow spaces in HDF5 
-        output['fileEntry'] = qt.safe_str(self._outentryLine.text()).replace(" ", "")
-        output['fileProcess'] = qt.safe_str(self._outnameLine.text()).replace(" ", "")
+        output['fileEntry'] = str(self._outentryLine.text()).replace(" ", "")
+        output['fileProcess'] = str(self._outnameLine.text()).replace(" ", "")
 
         # make sure the GUI reflects its output
-        if output['fileEntry'] != qt.safe_str(self._outentryLine.text()):
+        if output['fileEntry'] != str(self._outentryLine.text()):
             self._outentryLine.setText(output['fileEntry'])
-        if output['fileProcess'] != qt.safe_str(self._outnameLine.text()):
+        if output['fileProcess'] != str(self._outnameLine.text()):
             self._outnameLine.setText(output['fileProcess'])
 
         output['tif'] = int(self._tiffBox.isChecked())

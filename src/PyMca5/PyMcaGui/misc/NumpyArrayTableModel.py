@@ -29,8 +29,6 @@ __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 import numpy
 from PyMca5.PyMcaGui import PyMcaQt as qt
-def MyQVariant(x=None):
-    return x
 
 class NumpyArrayTableModel(qt.QAbstractTableModel):
     def __init__(self, parent=None, narray=None, fmt="%g", perspective=0):
@@ -55,7 +53,7 @@ class NumpyArrayTableModel(qt.QAbstractTableModel):
 
     def data(self, index, role=qt.Qt.DisplayRole):
         if not index.isValid():
-            return MyQVariant()
+            return None
         row = index.row()
         col = index.column()
         selection = tuple(self._index + [row, col])
@@ -98,9 +96,9 @@ class NumpyArrayTableModel(qt.QAbstractTableModel):
             if role == qt.Qt.DisplayRole:
                 # row = 0
                 col = index.column()
-                return MyQVariant(self._format % self._array[col])
+                return self._format % self._array[col]
 
-        return MyQVariant()
+        return None
 
     def _rowCount2D(self, parent=None):
         return self._array.shape[0]
@@ -113,8 +111,8 @@ class NumpyArrayTableModel(qt.QAbstractTableModel):
             if role == qt.Qt.DisplayRole:
                 row = index.row()
                 col = index.column()
-                return MyQVariant(self._format % self._array[row, col])
-        return MyQVariant()
+                return self._format % self._array[row, col]
+        return None
 
     def _rowCountND(self, parent=None):
         return self._array.shape[-2]
@@ -128,8 +126,8 @@ class NumpyArrayTableModel(qt.QAbstractTableModel):
                 row = index.row()
                 col = index.column()
                 actualSelection = tuple(self._index + [row, col])
-                return MyQVariant(self._format % self._array[actualSelection])
-        return MyQVariant()
+                return self._format % self._array[actualSelection]
+        return None
 
     def _rowCount3DIndex0(self, parent=None):
         return self._array.shape[1]
@@ -154,30 +152,24 @@ class NumpyArrayTableModel(qt.QAbstractTableModel):
             if role == qt.Qt.DisplayRole:
                 row = index.row()
                 col = index.column()
-                return MyQVariant(self._format % self._array[self._index,
-                                                                  row,
-                                                                  col])
-        return MyQVariant()
+                return self._format % self._array[self._index, row, col]
+        return None
 
     def _data3DIndex1(self, index, role=qt.Qt.DisplayRole):
         if index.isValid():
             if role == qt.Qt.DisplayRole:
                 row = index.row()
                 col = index.column()
-                return MyQVariant(self._format % self._array[row,
-                                                                  self._index,
-                                                                  col])
-        return MyQVariant()
+                return self._format % self._array[row, self._index, col]
+        return None
 
     def _data3DIndex2(self, index, role=qt.Qt.DisplayRole):
         if index.isValid():
             if role == qt.Qt.DisplayRole:
                 row = index.row()
                 col = index.column()
-                return MyQVariant(self._format % self._array[row,
-                                                                  col,
-                                                                  self._index])
-        return MyQVariant()
+                return self._format % self._array[row, col, self._index]
+        return None
 
     def setArrayData(self, data, perspective=0):
         """
@@ -185,10 +177,7 @@ class NumpyArrayTableModel(qt.QAbstractTableModel):
         data is a 3D array
         perspective is the array dimension acting as index of images
         """
-        if qt.qVersion() > "4.6":
-            self.beginResetModel()
-        else:
-            self.reset()
+        self.beginResetModel()
         self._array = data
         self._bgcolors = None
         self._fgcolors = None
@@ -203,8 +192,7 @@ class NumpyArrayTableModel(qt.QAbstractTableModel):
             self._index = [0]
         else:
             self._index = []
-        if qt.qVersion() > "4.6":
-            self.endResetModel()
+        self.endResetModel()
 
     def setArrayColors(self, bgcolors=None, fgcolors=None):
         """Set the colors for all table cells by passing an array

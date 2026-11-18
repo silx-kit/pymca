@@ -31,10 +31,6 @@ __license__ = "MIT"
 import numpy
 
 from PyMca5.PyMcaGui import PyMcaQt as qt
-if hasattr(qt, "QString"):
-    QString = qt.QString
-else:
-    QString = str
 from PyMca5.PyMcaGui.plotting.PyMca_Icons import IconDict
 from PyMca5.PyMcaGui.plotting import SilxMaskImageWidget
 
@@ -66,9 +62,9 @@ class SilxExternalImagesWindow(SilxMaskImageWidget.SilxMaskImageWidget):
         self.hFlipToolButton.setIcon(self.hFlipIcon)
         self.hFlipToolButton.setToolTip("Flip image and data, not the scale.")
         self._flipMenu = qt.QMenu()
-        self._flipMenu.addAction(QString("Flip Image Left-Right"),
+        self._flipMenu.addAction("Flip Image Left-Right",
                                  self._flipLeftRight)
-        self._flipMenu.addAction(QString("Flip Image Up-Down"),
+        self._flipMenu.addAction("Flip Image Up-Down",
                                  self._flipUpDown)
 
         self.hFlipToolButton.setMenu(self._flipMenu)
@@ -81,12 +77,12 @@ class SilxExternalImagesWindow(SilxMaskImageWidget.SilxMaskImageWidget):
         self.rotateButton.setToolTip("Rotate image by 90 degrees")
         self._rotateMenu = qt.QMenu()
         self.rotateLeftAction = qt.QAction(self.rotateLeftIcon,
-                                           QString("Rotate left"),
+                                           "Rotate left",
                                            self)
         self.rotateLeftAction.triggered.connect(self._rotateLeft)
         self._rotateMenu.addAction(self.rotateLeftAction)
         self.rotateRightAction = qt.QAction(self.rotateRightIcon,
-                                            QString("Rotate right"),
+                                            "Rotate right",
                                             self)
         self.rotateRightAction.triggered.connect(self._rotateRight)
         self._rotateMenu.addAction(self.rotateRightAction)
