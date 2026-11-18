@@ -174,7 +174,7 @@ def _add_qt_arguments(parser):
     """
     parser.add_argument("--qt", type=str, default=None, choices=["5","6"], help="Force Qt version")
     parser.add_argument(
-        "--binding", type=str, default=None, choices=["pyqt5","pyqt6","pyside2","pyside6"], help="Qt binding"
+        "--binding", type=str, default=None, choices=["pyqt5","pyqt6","pyside6"], help="Qt binding"
     )
     parser.add_argument("--nativefiledialogs", type=int, default=None, help="Use native file dialogs")
 

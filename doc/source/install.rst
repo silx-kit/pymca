@@ -270,8 +270,8 @@ Tools for reading and writing HDF5 files depend on:
 
 The GUI widgets depend on the following extra packages:
 
-* A Qt binding: either `PyQt5, PyQt4 <https://riverbankcomputing.com/software/pyqt/intro>`_,
-  `PySide <https://pypi.python.org/pypi/PySide/>`_, or `PySide2 <https://wiki.qt.io/PySide2>`_
+* A Qt binding: either `PySide6 <https://pypi.org/project/PySide6/>`_,
+  `PyQt6 or PyQt5 <https://riverbankcomputing.com/software/pyqt/intro>`_
 * `matplotlib <http://matplotlib.org/>`_
 
 The following packages are optional dependencies:
