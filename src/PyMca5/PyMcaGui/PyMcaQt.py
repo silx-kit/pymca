@@ -85,7 +85,7 @@ if BINDING is None: # Try the different bindings
                 if 'PyQt5' in sys.modules:
                     del sys.modules["PyQt5"]
                 raise ImportError(
-                'No Qt wrapper found. Install PySide6, PyQt6 or PyQt5.')
+                'No Qt wrapper found. Install one of PySide6, PyQt6 or PyQt5.')
 
     _logger.info("BINDING set to %s" % BINDING)
 
