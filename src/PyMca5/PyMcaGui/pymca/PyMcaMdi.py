@@ -78,10 +78,6 @@ class PyMcaMdi(qt.QMainWindow):
         self.printer= qt.QPrinter()
         self.mdi = qt.QMdiArea(self.splitter)
 
-        self.mdi.windowList = self.mdi.subWindowList
-        self.mdi.activeWindow = self.mdi.activeSubWindow
-        self.mdi.tile = self.mdi.tileSubWindows
-        self.mdi.cascade = self.mdi.cascadeSubWindows
         #self.mdi.setBackground(qt.QBrush(qt.QColor(238,234,238)))
         #self.setCentralWidget(self.mdi)
         #self.splitterLayout.addWidget(self.mdi)
@@ -173,27 +169,27 @@ class PyMcaMdi(qt.QMainWindow):
     def windowCascade(self):
         if self.followActiveWindow:
             self.__disconnectFollow()
-        self.mdi.cascade()
-        for window in self.mdi.windowList():
-            window.resize(0.7*self.mdi.width(),0.7*self.mdi.height())
+        self.mdi.cascadeSubWindows()
+        for window in self.mdi.subWindowList():
+            window.resize(int(0.7*self.mdi.width()), int(0.7*self.mdi.height()))
         if self.followActiveWindow:
             self.__connectFollow()
 
     def windowTile(self):
         if self.followActiveWindow: self.__disconnectFollow()
-        self.mdi.tile()
+        self.mdi.tileSubWindows()
         if self.followActiveWindow: self.__connectFollow()
 
     def windowHorizontal(self):
         #if self.followActiveWindow: self.__disconnectFollow()
-        if not len(self.mdi.windowList()): return
-        windowheight=float(self.mdi.height())/len(self.mdi.windowList())
+        if not len(self.mdi.subWindowList()): return
+        windowheight=float(self.mdi.height())/len(self.mdi.subWindowList())
         i=0
-        for window in self.mdi.windowList():
-                window.parentWidget().showNormal()
-                window.parentWidget().setGeometry(0, int(windowheight*i),
+        for window in self.mdi.subWindowList():
+                window.showNormal()
+                window.setGeometry(0, int(windowheight*i),
                                         self.mdi.width(),int(windowheight))
-                window.parentWidget().raise_()
+                window.raise_()
                 i+=1
         self.mdi.update()
         self.update()
@@ -201,23 +197,23 @@ class PyMcaMdi(qt.QMainWindow):
 
     def windowVertical(self):
         #if self.followActiveWindow: self.__disconnectFollow()
-        if not len(self.mdi.windowList()): return
-        windowwidth=float(self.mdi.width())/len(self.mdi.windowList())
+        if not len(self.mdi.subWindowList()): return
+        windowwidth=float(self.mdi.width())/len(self.mdi.subWindowList())
         i=0
-        for window in self.mdi.windowList():
-            window.parentWidget().showNormal()
-            window.parentWidget().setGeometry(int(windowwidth*i),0,
+        for window in self.mdi.subWindowList():
+            window.showNormal()
+            window.setGeometry(int(windowwidth*i),0,
                                     int(windowwidth),self.mdi.height())
 
-            window.parentWidget().raise_()
+            window.raise_()
             i+=1
         self.mdi.update()
         self.update()
         #if self.followActiveWindow: self.__connectFollow()
 
     def windowFullScreen(self):
-        if len(self.mdi.windowList()):
-            self.mdi.activeWindow().showMaximized()
+        if len(self.mdi.subWindowList()):
+            self.mdi.activeSubWindow().showMaximized()
 
 
     def initMenuBar(self):
@@ -260,13 +256,13 @@ class PyMcaMdi(qt.QMainWindow):
     def menuWindowAboutToShow(self):
         _logger.debug("menuWindowAboutToShow")
         self.menuWindow.clear()
-        if len(self.mdi.windowList())==0:
+        if len(self.mdi.subWindowList())==0:
             return
         self.menuWindow.addAction("&Cascade", self.windowCascade)
         self.menuWindow.addAction("&Tile", self.windowTile)
         self.menuWindow.addAction("&Tile Horizontally", self.windowHorizontal)
         self.menuWindow.addAction("&Tile Vertically", self.windowVertical)
-        windows=self.mdi.windowList()
+        windows=self.mdi.subWindowList()
         if len(windows) > 0:
             self.menuWindow.addSeparator()
         num = 0
@@ -275,7 +271,7 @@ class PyMcaMdi(qt.QMainWindow):
             num += 1
             action = self.menuWindow.addAction(text)
             action.setCheckable(True)
-            action.setChecked(window == self.mdi.activeWindow())
+            action.setChecked(window == self.mdi.activeSubWindow())
             action.triggered.connect(self.windowMapper.map)
             self.windowMapper.setMapping(action, window)
 

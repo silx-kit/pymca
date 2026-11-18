@@ -123,10 +123,6 @@ else:
     BUNDLE_ICON = None
 PY2APP_OPTIONS["excludes"] = ["scipy"]
 
-if sys.version.startswith("2"):
-    PY2APP_OPTIONS["excludes"].append("PyQt4.uic.port_v3")
-    PY2APP_OPTIONS["excludes"].append("PyQt5.uic.port_v3")
-
 setup(
     app=[application],
     options={'py2app':PY2APP_OPTIONS}
@@ -152,7 +148,7 @@ if SILX:
     f.close()
     f = open(initFile, "w")
     for line in content:
-        if ("PyQt4.uic" in line) or ("PyQt5.uic" in line):
+        if "PyQt5.uic" in line:
             continue
         f.write(line)
     f.close()

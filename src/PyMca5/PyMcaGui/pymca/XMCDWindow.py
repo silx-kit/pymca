@@ -381,7 +381,7 @@ class XMCDScanWindow(ScanWindow.ScanWindow):
     }
 
     plotModifiedSignal = qt.pyqtSignal()
-    saveOptionsSignal = qt.pyqtSignal("QString")
+    saveOptionsSignal = qt.pyqtSignal(str)
 
     def __init__(self, origin, parent=None):
         """

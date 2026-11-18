@@ -356,7 +356,7 @@ class SumRulesWindow(qt.QMainWindow):
     occuringTransitions = ['L3M4', 'L3M5', 'L2M4', 'M5O3','M4O3']
 
     # Signals
-    tabChangedSignal = qt.pyqtSignal('QString')
+    tabChangedSignal = qt.pyqtSignal(str)
 
     def __init__(self, parent=None):
         qt.QMainWindow.__init__(self, parent)
