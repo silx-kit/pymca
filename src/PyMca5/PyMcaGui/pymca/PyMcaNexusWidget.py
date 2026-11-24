@@ -69,6 +69,8 @@ class PyMcaNexusWidget(QNexusWidget.QNexusWidget):
                                              self._showInfoWidgetSlot)
             _hdf5WidgetDatasetMenu.addAction(QString("Copy Path to Clipboard"),
                                              self._copyPathSlot)
+            _hdf5WidgetDatasetMenu.addAction(QString("Numeric selection of scans"),
+                                             self.showSmartSelectionDialog)
         else:
             # handle a right click on a numeric dataset
             _hdf5WidgetDatasetMenu.addAction(QString("Add to selection table"),
