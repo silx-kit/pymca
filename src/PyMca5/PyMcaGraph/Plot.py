@@ -44,6 +44,7 @@ import numpy
 from . import PlotBase
 from . import PlotBackend
 from . import Colors
+from PyMca5.PyMcaMisc.CliUtils import MPL_BACKENDS, GL_BACKENDS
 
 import logging
 import traceback
@@ -134,19 +135,17 @@ class Plot(PlotBase.PlotBase):
             lowerCaseString = backend.lower()
             if lowerCaseString in ["matplotlib", "mpl"]:
                 from .backends.MatplotlibBackend import MatplotlibBackend as be
-            elif lowerCaseString in ["gl", "opengl"]:
+            elif lowerCaseString in MPL_BACKENDS + GL_BACKENDS:
+                # silx (matplotlib and mpl went to PyMca's own above)
                 # from .backends.OpenGLBackend import OpenGLBackend as be
                 from .backends.SilxBackend import SilxBackend as be
             elif lowerCaseString in ["glut"]:
                 from .backends.GLUTOpenGLBackend import GLUTOpenGLBackend as be
             elif lowerCaseString in ["osmesa", "mesa"]:
                 from .backends.OSMesaGLBackend import OSMesaGLBackend as be
-            elif lowerCaseString in ["silx", "silx-mpl", "silxmpl",
-                                     "silx-gl", "silxgl"]:
-                from .backends.SilxBackend import SilxBackend as be
             else:
                 raise ValueError("Backend not understood %s" % backend)
-            if lowerCaseString in ["silx-gl", "silxgl"]:
+            if lowerCaseString in GL_BACKENDS:
                 self._plot = be(parent, backend="gl")
             elif lowerCaseString in ["silx-mpl", "silxmpl"]:
                 self._plot = be(parent, backend="mpl")

@@ -199,8 +199,9 @@ class PyMcaMain(PyMcaMdi.PyMcaMdi):
             self.setWindowIcon(qt.QIcon(qt.QPixmap(IconDict['gioconda16'])))
             self.changeLog = None
 
-            # silx scatter views: --backend (silx default set by PyMcaAppInit),
-            # else OpenGL if the check above passed
+            # silx scatter views (scatter tab, ROI tool). With --backend:
+            # None = silx default, which PyMcaAppInit sets from --backend.
+            # Without: OpenGL (faster on big maps) if the check above passed
             if backend is not None:
                 self._scatterBackend = None
             elif OPENGL_DRIVERS_OK:
@@ -245,6 +246,7 @@ class PyMcaMain(PyMcaMdi.PyMcaMdi):
                 self.mdi.addWindow(self.scanWindow)
             else:
                 if backend is not None:
+                    # already set by PyMcaAppInit when given by --backend
                     Plot.defaultBackend = backend
                 self.mainTabWidget = qt.QTabWidget(self.mdi)
                 self.mainTabWidget.setWindowTitle("Main Window")

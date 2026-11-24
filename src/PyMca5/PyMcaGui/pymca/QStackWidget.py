@@ -91,8 +91,8 @@ QTVERSION = qt.qVersion()
 
 class QStackWidget(StackBase.StackBase,
                    CloseEventNotifyingWidget.CloseEventNotifyingWidget):
-    # silx plot backend of the scatter views: None follows --backend
-    # (silx default), PyMcaMain can prefer OpenGL (faster on big maps)
+    # silx plot backend of the scatter views, set by PyMcaMain and main().
+    # None = silx default, which PyMcaAppInit sets from --backend
     scatterBackend = "mpl"
 
     def __init__(self, parent=None,

@@ -62,6 +62,13 @@ from PyMca5.PyMcaMisc.LoggingUtils import parse_log_level
 
 LOGGING_FORMAT = "%(levelname)s: %(message)s"
 
+# --backend names
+# matplotlib
+MPL_BACKENDS = ["matplotlib", "mpl", "silx", "silx-mpl", "silxmpl"]
+# OpenGL
+GL_BACKENDS = ["gl", "opengl", "silx-gl", "silxgl"]
+BACKENDS = MPL_BACKENDS + GL_BACKENDS + ["glut", "osmesa", "mesa"]
+
 
 def cli_main(main_func, parser, args=None, loggers=tuple()):
     """
@@ -148,15 +155,6 @@ def _add_backend_argument(parser):
     """
     Plotting backends accepted by `PyMca5.PyMcaGraph.Plot.Plot`
     """
-    backend_choices = [
-        "matplotlib", "mpl",
-        "gl", "opengl",
-        "glut",
-        "osmesa", "mesa",
-        "silx", "silx-mpl", "silxmpl",
-        "silx-gl", "silxgl"
-    ]
-
     help = """The plot backend to use:\n
     Matplotlib,
     OpenGL 2.1 (requires appropriate OpenGL drivers), or
@@ -164,7 +162,7 @@ def _add_backend_argument(parser):
     """
 
     parser.add_argument(
-        "-b", "--backend", type=str, choices=backend_choices, default=None, help=help
+        "-b", "--backend", type=str, choices=BACKENDS, default=None, help=help
     )
 
 
