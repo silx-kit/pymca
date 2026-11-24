@@ -121,15 +121,19 @@ def _init_backend_from_cli(cli_args):
     if not backend:
         return
     from PyMca5.PyMcaGraph.Plot import Plot
-    from PyMca5.PyMcaMisc.CliUtils import GL_BACKENDS, MPL_BACKENDS
+    from PyMca5.PyMcaMisc.CliUtils import BACKENDS, GL_BACKENDS, MPL_BACKENDS
 
     Plot.defaultBackend = backend
     if backend in GL_BACKENDS:
         backend = "gl"
     elif backend in MPL_BACKENDS:
         backend = "mpl"
-    else:
+    elif backend in BACKENDS:
         _logger.warning("silx has no %r plot backend, silx widgets use the silx default", backend)
+        return
+    else:
+        # not expected: --backend choices are BACKENDS
+        _logger.error("Unknown plot backend %r, silx widgets use the silx default", backend)
         return
     try:
         import silx
