@@ -124,12 +124,12 @@ def _init_backend_from_cli(cli_args):
     from PyMca5.PyMcaMisc.CliUtils import GL_BACKENDS, MPL_BACKENDS
 
     Plot.defaultBackend = backend
-    # silx has no glut/mesa: keep the silx default
     if backend in GL_BACKENDS:
         backend = "gl"
     elif backend in MPL_BACKENDS:
         backend = "mpl"
     else:
+        _logger.warning("silx has no %r plot backend, silx widgets use the silx default", backend)
         return
     try:
         import silx
