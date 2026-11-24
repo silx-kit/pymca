@@ -728,6 +728,8 @@ class SimpleFit(object):
                     constrains=param_constrains,
                     weightflag=weightflag,
                     model_deriv=model_deriv,
+                    maxiter=self._fitConfiguration['fit']['maximum_fit_iterations'],
+                    deltachi=self._fitConfiguration['fit']['minimum_delta_chi'],
                     fulloutput=True)
         except Exception:
             if _logger.getEffectiveLevel() == logging.DEBUG:
