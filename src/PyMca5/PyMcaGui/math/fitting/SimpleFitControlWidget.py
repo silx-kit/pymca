@@ -307,7 +307,7 @@ class FitControl(qt.QGroupBox):
 
         #chi square handling
         self.chi2Label = qt.QLabel(self)
-        self.chi2Label.setText(str("Minimum chi^2 difference (%)"))
+        self.chi2Label.setText(str("Minimum relative chi^2 difference"))
         self.chi2Value = qt.QDoubleSpinBox(self)
         self.chi2Value.setDecimals(4)
         self.chi2Value.setMinimum(0.0001)
