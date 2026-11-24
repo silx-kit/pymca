@@ -45,6 +45,8 @@ from typing import Callable, List, Optional, Type
 
 import numpy
 
+from PyMca5.PyMcaGraph.Plot import Plot
+from PyMca5.PyMcaGui import PyMcaAppInit
 from PyMca5.PyMcaIO.EdfFile import EdfFile
 from PyMca5.PyMcaMisc import CliUtils
 
@@ -184,6 +186,23 @@ CLI_SPECS = {
             use_data_dir=True,
         ),
     ],
+}
+
+# silx backend set by --backend ("unset": silx not changed)
+BACKEND_SPECS = {
+    None: "unset",
+    "matplotlib": "mpl",
+    "mpl": "mpl",
+    "gl": "gl",
+    "opengl": "gl",
+    "glut": "unset",
+    "osmesa": "unset",
+    "mesa": "unset",
+    "silx": "mpl",
+    "silx-mpl": "mpl",
+    "silxmpl": "mpl",
+    "silx-gl": "gl",
+    "silxgl": "gl",
 }
 
 
@@ -375,6 +394,31 @@ class TestCliModules(unittest.TestCase):
             self.skipTest("PyMca Data Directory cannot be found")
         return str(Path(self._current_data_dir).joinpath(*parts))
 
+    def _run_backend(self, backend, silx_backend):
+        """--backend sets the default plot backend of PyMca and silx widgets."""
+        try:
+            import silx
+        except ImportError as ex:
+            self.skipTest(f"Cannot import silx: {ex}")
+        silx_default = silx.config.DEFAULT_PLOT_BACKEND
+        pymca_default = Plot.defaultBackend
+        args = []
+        pymca_backend = "unset"
+        if backend:
+            args = ["--backend", backend]
+            pymca_backend = backend
+        parser = CliUtils.create_parser(add_backend_options=True)
+        try:
+            # not a backend
+            silx.config.DEFAULT_PLOT_BACKEND = "unset"
+            Plot.defaultBackend = "unset"
+            PyMcaAppInit._init_backend_from_cli(parser.parse_args(args))
+            self.assertEqual(Plot.defaultBackend, pymca_backend)
+            self.assertEqual(silx.config.DEFAULT_PLOT_BACKEND, silx_backend)
+        finally:
+            silx.config.DEFAULT_PLOT_BACKEND = silx_default
+            Plot.defaultBackend = pymca_default
+
 
 # Add tests dynamically on import because `subTest` does not print each test
 # separately which is important to see what is skipped and why and to run individual tests.
@@ -396,6 +440,19 @@ for module_path, scenarios in CLI_SPECS.items():
     for scenario in scenarios:
         test_method = _make_test(module_path, scenario)
         setattr(TestCliModules, test_method.__name__, test_method)
+
+
+def _make_backend_test(backend, silx_backend):
+    def test(self):
+        self._run_backend(backend, silx_backend)
+
+    test.__name__ = f"test_backend_{backend}".replace("-", "_")
+    return test
+
+
+for backend, silx_backend in BACKEND_SPECS.items():
+    test_method = _make_backend_test(backend, silx_backend)
+    setattr(TestCliModules, test_method.__name__, test_method)
 
 
 def getSuite(auto=True):

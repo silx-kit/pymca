@@ -110,6 +110,38 @@ def init_before_app_start(qt_app=None, cli_args=None):
     """
     if qt_app:
         _init_qt_after(qt_app, cli_args)
+    _init_backend_from_cli(cli_args)
+
+
+def _init_backend_from_cli(cli_args):
+    """
+    Default plot backend of the PyMca and silx widgets from --backend.
+    """
+    backend = getattr(cli_args, "backend", None)
+    if not backend:
+        return
+    from PyMca5.PyMcaGraph.Plot import Plot
+    from PyMca5.PyMcaMisc.CliUtils import BACKENDS, GL_BACKENDS, MPL_BACKENDS
+
+    Plot.defaultBackend = backend
+    if backend in GL_BACKENDS:
+        backend = "gl"
+    elif backend in MPL_BACKENDS:
+        backend = "mpl"
+    elif backend in BACKENDS:
+        _logger.warning("silx has no %r plot backend, silx widgets use the silx default", backend)
+        return
+    else:
+        # not expected: --backend choices are BACKENDS
+        _logger.error("Unknown plot backend %r, silx widgets use the silx default", backend)
+        return
+    try:
+        import silx
+    except ImportError:
+        _logger.debug("Failed to import silx")
+        return
+    # used by the silx widgets created with backend=None
+    silx.config.DEFAULT_PLOT_BACKEND = backend
 
 
 def _silent_pre_cli_app():

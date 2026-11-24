@@ -126,7 +126,13 @@ OPENGL_DRIVERS_OK = True
 if sys.platform.startswith("linux"):
     import subprocess
     if subprocess.call("which glxinfo > /dev/null", shell=True) == 0:
-        if subprocess.call("glxinfo > /dev/null", shell=True):
+        try:
+            # no answer (e.g. broken remote display) means no OpenGL
+            glxinfoError = subprocess.call("glxinfo > /dev/null",
+                                           shell=True, timeout=10)
+        except subprocess.TimeoutExpired:
+            glxinfoError = True
+        if glxinfoError:
             OPENGL_DRIVERS_OK = False
             isSilxGLAvailable = False
             OBJECT3D = False
@@ -161,8 +167,6 @@ try:
     STACK = True
 except Exception:
     STACK = False
-if STACK and OPENGL_DRIVERS_OK:
-    QStackWidget.QStackWidget.scatterBackend = ("gl", "mpl")
 from PyMca5.PyMcaGui.pymca import PyMcaPostBatch
 from PyMca5.PyMcaGui.pymca import RGBCorrelator
 from PyMca5.PyMcaGui.physics.xrf import MaterialEditor
@@ -193,6 +197,18 @@ class PyMcaMain(PyMcaMdi.PyMcaMdi):
             self.setWindowTitle(name)
             self.setWindowIcon(qt.QIcon(qt.QPixmap(IconDict['gioconda16'])))
             self.changeLog = None
+
+            # silx scatter views (scatter tab, ROI tool). With --backend:
+            # None = silx default, which PyMcaAppInit sets from --backend.
+            # Without: OpenGL (faster on big maps) if the check above passed
+            if backend is not None:
+                self._scatterBackend = None
+            elif OPENGL_DRIVERS_OK:
+                self._scatterBackend = ("gl", "mpl")
+            else:
+                self._scatterBackend = "mpl"
+            if STACK:
+                QStackWidget.QStackWidget.scatterBackend = self._scatterBackend
 
             self._widgetDict = {}
             self.initSourceBrowser()
@@ -229,6 +245,7 @@ class PyMcaMain(PyMcaMdi.PyMcaMdi):
                 self.mdi.addWindow(self.scanWindow)
             else:
                 if backend is not None:
+                    # already set by PyMcaAppInit when given by --backend
                     Plot.defaultBackend = backend
                 self.mainTabWidget = qt.QTabWidget(self.mdi)
                 self.mainTabWidget.setWindowTitle("Main Window")
@@ -416,11 +433,7 @@ class PyMcaMain(PyMcaMdi.PyMcaMdi):
             _logger.info("ScatterPlot selection")
             legend = ddict['legend']
             if legend not in self.imageWindowDict.keys():
-                if OPENGL_DRIVERS_OK:
-                    backend = "gl"
-                else:
-                    backend = "mpl"
-                imageWindow = SilxScatterWindow.SilxScatterWindow(backend=backend)
+                imageWindow = SilxScatterWindow.SilxScatterWindow(backend=self._scatterBackend)
                 self.imageWindowDict[legend] = imageWindow
                 self.imageWindowDict[legend].setPlotEnabled(True)
                 if self.mainTabWidget.indexOf(self.imageWindowDict[legend]) < 0:
