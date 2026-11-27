@@ -132,7 +132,7 @@ class XiaCorrectionWidget(qt.QWizardPage):
         if self.sumCheck.isChecked() or self.avgCheck.isChecked():
             sums= []
             for row in range(self.sumTable.rowCount()):
-                dets= qt.safe_str(self.sumTable.item(row, 0).text())
+                dets= str(self.sumTable.item(row, 0).text())
                 if dets.find("All")!=-1:
                     sums.append([])
                 else:
@@ -175,7 +175,7 @@ class XiaCorrectionWidget(qt.QWizardPage):
                 item = qt.QTableWidgetItem("",
                                            qt.QTableWidgetItem.Type)
                 self.sumTable.setItem(row, col, item)
-            text= qt.safe_str(item.text())
+            text= str(item.text())
             if text.find("All")!=-1 or text.find("all")!=-1 or text.find("-1")!=-1:
                 item.setText("All")
             else:
@@ -258,7 +258,7 @@ class XiaInputWidget(qt.QWizardPage):
         itemname= "%s:%s"%(type, name)
         for i in range(self.listFiles.count()):
             item = self.listFiles.item(i)
-            if qt.safe_str(item.text())==itemname:
+            if str(item.text())==itemname:
                 return 0
         self.listFiles.addItem(itemname)
         return 1
@@ -285,7 +285,7 @@ class XiaInputWidget(qt.QWizardPage):
         files= []
         for i in range(self.listFiles.count()):
             item = self.listFiles.item(i)
-            (type, name)= qt.safe_str(item.text()).split(":", 1)
+            (type, name)= str(item.text()).split(":", 1)
             if type=="file":
                 files.append(os.path.normpath(name))
             else:
@@ -370,7 +370,7 @@ class XiaOutputWidget(qt.QWizardPage):
         ret = outfile.exec()
         directory = None
         if ret:
-            directory = qt.safe_str(outfile.selectedFiles()[0])
+            directory = str(outfile.selectedFiles()[0])
             outfile.close()
         else:
             outfile.close()
@@ -379,7 +379,7 @@ class XiaOutputWidget(qt.QWizardPage):
             self.directory.setText(directory)
 
     def __directoryCheck(self):
-        dirname= qt.safe_str(self.directory.text())
+        dirname= str(self.directory.text())
         if len(dirname):
             if not os.path.isdir(dirname):
                 qt.QMessageBox.warning(self, "Output Directory", \
@@ -400,7 +400,7 @@ class XiaOutputWidget(qt.QWizardPage):
         pars["output"]= self.__directoryCheck()
         if pars["output"]==0:
             pars["output"]= None
-        pars["name"]= qt.safe_str(self.outname.text())
+        pars["name"]= str(self.outname.text())
         if not len(pars["name"]):
             pars["name"]= self.DefaultOutname
 

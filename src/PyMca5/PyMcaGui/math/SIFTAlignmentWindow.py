@@ -192,7 +192,7 @@ class OutputFile(qt.QWidget):
     def getParameters(self):
         ddict = {}
         ddict['file_use'] = self.checkBox.isChecked()
-        ddict['file_name'] = qt.safe_str(self.fileName.text())
+        ddict['file_name'] = str(self.fileName.text())
         return ddict
 
     def setForcedFileOutput(self, flag=True):

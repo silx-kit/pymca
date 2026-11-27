@@ -44,10 +44,6 @@ import logging
 
 from PyMca5.PyMcaGui import PyMcaQt as qt
 
-if hasattr(qt, "QString"):
-    QString = qt.QString
-else:
-    QString = qt.safe_str
 try:
     # try to import silx prior to importing matplotlib to prevent
     # unnecessary warning
@@ -149,33 +145,33 @@ class QStackWidget(StackBase.StackBase,
         self._stackSaveMenu = qt.QMenu()
         if HDF5:
             if self.primary:
-                self._stackSaveMenu.addAction(QString("Export All Stacks Workspace"),
+                self._stackSaveMenu.addAction("Export All Stacks Workspace",
                                                          self.exportStackList)
-            self._stackSaveMenu.addAction(QString("Export Stack Workspace"),
+            self._stackSaveMenu.addAction("Export Stack Workspace",
                                                          self.exportStack)
-            self._stackSaveMenu.addAction(QString("Save Zoomed Stack Region as Spectra"),
+            self._stackSaveMenu.addAction("Save Zoomed Stack Region as Spectra",
                                              self.saveStackAsNeXusSpectra)
-            self._stackSaveMenu.addAction(QString("Save Zoomed Stack Region as Images"),
+            self._stackSaveMenu.addAction("Save Zoomed Stack Region as Images",
                                              self.saveStackAsNeXusImages)
-            self._stackSaveMenu.addAction(QString("Save Zoomed Stack Region as Compressed Spectra"),
+            self._stackSaveMenu.addAction("Save Zoomed Stack Region as Compressed Spectra",
                                              self.saveStackAsNeXusCompressedSpectra)
-            self._stackSaveMenu.addAction(QString("Save Zoomed Stack Region as Compressed Images"),
+            self._stackSaveMenu.addAction("Save Zoomed Stack Region as Compressed Images",
                                              self.saveStackAsNeXusCompressedImages)
-            self._stackSaveMenu.addAction(QString("Save Zoomed Stack Region as Float32 Spectra"),
+            self._stackSaveMenu.addAction("Save Zoomed Stack Region as Float32 Spectra",
                                              self.saveStackAsFloat32NeXusSpectra)
-            self._stackSaveMenu.addAction(QString("Save Zoomed Stack Region as Float64 Spectra"),
+            self._stackSaveMenu.addAction("Save Zoomed Stack Region as Float64 Spectra",
                                              self.saveStackAsFloat64NeXusSpectra)
-            self._stackSaveMenu.addAction(QString("Save Zoomed Stack Region as Float32 Images"),
+            self._stackSaveMenu.addAction("Save Zoomed Stack Region as Float32 Images",
                                              self.saveStackAsFloat32NeXusImages)
-            self._stackSaveMenu.addAction(QString("Save Zoomed Stack Region as Float64 Images"),
+            self._stackSaveMenu.addAction("Save Zoomed Stack Region as Float64 Images",
                                              self.saveStackAsFloat64NeXusImages)
-            self._stackSaveMenu.addAction(QString("Save Zoomed Stack Region as HDF5 /data"),
+            self._stackSaveMenu.addAction("Save Zoomed Stack Region as HDF5 /data",
                                              self.saveStackAsSimplestHDF5)
-        self._stackSaveMenu.addAction(QString("Save Zoomed Stack Region as Monochromatic TIFF Images"),
+        self._stackSaveMenu.addAction("Save Zoomed Stack Region as Monochromatic TIFF Images",
                                              self.saveStackAsMonochromaticTiffImages)
-        self._stackSaveMenu.addAction(QString("Save Zoomed Stack Region as Float32 TIFF Images"),
+        self._stackSaveMenu.addAction("Save Zoomed Stack Region as Float32 TIFF Images",
                                              self.saveStackAsFloat32TiffImages)
-        self._stackSaveMenu.addAction(QString("Standard Graphics"),
+        self._stackSaveMenu.addAction("Standard Graphics",
                             self.stackWidget.graphWidget._saveIconSignal)
         self.stackWidget.graphWidget.saveToolButton.clicked.connect( \
                      self._stackSaveToolButtonSignal)
@@ -311,10 +307,10 @@ class QStackWidget(StackBase.StackBase,
             if 'SourceName' in self._stack.info:
                 if type(self._stack.info['SourceName']) == type([]):
                     if len(self._stack.info['SourceName']) == 1:
-                        title = qt.safe_str(self._stack.info['SourceName'][0])
+                        title = str(self._stack.info['SourceName'][0])
                     else:
-                        f0 = qt.safe_str(self._stack.info['SourceName'][0])
-                        f1 = qt.safe_str(self._stack.info['SourceName'][-1])
+                        f0 = str(self._stack.info['SourceName'][0])
+                        f1 = str(self._stack.info['SourceName'][-1])
                         try:
                             f0 = os.path.basename(f0)
                             f1 = os.path.basename(f1)
@@ -322,7 +318,7 @@ class QStackWidget(StackBase.StackBase,
                             pass
                         title = "Stack from %s to %s"  % (f0, f1)
                 else:
-                    title = qt.safe_str(self._stack.info['SourceName'])
+                    title = str(self._stack.info['SourceName'])
                 self.setWindowTitle(title)
         except Exception:
             # TODO: give a reasonable title
@@ -369,7 +365,7 @@ class QStackWidget(StackBase.StackBase,
             filename = filename[0]
         if len(filename):
             try:
-                fname = qt.safe_str(filename)
+                fname = str(filename)
                 if fname.endswith('.h5') or\
                    fname.endswith('.hdf'):
                     return fname
@@ -398,7 +394,7 @@ class QStackWidget(StackBase.StackBase,
             filename = filename[0]
         if len(filename):
             try:
-                fname = qt.safe_str(filename)
+                fname = str(filename)
                 if fname.endswith('.tif') or\
                    fname.endswith('.tiff') or\
                    fname.endswith('.TIF') or\
@@ -523,7 +519,7 @@ class QStackWidget(StackBase.StackBase,
     def getActiveCurveCalibration(self):
         calibration = None
         try:
-            xLabel = qt.safe_str(self.getGraphXLabel())
+            xLabel = str(self.getGraphXLabel())
             xData, y, legend, info = self.mcaWidget.getActiveCurve()[:4]
             if xLabel not in [None, 'Channels']:
                 calibration = info.get("McaCalib", None)
@@ -551,7 +547,7 @@ class QStackWidget(StackBase.StackBase,
         axes = [None] * len(self._stack.data.shape)
         labels = [None] * len(self._stack.data.shape)
         try:
-            xLabel = qt.safe_str(self.mcaWidget.getGraphXLabel())
+            xLabel = str(self.mcaWidget.getGraphXLabel())
         except Exception:
             xLabel = None
         try:
@@ -580,7 +576,7 @@ class QStackWidget(StackBase.StackBase,
             msg.setIcon(qt.QMessageBox.Critical)
             msg.setWindowTitle("Save error")
             msg.setText("An error has occured while saving the data:")
-            msg.setInformativeText(qt.safe_str(sys.exc_info()[1]))
+            msg.setInformativeText(str(sys.exc_info()[1]))
             msg.setDetailedText(traceback.format_exc())
             msg.exec()
 
@@ -667,24 +663,24 @@ class QStackWidget(StackBase.StackBase,
                           'Delete Secondary Stacks']
             menu = qt.QMenu(self)
             for action in actionList:
-                text = QString(action)
+                text = str(action)
                 menu.addAction(text)
             a = menu.exec(qt.QCursor.pos())
             if a is None:
                 return None
-            if qt.safe_str(a.text()).startswith("Replace"):
+            if str(a.text()).startswith("Replace"):
                 _logger.info("Replacing secondary stacks")
                 self._closeSecondary()
-            elif qt.safe_str(a.text()).startswith("Load"):
+            elif str(a.text()).startswith("Load"):
                 _logger.info("Loading an additional secondary stack")
                 #self._closeSecondary()
-            elif qt.safe_str(a.text()).startswith("Show"):
+            elif str(a.text()).startswith("Show"):
                 _logger.info("Showing all the secondary stacks")
                 for secondary in self._secondaryList:
                     secondary.show()
                     secondary.raise_()
                 return
-            elif qt.safe_str(a.text()).startswith("Merge"):
+            elif str(a.text()).startswith("Merge"):
                 primaryStackDataObject = self.getStackDataObject()
                 try:
                     # Use views to ensure no casting is done in case of
@@ -700,7 +696,7 @@ class QStackWidget(StackBase.StackBase,
                     msg.setIcon(qt.QMessageBox.Critical)
                     msg.setWindowTitle("Stack Summing Error")
                     msg.setText("An error has occurred while summing the primary and secondary stacks")
-                    msg.setInformativeText(qt.safe_str(sys.exc_info()[1]))
+                    msg.setInformativeText(str(sys.exc_info()[1]))
                     msg.setDetailedText(traceback.format_exc())
                     msg.exec()
                 if "McaLiveTime" in primaryStackDataObject.info:
@@ -721,7 +717,7 @@ class QStackWidget(StackBase.StackBase,
                         txt += "Time information is lost"
                         del primaryStackDataObject.info["McaLiveTime"]
                         msg.setText(txt)
-                        msg.setInformativeText(qt.safe_str(sys.exc_info()[1]))
+                        msg.setInformativeText(str(sys.exc_info()[1]))
                         msg.setDetailedText(traceback.format_exc())
                         msg.exec()
                 self._closeSecondary()
@@ -816,17 +812,17 @@ class QStackWidget(StackBase.StackBase,
     def _pluginClicked(self):
         actionList = []
         menu = qt.QMenu(self)
-        text = QString("Reload Plugins")
+        text = "Reload Plugins"
         menu.addAction(text)
         actionList.append(text)
-        text = QString("Set User Plugin Directory")
+        text = "Set User Plugin Directory"
         menu.addAction(text)
         actionList.append(text)
         global _logger
         if _logger.getEffectiveLevel() == logging.DEBUG:
-            text = QString("Toggle DEBUG mode OFF")
+            text = "Toggle DEBUG mode OFF"
         else:
-            text = QString("Toggle DEBUG mode ON")
+            text = "Toggle DEBUG mode ON"
         menu.addAction(text)
         actionList.append(text)
         menu.addSeparator()
@@ -838,14 +834,14 @@ class QStackWidget(StackBase.StackBase,
                 continue
             module = sys.modules[m]
             if hasattr(module, 'MENU_TEXT'):
-                text = QString(module.MENU_TEXT)
+                text = str(module.MENU_TEXT)
             else:
                 text = os.path.basename(module.__file__)
                 if text.endswith('.pyc'):
                     text = text[:-4]
                 elif text.endswith('.py'):
                     text = text[:-3]
-                text = QString(text)
+                text = str(text)
             methods = self.pluginInstanceDict[m].getMethods()
             if not len(methods):
                 continue
@@ -880,7 +876,7 @@ class QStackWidget(StackBase.StackBase,
                 msg.exec()
             return
         if idx == 1:
-            dirName = qt.safe_str(qt.QFileDialog.getExistingDirectory(self,
+            dirName = str(qt.QFileDialog.getExistingDirectory(self,
                                 "Enter user plugins directory",
                                 os.getcwd()))
             if len(dirName):
@@ -905,9 +901,9 @@ class QStackWidget(StackBase.StackBase,
             #methods.sort()
             menu = qt.QMenu(self)
             for method in methods:
-                text = QString(method)
+                text = str(method)
                 pixmap = self.pluginInstanceDict[key].getMethodPixmap(method)
-                tip = QString(self.pluginInstanceDict[key].getMethodToolTip(\
+                tip = str(self.pluginInstanceDict[key].getMethodToolTip(\
                                                                     method))
                 if pixmap is not None:
                     action = qt.QAction(qt.QIcon(qt.QPixmap(pixmap)),
@@ -934,7 +930,7 @@ class QStackWidget(StackBase.StackBase,
             msg.setIcon(qt.QMessageBox.Critical)
             msg.setWindowTitle("Plugin error")
             msg.setText("An error has occured while executing the plugin:")
-            msg.setInformativeText(qt.safe_str(sys.exc_info()[1]))
+            msg.setInformativeText(str(sys.exc_info()[1]))
             msg.setDetailedText(traceback.format_exc())
             msg.exec()
             if _logger.getEffectiveLevel() == logging.DEBUG:
@@ -1144,7 +1140,7 @@ class QStackWidget(StackBase.StackBase,
         elif self._selectionMask.sum() == 0:
             legend = "Stack SUM"
         else:
-            title = qt.safe_str(self.roiGraphWidget.graph.getGraphTitle())
+            title = str(self.roiGraphWidget.graph.getGraphTitle())
             legend = "Stack " + title + " selection"
         return legend
 

@@ -379,7 +379,7 @@ class FitPeakSelect(qt.QWidget):
                 msg=qt.QMessageBox(self.energy)
                 msg.setIcon(qt.QMessageBox.Critical)
                 msg.setText("Invalid Float")
-                msg.exec_loop()
+                msg.exec()
                 self.energy.setFocus()
         else:
             self.energyValue = None

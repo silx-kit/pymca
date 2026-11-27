@@ -39,13 +39,6 @@ _logger = logging.getLogger(__name__)
 from PyMca5.PyMcaGui import PyMcaQt as qt
 from PyMca5.PyMcaGui.io import PyMcaFileDialogs
 from PyMca5.PyMcaCore import NexusTools
-safe_str = qt.safe_str
-
-if hasattr(qt, 'QString'):
-    QString = qt.QString
-else:
-    QString = str
-
 from . import HDF5Widget
 from . import NexusInfo
 from . import HDF5CounterTable
@@ -105,7 +98,7 @@ class Buttons(qt.QWidget):
         button = self.buttonGroup.button(idx)
         ddict={}
         ddict['event'] = 'buttonClicked'
-        ddict['action'] = safe_str(button.text())
+        ddict['action'] = str(button.text())
         self.sigButtonsSignal.emit(ddict)
 
 class QNexusWidget(qt.QWidget):
@@ -226,16 +219,16 @@ class QNexusWidget(qt.QWidget):
         self.cntTable.setContextMenuPolicy(qt.Qt.CustomContextMenu)
 
         self._cntTableMenu = qt.QMenu(self)
-        self._cntTableMenu.addAction(QString("Load"),
+        self._cntTableMenu.addAction("Load",
                                     self._loadCounterTableConfiguration)
-        self._cntTableMenu.addAction(QString("Merge"),
+        self._cntTableMenu.addAction("Merge",
                                     self._mergeCounterTableConfiguration)
-        self._cntTableMenu.addAction(QString("Save"),
+        self._cntTableMenu.addAction("Save",
                                     self._saveCounterTableConfiguration)
         self._cntTableMenu.addSeparator()
-        self._cntTableMenu.addAction(QString("Delete All"),
+        self._cntTableMenu.addAction("Delete All",
                                     self._deleteAllCountersFromTable)
-        self._cntTableMenu.addAction(QString("Delete Selected"),
+        self._cntTableMenu.addAction("Delete Selected",
                                     self._deleteSelectedCountersFromTable)
 
         # the header of the tree offers numeric scan selection
@@ -385,8 +378,8 @@ class QNexusWidget(qt.QWidget):
         ddict['shapes'] = []
         for i in range(self.cntTable.rowCount()):
             if i not in rowList:
-                #name = safe_str(self.cntTable.item(i, 0).text())
-                #alias = safe_str(self.cntTable.item(i, 4).text())
+                #name = str(self.cntTable.item(i, 0).text())
+                #alias = str(self.cntTable.item(i, 4).text())
                 ddict['counters'].append(current["cntlist"][i])
                 ddict['aliases'].append(current["aliaslist"][i])
                 ddict['shapes'].append(current["shapelist"][i])
@@ -673,21 +666,21 @@ class QNexusWidget(qt.QWidget):
         if ddict['dtype'].startswith('|S') or ddict['dtype'] == '' or \
            ddict['dtype'].startswith('object'):
             # handle a right click on a group or a dataset of string type
-            _hdf5WidgetDatasetMenu.addAction(QString("Show Information"),
+            _hdf5WidgetDatasetMenu.addAction("Show Information",
                                              self._showInfoWidgetSlot)
-            _hdf5WidgetDatasetMenu.addAction(QString("Copy Path to Clipboard"),
+            _hdf5WidgetDatasetMenu.addAction("Copy Path to Clipboard",
                                              self._copyPathSlot)
             _hdf5WidgetDatasetMenu.addAction(QString("Numeric selection of scans"),
                                              self.showSmartSelectionDialog)
             _hdf5WidgetDatasetMenu.exec(qt.QCursor.pos())
         else:
             #handle a right click on a numeric dataset
-            _hdf5WidgetDatasetMenu.addAction(QString("Add to selection table"),
+            _hdf5WidgetDatasetMenu.addAction("Add to selection table",
                                              self._addToSelectionTable)
 
-            _hdf5WidgetDatasetMenu.addAction(QString("Show Information"),
+            _hdf5WidgetDatasetMenu.addAction("Show Information",
                                              self._showInfoWidgetSlot)
-            _hdf5WidgetDatasetMenu.addAction(QString("Copy Path to Clipboard"),
+            _hdf5WidgetDatasetMenu.addAction("Copy Path to Clipboard",
                                          self._copyPathSlot)
             _hdf5WidgetDatasetMenu.exec(qt.QCursor.pos())
         self._lastItemDict = None
@@ -777,7 +770,7 @@ class QNexusWidget(qt.QWidget):
 
     def _isNumeric(self, hdf5item):
         if hasattr(hdf5item, "dtype"):
-            dtype = safe_str(hdf5item.dtype)
+            dtype = str(hdf5item.dtype)
             return self._isNumericType(dtype)
         else:
             return False
@@ -890,7 +883,7 @@ class QNexusWidget(qt.QWidget):
                                  self._autoAliasList,
                                  selection=self._lastCntSelection,
                                  shapelist=self._autoCntShapeList)
-            currentTab = qt.safe_str(self.tableTab.tabText( \
+            currentTab = str(self.tableTab.tabText( \
                                     self.tableTab.currentIndex()))
             if self._mca:
                 mcaAliasList = []
@@ -935,7 +928,7 @@ class QNexusWidget(qt.QWidget):
         if ddict['event'] == "itemDoubleClicked":
             if ddict['type'] in ['Dataset', "TiledDataset"]:
                 currentIndex = self.tableTab.currentIndex()
-                text = safe_str(self.tableTab.tabText(currentIndex))
+                text = str(self.tableTab.tabText(currentIndex))
                 if text.upper() != "USER":
                     if currentIndex == 0:
                         self.tableTab.setCurrentIndex(1)
@@ -1025,7 +1018,7 @@ class QNexusWidget(qt.QWidget):
     def _addAction(self):
         _logger.debug("_addAction received")
         # formerly we had action and selection type
-        text = qt.safe_str(self.tableTab.tabText(self.tableTab.currentIndex()))
+        text = str(self.tableTab.tabText(self.tableTab.currentIndex()))
         if text.upper() == "MCA":
             self._addMcaAction()
         else:
@@ -1039,7 +1032,7 @@ class QNexusWidget(qt.QWidget):
 
     def _removeAction(self):
         _logger.debug("_removeAction received")
-        text = qt.safe_str(self.tableTab.tabText(self.tableTab.currentIndex()))
+        text = str(self.tableTab.tabText(self.tableTab.currentIndex()))
         if text.upper() == "MCA":
             self._removeMcaAction()
         else:
@@ -1053,7 +1046,7 @@ class QNexusWidget(qt.QWidget):
 
     def _replaceAction(self):
         _logger.debug("_replaceAction received")
-        text = qt.safe_str(self.tableTab.tabText(self.tableTab.currentIndex()))
+        text = str(self.tableTab.tabText(self.tableTab.currentIndex()))
         if text.upper() == "MCA":
             self._replaceMcaAction()
         else:
@@ -1079,7 +1072,7 @@ class QNexusWidget(qt.QWidget):
 
     def _autoTableUpdated(self, ddict):
         _logger.debug("_autoTableUpdated(self, ddict) %s", ddict)
-        text = qt.safe_str(self.tableTab.tabText(self.tableTab.currentIndex()))
+        text = str(self.tableTab.tabText(self.tableTab.currentIndex()))
         if text.upper() == "AUTO":
             actions = self.actions.getConfiguration()
             if len(self.autoTable.getCounterSelection()['y']):
@@ -1090,7 +1083,7 @@ class QNexusWidget(qt.QWidget):
 
     def _userTableUpdated(self, ddict):
         _logger.debug("_userTableUpdated(self, ddict) %s", ddict)
-        text = qt.safe_str(self.tableTab.tabText(self.tableTab.currentIndex()))
+        text = str(self.tableTab.tabText(self.tableTab.currentIndex()))
         if text.upper() == "USER":
             actions = self.actions.getConfiguration()
             if len(self.cntTable.getCounterSelection()['y']):
@@ -1101,7 +1094,7 @@ class QNexusWidget(qt.QWidget):
 
     def _mcaTableUpdated(self, ddict):
         _logger.debug("_mcaTableUpdated(self, ddict) %s", ddict)
-        text = qt.safe_str(self.tableTab.tabText(self.tableTab.currentIndex()))
+        text = str(self.tableTab.tabText(self.tableTab.currentIndex()))
         if text.upper() == "MCA":
             actions = self.actions.getConfiguration()
             if len(self.mcaTable.getMcaSelection()['selectionindex']):
@@ -1119,7 +1112,7 @@ class QNexusWidget(qt.QWidget):
             entryList = self.getSelectedEntries()
         if not len(entryList):
             return
-        text = qt.safe_str(self.tableTab.tabText(self.tableTab.currentIndex()))
+        text = str(self.tableTab.tabText(self.tableTab.currentIndex()))
         mcaSelection = {'mcalist':[], 'selectionindex':[]}
         cntSelection = {'cntlist':[], 'y':[], 'yright':[]}
         if text.upper() == "AUTO":

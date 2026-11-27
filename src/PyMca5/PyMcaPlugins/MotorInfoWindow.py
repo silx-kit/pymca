@@ -32,10 +32,6 @@ from PyMca5.PyMcaGui import PyMcaQt as qt
 from PyMca5.PyMcaGui import IconDict
 from PyMca5.PyMcaGui.misc.TableWidget import TableWidget
 
-if hasattr(qt, 'QString'):
-    QString = qt.QString
-else:
-    QString = qt.safe_str
 
 _logger = logging.getLogger(__name__)
 
@@ -47,7 +43,7 @@ class MotorInfoComboBox(qt.QComboBox):
         qt.QComboBox.__init__(self,  parent)
         self.motorNamesList = [""] + mlist
         self.nColumn = nCol
-        self.addItems([QString(elem) for elem in self.motorNamesList])
+        self.addItems([str(elem) for elem in self.motorNamesList])
         self.activated.connect(self.emitLoadColumnSignal)
 
     def emitLoadColumnSignal(self):
@@ -65,7 +61,7 @@ class MotorInfoComboBox(qt.QComboBox):
         self.clear()
         newMotorNamesList = [''] + newMotorNamesList
         self.motorNamesList = newMotorNamesList
-        self.addItems([QString(elem) for elem in self.motorNamesList])
+        self.addItems([str(elem) for elem in self.motorNamesList])
         newIndex = self.findText(currentMotorName)
         if newIndex < 0:
             newIndex = 0

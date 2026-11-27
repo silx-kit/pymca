@@ -129,9 +129,9 @@ class StackXASBatchWindow(qt.QWidget):
 
     def getParameters(self):
         ddict = {}
-        ddict['configuration'] = qt.safe_str(self._configLine.text())
-        ddict['output_dir'] = qt.safe_str(self._outLine.text())
-        ddict['file_root'] = qt.safe_str(self._fileLine.text())
+        ddict['configuration'] = str(self._configLine.text())
+        ddict['output_dir'] = str(self._outLine.text())
+        ddict['file_root'] = str(self._fileLine.text())
         if self._maskBox.isChecked():
             ddict['mask'] = 1
         else:

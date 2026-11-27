@@ -37,14 +37,7 @@ from PyMca5.PyMcaGui.io import PyMcaFileDialogs
 from PyMca5.PyMcaGui.plotting import PlotWidget
 
 
-if not hasattr(qt, 'QString'):
-    QString = qt.safe_str
-    QStringList = list
-else:
-    QString = qt.QString
-    QStringList = qt.QStringList
 QTVERSION = qt.qVersion()
-QT4=True
 from PyMca5.PyMcaGui.pymca import QPyMcaMatplotlibSave
 MATPLOTLIB = True
 from PyMca5.PyMcaGui.plotting.PyMca_Icons import IconDict
@@ -207,7 +200,7 @@ class EdfFile_StandardArray(qt.QWidget):
         msg = " (selected)"
         for i in range(images):
             index = "%d" % i
-            text = qt.safe_str(self.iCombo.itemText(i)).split(msg)[0]
+            text = str(self.iCombo.itemText(i)).split(msg)[0]
             key  = text.split()[-1]
             if key in imagelist:
                 self.iCombo.setItemText(i, "%s%s" % (text,msg))
@@ -217,7 +210,7 @@ class EdfFile_StandardArray(qt.QWidget):
 
 
     def markRowSelected(self, rowlist=[]):
-        if not qt.safe_str(self.plotCombo.currentText()) == "Rows":
+        if not str(self.plotCombo.currentText()) == "Rows":
             return
         current = self.yList.currentItem()
         n       = self.yList.count()
@@ -229,7 +222,7 @@ class EdfFile_StandardArray(qt.QWidget):
                 self.yList.addItem(" Row %d" % index)
 
     def markColSelected(self, collist=[]):
-        if not qt.safe_str(self.plotCombo.currentText()) == "Columns":
+        if not str(self.plotCombo.currentText()) == "Columns":
             return
         current = self.yList.currentItem()
         n       = self.yList.count()
@@ -391,8 +384,8 @@ class QEdfFileWidget(qt.QWidget):
                                      self.__saveIconSignal,
                                      'Export Graph')
             self._saveMenu = qt.QMenu()
-            self._saveMenu.addAction(QString("Standard"),    self._saveIconSignal)
-            self._saveMenu.addAction(QString("Matplotlib") , self._saveMatplotlibImage)
+            self._saveMenu.addAction("Standard",    self._saveIconSignal)
+            self._saveMenu.addAction("Matplotlib" , self._saveMatplotlibImage)
         else:
             tb = self._addToolButton(self.saveIcon,
                                  self._saveIconSignal,
@@ -620,12 +613,7 @@ class QEdfFileWidget(qt.QWidget):
 
     def saveGraphWidget(self, filename):
         fformat = filename[-3:].upper()
-        if hasattr(qt.QPixmap, "grabWidget"):
-            # Qt4
-            pixmap = qt.QPixmap.grabWidget(self.graph)
-        else:
-            #Qt5
-            pixmap = self.graph.grab()
+        pixmap = self.graph.grab()
         if pixmap.save(filename, fformat):
             return
         else:
@@ -640,12 +628,7 @@ class QEdfFileWidget(qt.QWidget):
             return False
 
     def printGraph(self):
-        if hasattr(qt.QPixmap, "graphWidget"):
-            # Qt4
-            pixmap = qt.QPixmap.grabWidget(self.graph)
-        else:
-            #Qt5
-            pixmap = self.graph.grab()
+        pixmap = self.graph.grab()
         self.printPreview.addPixmap(pixmap)
         if self.printPreview.isHidden():
             self.printPreview.show()
@@ -689,31 +672,6 @@ class QEdfFileWidget(qt.QWidget):
         self.addButton.clicked.connect(self._addClicked)
         self.removeButton.clicked.connect(self._removeClicked)
         self.replaceButton.clicked.connect(self._replaceClicked)
-
-    def _buildActionsQt3(self):
-        self.buttonBox = qt.QWidget(self)
-        buttonBox = self.buttonBox
-        self.buttonBoxLayout = qt.QHBoxLayout(buttonBox)
-
-        self.addButton = qt.QPushButton(buttonBox)
-        self.addButton.setText("ADD")
-        self.removeButton = qt.QPushButton(buttonBox)
-        self.removeButton.setText("REMOVE")
-        self.replaceButton = qt.QPushButton(buttonBox)
-        self.replaceButton.setText("REPLACE")
-
-        self.buttonBoxLayout.addWidget(self.addButton)
-        self.buttonBoxLayout.addWidget(self.removeButton)
-        self.buttonBoxLayout.addWidget(self.replaceButton)
-
-        self.mainLayout.addWidget(buttonBox)
-
-        self.addButton.clicked.connect(self._addClicked)
-
-        self.removeButton.clicked.connect(self._removeClicked)
-
-        self.replaceButton.clicked.connect(self._replaceClicked)
-
 
     def groupSignal(self,i):
         self.allImages = i
@@ -844,7 +802,7 @@ class QEdfFileWidget(qt.QWidget):
             #filelist.sort()
             filename=[]
             for f in filelist:
-                filename.append(qt.safe_str(f))
+                filename.append(str(f))
             if not len(filename):
                 return
             if len(filename):
@@ -866,7 +824,7 @@ class QEdfFileWidget(qt.QWidget):
     def selectFile(self, filename=None, justloaded=None):
         if justloaded is None:justloaded=0
         if filename is not None:
-            #if qt.safe_str(self.fileCombo.currentText()) !=\
+            #if str(self.fileCombo.currentText()) !=\
             #   self.mapComboName[filename]:
             if filename == 'EDF Stack':
                 filename= self._edfstack
@@ -1009,7 +967,7 @@ class QEdfFileWidget(qt.QWidget):
 
     def closeFile(self, filename=None):
         if filename is None:
-            ffile= qt.safe_str(self.fileCombo.currentText())
+            ffile= str(self.fileCombo.currentText())
             #if file != "EDF Stack":
             #    filename = self.mapComboName[file]
             #else:
@@ -1040,7 +998,7 @@ class QEdfFileWidget(qt.QWidget):
                     self.fileCombo.removeItem(idx)
                     del self.mapComboName[filename]
                     break
-            elif qt.safe_str(itext) ==\
+            elif str(itext) ==\
                  os.path.basename(self.mapComboName[filename]):
                 self.fileCombo.removeItem(idx)
                 del self.mapComboName[filename]
@@ -1054,7 +1012,7 @@ class QEdfFileWidget(qt.QWidget):
             self.selectFile(self.mapComboName.keys()[0])
 
     def __fileSelection(self, ffile):
-        ffile= qt.safe_str(ffile)
+        ffile= str(ffile)
         for filename, comboname in self.mapComboName.items():
             if filename == ffile:
                 self.selectFile(filename)
@@ -1281,7 +1239,7 @@ class QEdfFileWidget(qt.QWidget):
         f, i = sel['Key'].split(".")
         f = int(f) - 1
         sel['legend'] = os.path.basename(self.data.sourceName[f]) +\
-                        " "+ qt.safe_str(self.paramWidget.iCombo.currentText())
+                        " "+ str(self.paramWidget.iCombo.currentText())
         sel['selectiontype'] = '2D'
         sel['imageselection']  = True
         sel['mcaselection']  = False

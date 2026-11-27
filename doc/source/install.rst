@@ -23,15 +23,15 @@ The best use of PyMca can be achieved installing PyMca as a python package insid
 
 This table summarized the the support matrix of PyMca:
 
-+------------+--------------+---------------------+
-| System     | Python vers. | Qt and its bindings |
-+------------+--------------+---------------------+
-| `Windows`_ | 2.7, 3.5-3.6 | PyQt4.8+, PyQt5.3+  |
-+------------+--------------+---------------------+
-| `MacOS`_   | 2.7, 3.5-3.6 | PyQt4.8+, PyQt5.3+  |
-+------------+--------------+---------------------+
-| `Linux`_   | 2.7, 3.4-3.6 | PyQt4.8+, PyQt5.3+  |
-+------------+--------------+---------------------+
++------------+--------------+-----------------------+
+| System     | Python vers. | Qt and its bindings   |
++------------+--------------+-----------------------+
+| `Windows`_ | 3.10+        | PyQt5, PyQt6, PySide6 |
++------------+--------------+-----------------------+
+| `MacOS`_   | 3.10+        | PyQt5, PyQt6, PySide6 |
++------------+--------------+-----------------------+
+| `Linux`_   | 3.10+        | PyQt5, PyQt6, PySide6 |
++------------+--------------+-----------------------+
 
 For all platforms, you can install *PyMca5* from the source, see `Installing from source`_.
 

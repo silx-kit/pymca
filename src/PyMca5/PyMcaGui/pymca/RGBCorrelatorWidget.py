@@ -64,12 +64,6 @@ USE_STRING = False
 
 from PyMca5.PyMcaGui import PyMcaQt as qt
 
-if hasattr(qt, "QString"):
-    QString = qt.QString
-    QStringList = qt.QStringList
-else:
-    QString = str
-    QStringList = list
 
 QTVERSION = qt.qVersion()
 try:
@@ -344,9 +338,9 @@ class RGBCorrelatorWidget(qt.QWidget):
         self.loadButton.clicked.connect(self._addFileList)
         self.saveButton.clicked.connect(self.saveButtonClicked)
         self._saveButtonMenu = qt.QMenu()
-        self._saveButtonMenu.addAction(QString("Save all"), self.saveImageList)
+        self._saveButtonMenu.addAction("Save all", self.saveImageList)
         self._saveButtonMenu.addAction(
-            QString("Save selected"), self.saveSelectedImages
+            "Save selected", self.saveSelectedImages
         )
 
         self.removeButton.clicked.connect(self.removeButtonClicked)
@@ -401,30 +395,30 @@ class RGBCorrelatorWidget(qt.QWidget):
         if self._calculationMenu is None:
             self._calculationMenu = qt.QMenu()
             self._calculationMenu.addAction(
-                QString("Image Statistics"), self.showStatisticsDialog
+                "Image Statistics", self.showStatisticsDialog
             )
             self._calculationMenu.addAction(
-                QString("Image Calculator"), self.showCalculationDialog
+                "Image Calculator", self.showCalculationDialog
             )
             self._calculationMenu.addAction(
-                QString("Scatter Plot"), self.showScatterPlotDialog
+                "Scatter Plot", self.showScatterPlotDialog
             )
             if PCA:
                 if PCADialog.MDP:
                     self._calculationMenu.addAction(
-                        QString("PCA/ICA Analysis"), self.showPCADialog
+                        "PCA/ICA Analysis", self.showPCADialog
                     )
                 else:
                     self._calculationMenu.addAction(
-                        QString("PCA Analysis"), self.showPCADialog
+                        "PCA Analysis", self.showPCADialog
                     )
             if NNMA:
                 self._calculationMenu.addAction(
-                    QString("NNMA Analysis"), self.showNNMADialog
+                    "NNMA Analysis", self.showNNMADialog
                 )
             if KMEANS:
                 self._calculationMenu.addAction(
-                    QString("K-Means Clustering"), self.showKMeansDialog
+                    "K-Means Clustering", self.showKMeansDialog
                 )
         self._calculationMenu.exec(self.cursor().pos())
 
@@ -1046,13 +1040,10 @@ class RGBCorrelatorWidget(qt.QWidget):
             "TextImage Files *txt",
             "All Files *",
         ]
-        strlist = QStringList()
+        strlist = []
         for f in formatlist:
             strlist.append(f)
-        if hasattr(filedialog, "setFilters"):
-            filedialog.setFilters(strlist)
-        else:
-            filedialog.setNameFilters(strlist)
+        filedialog.setNameFilters(strlist)
         filedialog.setDirectory(initdir)
         ret = filedialog.exec()
         if not ret:
@@ -1815,25 +1806,11 @@ class MyQLabel(qt.QLabel):
         qt.QLabel.__init__(self, parent)
         if color is None:
             color = qt.QApplication.instance().palette().color(qt.QPalette.Text)
-        if qt.qVersion() < "4.0.0":
-            self.color = color
-            self.bold = bold
-        else:
-            palette = qt.QPalette(self.palette())
-            role = self.foregroundRole()
-            palette.setColor(role, color)
-            self.setPalette(palette)
-            self.font().setBold(bold)
-
-    if qt.qVersion() < "4.0.0":
-
-        def drawContents(self, painter):
-            painter.font().setBold(self.bold)
-            pal = self.palette()
-            pal.setColor(qt.QColorGroup.Foreground, self.color)
-            self.setPalette(pal)
-            qt.QLabel.drawContents(self, painter)
-            painter.font().setBold(0)
+        palette = qt.QPalette(self.palette())
+        role = self.foregroundRole()
+        palette.setColor(role, color)
+        self.setPalette(palette)
+        self.font().setBold(bold)
 
 
 def main(args):

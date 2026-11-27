@@ -371,7 +371,7 @@ class SpecfitGui(qt.QWidget):
     def __printps(self, text):
         msg = qt.QMessageBox(self)
         msg.setIcon(qt.QMessageBox.Critical)
-        msg.setText("Sorry, Qt4 printing not implemented yet")
+        msg.setText("Sorry, printing not implemented yet")
         msg.exec()
 
     def mcaevent(self,item):

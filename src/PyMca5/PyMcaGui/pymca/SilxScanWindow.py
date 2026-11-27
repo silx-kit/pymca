@@ -52,10 +52,6 @@ from PyMca5.PyMcaCore import DataObject
 from PyMca5.PyMcaGui.pymca import QPyMcaMatplotlibSave1D
 from PyMca5.PyMcaGui.plotting.PyMca_Icons import IconDict, change_icons
 
-if hasattr(qt, 'QString'):
-    QString = qt.QString
-else:
-    QString = qt.safe_str
 
 PLUGINS_DIR = None
 
@@ -862,10 +858,7 @@ class ScanWindow(BaseScanWindow):
         # WIDGET format
         fformat = specFile[-3:].upper()
         if filterused[0].upper().startswith("WIDGET"):
-            if hasattr(qt.QPixmap, "grabWidget"):
-                pixmap = qt.QPixmap.grabWidget(self.getWidgetHandle())
-            else:
-                pixmap = self.getWidgetHandle().grab()
+            pixmap = self.getWidgetHandle().grab()
             if not pixmap.save(specFile, fformat):
                 qt.QMessageBox.critical(
                         self,
@@ -1009,7 +1002,7 @@ class ScanWindow(BaseScanWindow):
         filterused = self.outputFilter.split()
         filetype = filterused[1]
         extension = filterused[2]
-        outdir = qt.safe_str(fileList[0])
+        outdir = str(fileList[0])
         try:
             self.outputDir = os.path.dirname(outdir)
             PyMcaDirs.outputDir = os.path.dirname(outdir)

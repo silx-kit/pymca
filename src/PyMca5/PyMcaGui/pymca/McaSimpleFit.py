@@ -152,15 +152,12 @@ class McaSimpleFit(qt.QWidget):
         if 'event' in ddict:
             if ddict['event'].upper() == "PRINT":
                 h = self.__htmlheader()
-                if __name__ == "__main__":
-                    self.__print(h+ddict['text'])
-                else:
-                    ndict={}
-                    ndict['event'] = "McaSimpleFitPrint"
-                    ndict['text' ] = h+ddict['text']
-                    ndict['info' ] = {}
-                    ndict['info'].update(self.info)
-                    self.sigMcaSimpleFitSignal.emit(ndict)
+                ndict={}
+                ndict['event'] = "McaSimpleFitPrint"
+                ndict['text' ] = h+ddict['text']
+                ndict['info' ] = {}
+                ndict['info'].update(self.info)
+                self.sigMcaSimpleFitSignal.emit(ndict)
             if ddict['event'] == "McaModeChanged":
                 if ddict['data']:
                     self.estimatebutton.hide()
@@ -238,50 +235,6 @@ class McaSimpleFit(qt.QWidget):
         h+="</TABLE>"
         h+="</CENTER>"
         return h
-
-
-    def __print(self,text):
-        printer = qt.QPrinter()
-        if printer.setup(self):
-            painter = qt.QPainter()
-            if not(painter.begin(printer)):
-                return 0
-            try:
-                metrics = qt.QPaintDeviceMetrics(printer)
-                dpiy    = metrics.logicalDpiY()
-                margin  = int((2/2.54) * dpiy) #2cm margin
-                body = qt.QRect(0.5*margin, margin, metrics.width()- 1 * margin, metrics.height() - 2 * margin)
-                #text = self.mcatable.gettext()
-                #html output -> print text
-                richtext = qt.QSimpleRichText(text, qt.QFont(),
-                                                    qt.QString(""),
-                                                    #0,
-                                                    qt.QStyleSheet.defaultSheet(),
-                                                    qt.QMimeSourceFactory.defaultFactory(),
-                                                    body.height())
-                view = qt.QRect(body)
-                richtext.setWidth(painter,view.width())
-                page = 1
-                while(1):
-                    richtext.draw(painter,body.left(),body.top(),
-                                view,qt.QColorGroup())
-                    view.moveBy(0, body.height())
-                    painter.translate(0, -body.height())
-                    painter.drawText(view.right()  - painter.fontMetrics().maxWidth()*len(qt.QString.number(page)),
-                                     view.bottom() - painter.fontMetrics().ascent() + 5,qt.QString.number(page))
-                    if view.top() >= richtext.height():
-                        break
-                    printer.newPage()
-                    page += 1
-                #painter.flush()
-                painter.end()
-            except Exception:
-                #painter.flush()
-                painter.end()
-                msg =  qt.QMessageBox(self)
-                msg.setIcon(qt.QMessageBox.Critical)
-                msg.setText("%s" % sys.exc_info()[1])
-                msg.exec_loop()
 
 
 if __name__ == "__main__":

@@ -28,8 +28,6 @@ __contact__ = "sole@esrf.fr"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 from PyMca5.PyMcaGui import PyMcaQt as qt
-def MyQVariant(x=None):
-    return x
 from . import NumpyArrayTableModel
 import sys
 
@@ -42,8 +40,8 @@ class HorizontalHeader(qt.QAbstractItemModel):
 
     def headerData(self, section, orientation, role=qt.Qt.DisplayRole):
         if role == qt.Qt.DisplayRole:
-            return MyQVariant("%d" % section)
-        return MyQVariant()
+            return "%d" % section
+        return None
 
 class VerticalHeader(qt.QAbstractItemModel):
     def __init__(self, parent=None):
@@ -54,8 +52,8 @@ class VerticalHeader(qt.QAbstractItemModel):
 
     def headerData(self, section, orientation, role=qt.Qt.DisplayRole):
         if role == qt.Qt.DisplayRole:
-            return MyQVariant("%d" % section)
-        return MyQVariant()
+            return "%d" % section
+        return None
 
 class NumpyArrayTableView(qt.QTableView):
     def __init__(self, parent=None):

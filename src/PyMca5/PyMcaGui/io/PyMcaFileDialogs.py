@@ -180,6 +180,9 @@ def getFileList(parent=None, filetypelist=None, message=None, currentdir=None,
                             message,
                             wdir,
                             filetypes)
+                    if isinstance(filelist, tuple):
+                        # Qt5 and later return (names, filter)
+                        filelist = filelist[0]
             else:
                 filelist, filterused = qt.QFileDialog.getSaveFileName(parent,
                             message,

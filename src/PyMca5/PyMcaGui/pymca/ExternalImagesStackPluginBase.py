@@ -74,7 +74,7 @@ class ExternalImagesStackPluginBase(StackPluginBase.StackPluginBase):
         if not filenamelist:
             return
         filefilter = filefilter.split()[0].lower()
-        extension = qt.safe_str(os.path.splitext(filenamelist[0])[1]).lower()
+        extension = str(os.path.splitext(filenamelist[0])[1]).lower()
         if (filefilter in ["edf"]) or \
            (extension in [".edf", ".tif"]):
             imagenames, imagelist = self._readImageListEdf(filenamelist)

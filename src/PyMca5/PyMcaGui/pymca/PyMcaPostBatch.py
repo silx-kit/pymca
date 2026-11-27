@@ -44,12 +44,6 @@ from PyMca5.PyMcaGui.io import PyMcaFileDialogs
 from PyMca5.PyMcaGui.pymca import RGBCorrelator
 from PyMca5.PyMcaMisc import CliUtils
 
-if hasattr(qt, "QString"):
-    QString = qt.QString
-    QStringList = qt.QStringList
-else:
-    QString = qt.safe_str
-    QStringList = list
 QTVERSION = qt.qVersion()
 
 _logger = logging.getLogger(__name__)
@@ -58,12 +52,12 @@ _logger = logging.getLogger(__name__)
 class PyMcaPostBatch(RGBCorrelator.RGBCorrelator):
 
     def addFileList(self, filelist):
-        text = qt.safe_str(self.windowTitle())
+        text = str(self.windowTitle())
         if len(filelist) == 1:
-            text += ": " + qt.safe_str(os.path.basename(filelist[0]))
+            text += ": " + str(os.path.basename(filelist[0]))
         else:
-            text += ": from " + qt.safe_str(os.path.basename(filelist[0])) + \
-                    " to " + qt.safe_str(os.path.basename(filelist[-1]))
+            text += ": from " + str(os.path.basename(filelist[0])) + \
+                    " to " + str(os.path.basename(filelist[-1]))
         self.setWindowTitle(text)
         self.controller.addFileList(filelist)
 

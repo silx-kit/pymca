@@ -167,25 +167,11 @@ class RGBCorrelatorSlider(qt.QWidget):
 class MyQLabel(qt.QLabel):
     def __init__(self,parent=None,name=None,fl=0,bold=True, color= qt.Qt.red):
         qt.QLabel.__init__(self,parent)
-        if qt.qVersion() <'4.0.0':
-            self.color = color
-            self.bold  = bold
-        else:
-            palette = qt.QPalette(self.palette())
-            role = self.foregroundRole()
-            palette.setColor(role,color)
-            self.setPalette(palette)
-            self.font().setBold(bold)
-
-
-    if qt.qVersion() < '4.0.0':
-        def drawContents(self, painter):
-            painter.font().setBold(self.bold)
-            pal =self.palette()
-            pal.setColor(qt.QColorGroup.Foreground,self.color)
-            self.setPalette(pal)
-            qt.QLabel.drawContents(self,painter)
-            painter.font().setBold(0)
+        palette = qt.QPalette(self.palette())
+        role = self.foregroundRole()
+        palette.setColor(role,color)
+        self.setPalette(palette)
+        self.font().setBold(bold)
 
 def test():
     app = qt.QApplication([])

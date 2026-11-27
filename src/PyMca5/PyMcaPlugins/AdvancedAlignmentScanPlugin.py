@@ -173,20 +173,20 @@ class AlignmentWidget(qt.QDialog):
         buttonSave = qt.QPushButton('Save')
         buttonSave.setToolTip('Shortcut: CTRL+S\n'
                              +'Save shifts to file')
-        buttonSave.setShortcut(qt.QKeySequence(qt.Qt.CTRL + qt.Qt.Key_S))
+        buttonSave.setShortcut(qt.QKeySequence(qt.Qt.CTRL|qt.Qt.Key_S))
         buttonLoad = qt.QPushButton('Load')
         buttonLoad.setToolTip('Shortcut: CTRL+O\n'
                              +'Load shifts from file')
-        buttonLoad.setShortcut(qt.QKeySequence(qt.Qt.CTRL + qt.Qt.Key_O))
+        buttonLoad.setShortcut(qt.QKeySequence(qt.Qt.CTRL|qt.Qt.Key_O))
         buttonStore = qt.QPushButton('Store')
         buttonStore.setToolTip('Shortcut: ALT+S\n'
                               +'Store shifts in memory.\n')
-        buttonStore.setShortcut(qt.QKeySequence(qt.Qt.ALT + qt.Qt.Key_S))
+        buttonStore.setShortcut(qt.QKeySequence(qt.Qt.ALT|qt.Qt.Key_S))
         buttonApply = qt.QPushButton('Apply')
         buttonApply.setToolTip('Shortcut: CTRL+Return\n'
                               +'Apply shift to curves present'
                               +' in the plot window')
-        buttonApply.setShortcut(qt.QKeySequence(qt.Qt.CTRL + qt.Qt.Key_Return))
+        buttonApply.setShortcut(qt.QKeySequence(qt.Qt.CTRL|qt.Qt.Key_Return))
         buttonCancel = qt.QPushButton('Cancel')
         buttonCancel.setToolTip('Shortcut: ESC\n'
                                +'Closes the window')
@@ -282,7 +282,11 @@ class AlignmentWidget(qt.QDialog):
 
         # ..to Plugin instance
         buttonCalc.clicked.connect(self._triggerCalculateShiftClickedSlot)
-        self.alignmentMethodComboBox.activated['QString'].\
+        if hasattr(self.alignmentMethodComboBox, "textActivated"):
+            self.alignmentMethodComboBox.textActivated[str].\
+                            connect(self.triggerCalculateShift)
+        else:
+            self.alignmentMethodComboBox.activated['QString'].\
                             connect(self.triggerCalculateShift)
 
     def _triggerCalculateShiftClickedSlot(self):

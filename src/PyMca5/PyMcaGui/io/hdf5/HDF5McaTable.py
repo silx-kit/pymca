@@ -33,9 +33,6 @@ import re
 from PyMca5.PyMcaGui import PyMcaQt as qt
 _logger = logging.getLogger(__name__)
 
-safe_str = qt.safe_str
-
-
 class McaSelectionType(qt.QWidget):
     sigMcaSelectionTypeSignal = qt.pyqtSignal(object)
 
@@ -319,7 +316,7 @@ class HDF5McaTable(qt.QTableWidget):
         if col != self._aliasColumn:
             return
         item = self.item(row, col)
-        self.aliasList[row] = safe_str(item.text())
+        self.aliasList[row] = str(item.text())
         self._update(row, col)
 
     def _mySlot(self, ddict):

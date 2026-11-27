@@ -38,10 +38,6 @@ from PyMca5.PyMcaCore.NexusDataSource import silxh5open
 from PyMca5.PyMcaGui.io.hdf5 import QNexusWidget
 from PyMca5.PyMcaGui.pymca import QStackWidget
 from PyMca5.PyMcaIO import HDF5Stack1D
-if hasattr(qt, 'QString'):
-    QString = qt.QString
-else:
-    QString = str
 _logger = logging.getLogger(__name__)
 
 
@@ -65,21 +61,21 @@ class PyMcaNexusWidget(QNexusWidget.QNexusWidget):
 
         if not is_numeric_dset:
             # handle a right click on a group or on a dataset of string type
-            _hdf5WidgetDatasetMenu.addAction(QString("Show Information"),
+            _hdf5WidgetDatasetMenu.addAction("Show Information",
                                              self._showInfoWidgetSlot)
-            _hdf5WidgetDatasetMenu.addAction(QString("Copy Path to Clipboard"),
+            _hdf5WidgetDatasetMenu.addAction("Copy Path to Clipboard",
                                              self._copyPathSlot)
             _hdf5WidgetDatasetMenu.addAction(QString("Numeric selection of scans"),
                                              self.showSmartSelectionDialog)
         else:
             # handle a right click on a numeric dataset
-            _hdf5WidgetDatasetMenu.addAction(QString("Add to selection table"),
+            _hdf5WidgetDatasetMenu.addAction("Add to selection table",
                                              self._addToSelectionTable)
 
-            _hdf5WidgetDatasetMenu.addAction(QString("Show Information"),
+            _hdf5WidgetDatasetMenu.addAction("Show Information",
                                              self._showInfoWidgetSlot)
 
-            _hdf5WidgetDatasetMenu.addAction(QString("Copy Path to Clipboard"),
+            _hdf5WidgetDatasetMenu.addAction("Copy Path to Clipboard",
                                              self._copyPathSlot)
 
             info = self.getInfo(phynxFile, ddict['name'])
@@ -97,14 +93,14 @@ class PyMcaNexusWidget(QNexusWidget.QNexusWidget):
                 stack2D = False
 
             if stack1D:
-                _hdf5WidgetDatasetMenu.addAction(QString("Show as 1D Stack"),
+                _hdf5WidgetDatasetMenu.addAction("Show as 1D Stack",
                                                  self._stack1DSignal)
-                _hdf5WidgetDatasetMenu.addAction(QString("Load and show as 1D Stack"),
+                _hdf5WidgetDatasetMenu.addAction("Load and show as 1D Stack",
                                                  self._loadStack1DSignal)
             if stack2D:
-                _hdf5WidgetDatasetMenu.addAction(QString("Show as 2D Stack"),
+                _hdf5WidgetDatasetMenu.addAction("Show as 2D Stack",
                                                  self._stack2DSignal)
-                _hdf5WidgetDatasetMenu.addAction(QString("Load and show as 2D Stack"),
+                _hdf5WidgetDatasetMenu.addAction("Load and show as 2D Stack",
                                                  self._loadStack2DSignal)
 
         self._lastItemDict = ddict

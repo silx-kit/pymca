@@ -170,7 +170,7 @@ class Fit2SpecGUI(qt.QWidget):
             self.raiseW()
             return
 
-        filelist = [qt.safe_str(f) for f in filelist0]
+        filelist = [str(f) for f in filelist0]
         if filelist:
             self.setFileList(filelist)
         self.raiseW()
@@ -186,7 +186,7 @@ class Fit2SpecGUI(qt.QWidget):
             self.raiseW()
             return
 
-        filename = qt.safe_str(filename)
+        filename = str(filename)
         if filename:
             self.setConfigFile(filename)
         self.raiseW()
@@ -197,7 +197,7 @@ class Fit2SpecGUI(qt.QWidget):
         dialog.setOption(qt.QFileDialog.ShowDirsOnly, True)
 
         if dialog.exec() == qt.QDialog.Accepted:
-            outdir = qt.safe_str(dialog.selectedFiles()[0])
+            outdir = str(dialog.selectedFiles()[0])
             self.setOutputDir(outdir)
         self.raiseW()
 

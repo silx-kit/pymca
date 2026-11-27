@@ -396,11 +396,11 @@ class QPeriodicCombo(qt.QComboBox):
         self.sigSelectionChanged.emit(Elements[idx][0])
 
     def getSelection(self):
-        return Elements[self.currentItem()]
+        return Elements[self.currentIndex()]
 
     def setSelection(self, symbol):
         symblist= [ elt[0] for elt in Elements ]
-        self.setCurrentItem(symblist.index(symbol))
+        self.setCurrentIndex(symblist.index(symbol))
 
 
 class QPeriodicList(qt.QTreeWidget):

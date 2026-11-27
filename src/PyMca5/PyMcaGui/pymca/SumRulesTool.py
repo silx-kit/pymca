@@ -47,16 +47,7 @@ from PyMca5.PyMcaGui.io import QSpecFileWidget
 from PyMca5.PyMcaCore import SpecFileDataSource
 from PyMca5.PyMcaGui.plotting.PyMca_Icons import IconDict
 
-if hasattr(qt, "QString"):
-    QString = qt.QString
-else:
-    QString = str
-    QStringList = list
 
-if hasattr(qt, "QStringList"):
-    QStringList = qt.QStringList
-else:
-    QStringList = list
 
 
 _logger = logging.getLogger(__name__)
@@ -365,7 +356,7 @@ class SumRulesWindow(qt.QMainWindow):
     occuringTransitions = ['L3M4', 'L3M5', 'L2M4', 'M5O3','M4O3']
 
     # Signals
-    tabChangedSignal = qt.pyqtSignal('QString')
+    tabChangedSignal = qt.pyqtSignal(str)
 
     def __init__(self, parent=None):
         qt.QMainWindow.__init__(self, parent)
@@ -1076,7 +1067,7 @@ class SumRulesWindow(qt.QMainWindow):
             baseFilename = qt.QFileDialog.getSaveFileName(self,
                                    'Save Sum Rule Analysis Data',
                                    saveDir,
-                                   filters)
+                                   filters)[0]
             if len(baseFilename) == 0:
                 # Leave self.baseFilename as it is..
                 #self.baseFilename = None
@@ -1173,7 +1164,7 @@ class SumRulesWindow(qt.QMainWindow):
             filename = qt.QFileDialog.getSaveFileName(self,
                                    'Save Sum Rule Analysis Configuration',
                                    saveDir,
-                                   filters)
+                                   filters)[0]
             if len(filename) == 0:
                 return False
             else:
@@ -1204,11 +1195,7 @@ class SumRulesWindow(qt.QMainWindow):
         filename = qt.QFileDialog.getOpenFileName(self,
                                'Load Sum Rule Analysis Configuration',
                                loadDir,
-                               filters)
-
-        if type(filename) in [type(list()), type(tuple())]:
-            if len(filename):
-                filename = filename[0]
+                               filters)[0]
 
         if len(filename) == 0:
             return
@@ -1291,7 +1278,7 @@ class SumRulesWindow(qt.QMainWindow):
             ed.updateDict(tmpDict)
             cb.addItems(['']+transitions)
             # Try to set to old entry
-            idx = cb.findText(QString(curr))
+            idx = cb.findText(str(curr))
             if idx < 0: idx = 0
             cb.setCurrentIndex(idx)
 
@@ -1380,7 +1367,7 @@ class SumRulesWindow(qt.QMainWindow):
                                 ' while setting QDoubleSpinBox value. Value: %s',
                                 value)
                 elif isinstance(obj, qt.QComboBox):
-                    idx = obj.findText(QString(value))
+                    idx = obj.findText(str(value))
                     obj.setCurrentIndex(idx)
                 elif isinstance(obj, LineEditDisplay):
                     # Must be before isinstance(obj, qt.QLineEdit)
@@ -1400,7 +1387,7 @@ class SumRulesWindow(qt.QMainWindow):
         try:
             symbol = ddict[self.__tabElem]['element']
             cb = self.valuesDict[self.__tabElem]['element']
-            idx = cb.findText(QString(symbol))
+            idx = cb.findText(str(symbol))
             cb.setCurrentIndex(idx)
         except KeyError:
             pass

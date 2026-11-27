@@ -37,10 +37,6 @@ import sys
 import logging
 
 from PyMca5.PyMcaGui import PyMcaQt as qt
-if hasattr(qt, "QString"):
-    QString = qt.QString
-else:
-    QString = str
 
 QTVERSION = qt.qVersion()
 
@@ -82,18 +78,6 @@ class PyMcaMdi(qt.QMainWindow):
         self.printer= qt.QPrinter()
         self.mdi = qt.QMdiArea(self.splitter)
 
-        if not hasattr(self.mdi, "windowList"):
-            # Qt5
-            self.mdi.windowList = self.mdi.subWindowList
-            self.mdi.activeWindow = self.mdi.activeSubWindow
-            self.mdi.tile = self.mdi.tileSubWindows
-            self.mdi.cascade = self.mdi.cascadeSubWindows
-        else:
-            # Qt4
-            self.mdi.subWindowList = self.mdi.windowList
-            self.mdi.activeSubWindow = self.mdi.activeWindow
-            self.mdi.tileSubWindows = self.mdi.tile
-            self.mdi.cascadeSubWindows = self.mdi.cascade
         #self.mdi.setBackground(qt.QBrush(qt.QColor(238,234,238)))
         #self.setCentralWidget(self.mdi)
         #self.splitterLayout.addWidget(self.mdi)
@@ -127,34 +111,34 @@ class PyMcaMdi(qt.QMainWindow):
     def createActions(self):
         #fileopen
         self.actionOpen = qt.QAction(self)
-        self.actionOpen.setText(QString("&Open"))
+        self.actionOpen.setText("&Open")
         self.actionOpen.setIcon(self.Icons["fileopen"])
         self.actionOpen.setShortcut(qt.QKeySequence(qt.Qt.CTRL|qt.Qt.Key_O))
         self.actionOpen.triggered[bool].connect(self.onOpen)
         #filesaveas
         self.actionSaveAs = qt.QAction(self)
-        self.actionSaveAs.setText(QString("&Save"))
+        self.actionSaveAs.setText("&Save")
         self.actionSaveAs.setIcon(self.Icons["filesave"])
         self.actionSaveAs.setShortcut(qt.QKeySequence(qt.Qt.CTRL|qt.Qt.Key_S))
         self.actionSaveAs.triggered[bool].connect(self.onSaveAs)
 
         #filesave
         self.actionSave = qt.QAction(self)
-        self.actionSave.setText(QString("Save &Defaults"))
+        self.actionSave.setText("Save &Defaults")
         #self.actionSave.setIcon(self.Icons["filesave"])
         #self.actionSave.setShortcut(qt.Qt.CTRL|qt.Qt.Key_S)
         self.actionSave.triggered[bool].connect(self.onSave)
 
         #fileprint
         self.actionPrint = qt.QAction(self)
-        self.actionPrint.setText(QString("&Print"))
+        self.actionPrint.setText("&Print")
         self.actionPrint.setIcon(self.Icons["fileprint"])
         self.actionPrint.setShortcut(qt.QKeySequence(qt.Qt.CTRL|qt.Qt.Key_P))
         self.actionPrint.triggered[bool].connect(self.onPrint)
 
         #filequit
         self.actionQuit = qt.QAction(self)
-        self.actionQuit.setText(QString("&Quit"))
+        self.actionQuit.setText("&Quit")
         #self.actionQuit.setIcon(self.Icons["fileprint"])
         self.actionQuit.setShortcut(qt.QKeySequence(qt.Qt.CTRL|qt.Qt.Key_Q))
         qApp = qt.QApplication.instance()
@@ -179,52 +163,33 @@ class PyMcaMdi(qt.QMainWindow):
         if self.options["WinToolBar"]:
             self.winToolBar = self.addToolBar("wintoolbar")
 
-    def onWinToolMenu(self, idx):
-        _logger.debug("onWinToolMenu %d ", idx)
-        for midx in self.winToolMenuIndex:
-                self.winToolMenu.setItemChecked(midx, midx==idx)
-        act= self.winToolMenuIndex.index(idx)
-        self.winToolButton.setTextLabel(self.winToolMenuText[act])
-        if act==0:
-            self.winToolMenuAction= self.windowCascade
-        elif act==1:
-            self.winToolMenuAction= self.windowTile
-        elif act==2:
-            self.winToolMenuAction= self.windowHorizontal
-        elif act==3:
-            self.winToolMenuAction= self.windowVertical
-        self.onWinToolAction()
-
-    def onWinToolAction(self):
-        self.winToolMenuAction()
-
     #
     # Mdi windows geometry
     #
     def windowCascade(self):
         if self.followActiveWindow:
             self.__disconnectFollow()
-        self.mdi.cascade()
-        for window in self.mdi.windowList():
-            window.resize(0.7*self.mdi.width(),0.7*self.mdi.height())
+        self.mdi.cascadeSubWindows()
+        for window in self.mdi.subWindowList():
+            window.resize(int(0.7*self.mdi.width()), int(0.7*self.mdi.height()))
         if self.followActiveWindow:
             self.__connectFollow()
 
     def windowTile(self):
         if self.followActiveWindow: self.__disconnectFollow()
-        self.mdi.tile()
+        self.mdi.tileSubWindows()
         if self.followActiveWindow: self.__connectFollow()
 
     def windowHorizontal(self):
         #if self.followActiveWindow: self.__disconnectFollow()
-        if not len(self.mdi.windowList()): return
-        windowheight=float(self.mdi.height())/len(self.mdi.windowList())
+        if not len(self.mdi.subWindowList()): return
+        windowheight=float(self.mdi.height())/len(self.mdi.subWindowList())
         i=0
-        for window in self.mdi.windowList():
-                window.parentWidget().showNormal()
-                window.parentWidget().setGeometry(0, int(windowheight*i),
+        for window in self.mdi.subWindowList():
+                window.showNormal()
+                window.setGeometry(0, int(windowheight*i),
                                         self.mdi.width(),int(windowheight))
-                window.parentWidget().raise_()
+                window.raise_()
                 i+=1
         self.mdi.update()
         self.update()
@@ -232,23 +197,23 @@ class PyMcaMdi(qt.QMainWindow):
 
     def windowVertical(self):
         #if self.followActiveWindow: self.__disconnectFollow()
-        if not len(self.mdi.windowList()): return
-        windowwidth=float(self.mdi.width())/len(self.mdi.windowList())
+        if not len(self.mdi.subWindowList()): return
+        windowwidth=float(self.mdi.width())/len(self.mdi.subWindowList())
         i=0
-        for window in self.mdi.windowList():
-            window.parentWidget().showNormal()
-            window.parentWidget().setGeometry(int(windowwidth*i),0,
+        for window in self.mdi.subWindowList():
+            window.showNormal()
+            window.setGeometry(int(windowwidth*i),0,
                                     int(windowwidth),self.mdi.height())
 
-            window.parentWidget().raise_()
+            window.raise_()
             i+=1
         self.mdi.update()
         self.update()
         #if self.followActiveWindow: self.__connectFollow()
 
     def windowFullScreen(self):
-        if len(self.mdi.windowList()):
-            self.mdi.activeWindow().showMaximized()
+        if len(self.mdi.subWindowList()):
+            self.mdi.activeSubWindow().showMaximized()
 
 
     def initMenuBar(self):
@@ -291,13 +256,13 @@ class PyMcaMdi(qt.QMainWindow):
     def menuWindowAboutToShow(self):
         _logger.debug("menuWindowAboutToShow")
         self.menuWindow.clear()
-        if len(self.mdi.windowList())==0:
+        if len(self.mdi.subWindowList())==0:
             return
         self.menuWindow.addAction("&Cascade", self.windowCascade)
         self.menuWindow.addAction("&Tile", self.windowTile)
         self.menuWindow.addAction("&Tile Horizontally", self.windowHorizontal)
         self.menuWindow.addAction("&Tile Vertically", self.windowVertical)
-        windows=self.mdi.windowList()
+        windows=self.mdi.subWindowList()
         if len(windows) > 0:
             self.menuWindow.addSeparator()
         num = 0
@@ -306,7 +271,7 @@ class PyMcaMdi(qt.QMainWindow):
             num += 1
             action = self.menuWindow.addAction(text)
             action.setCheckable(True)
-            action.setChecked(window == self.mdi.activeWindow())
+            action.setChecked(window == self.mdi.activeSubWindow())
             action.triggered.connect(self.windowMapper.map)
             self.windowMapper.setMapping(action, window)
 
@@ -341,19 +306,6 @@ class PyMcaMdi(qt.QMainWindow):
         pass
 
     #
-    # Dock windows
-    #
-    def isCustomizable(self):
-        nb= 0
-        for win in self.dockWindows():
-                nb += isinstance(win, DockWindow)
-        return (nb>0)
-
-    def customize(self, *args):
-        dg= DockPlaceDialog(self, window=self, title="Tool Places")
-        dg.exec_loop()
-
-    #
     # Menus customization
     #
     def onInitMenuBar(self, menubar):
@@ -371,25 +323,6 @@ class PyMcaMdi(qt.QMainWindow):
     def menuToolsAboutToShow(self):
         _logger.debug("menuToolsAboutToShow")
         self.menuTools.clear()
-        self.menuToolsMap= {}
-        """
-        for win in self.dockWindows():
-            if isinstance(win, DockWindow):
-                    idx= self.menuTools.insertItem("%s"%str(win.caption()), self.menuToolsActivated)
-                    self.menuToolsMap[idx]= win
-                    self.menuTools.setItemChecked(idx, not win.isHidden())
-        """
-        if len(self.menuToolsMap.keys()):
-            self.menuTools.insertSeparator()
-            self.menuTools.insertItem("Customize", self.customize)
-
-    def menuToolsActivated(self, idx):
-        _logger.debug("menuToolsActivated idx = %s", idx)
-        if self.menuTools.isItemChecked(idx):
-            self.menuToolsMap[idx].hide()
-        else:
-            self.menuToolsMap[idx].show()
-
 
 
     #

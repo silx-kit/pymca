@@ -36,10 +36,6 @@ import numpy
 import time
 import traceback
 from PyMca5.PyMcaGui import PyMcaQt as qt
-if hasattr(qt, 'QString'):
-    QString = qt.QString
-else:
-    QString = qt.safe_str
 if __name__ == "__main__":
     app = qt.QApplication([])
 
@@ -133,13 +129,13 @@ class ScanWindow(PlotWindow.PlotWindow):
             self.addDockWidget(qt.Qt.BottomDockWidgetArea,
                                    self.infoDockWidget)
             controlMenu = qt.QMenu()
-            controlMenu.addAction(QString("Show/Hide Legends"),
+            controlMenu.addAction("Show/Hide Legends",
                                        self.toggleLegendWidget)
-            controlMenu.addAction(QString("Show/Hide Info"),
+            controlMenu.addAction("Show/Hide Info",
                                        self._toggleInfoWidget)
-            controlMenu.addAction(QString("Toggle Crosshair"),
+            controlMenu.addAction("Toggle Crosshair",
                                        self.toggleCrosshairCursor)
-            controlMenu.addAction(QString("Toggle Arrow Keys Panning"),
+            controlMenu.addAction("Toggle Arrow Keys Panning",
                                        self.toggleArrowKeysPanning)
             self.setControlMenu(controlMenu)
         else:
@@ -177,9 +173,9 @@ class ScanWindow(PlotWindow.PlotWindow):
                             self._customFitSignalReceived)
 
             self.fitButtonMenu = qt.QMenu()
-            self.fitButtonMenu.addAction(QString("Simple Fit"),
+            self.fitButtonMenu.addAction("Simple Fit",
                                    self._simpleFitSignal)
-            self.fitButtonMenu.addAction(QString("Customized Fit") ,
+            self.fitButtonMenu.addAction("Customized Fit" ,
                                    self._customFitSignal)
 
     def _derivateTriggered(self, action):
@@ -760,7 +756,7 @@ class ScanWindow(PlotWindow.PlotWindow):
         filterused = fileFilter.split()
         filetype = filterused[1]
         extension = filterused[2]
-        outdir = qt.safe_str(fileList[0])
+        outdir = str(fileList[0])
         try:
             self.outputDir  = os.path.dirname(outdir)
             PyMcaDirs.outputDir = os.path.dirname(outdir)
@@ -795,10 +791,7 @@ class ScanWindow(PlotWindow.PlotWindow):
             os.remove(filename)
         if filterused[0].upper() == "WIDGET":
             fformat = filename[-3:].upper()
-            if hasattr(qt.QPixmap, "grabWidget"):
-                pixmap = qt.QPixmap.grabWidget(self)
-            else:
-                pixmap = self.grab()
+            pixmap = self.grab()
             if not pixmap.save(filename, fformat):
                 qt.QMessageBox.critical(self,
                                     "Save Error",
@@ -1389,10 +1382,7 @@ class ScanWindow(PlotWindow.PlotWindow):
                 widget = self.getWidgetHandle()
             else:
                 widget = self.centralWidget()
-            if hasattr(widget, "grab"):
-                pixmap = widget.grab()
-            else:
-                pixmap = qt.QPixmap.grabWidget(widget)
+            pixmap = widget.grab()
 
         title = None
         comment = None

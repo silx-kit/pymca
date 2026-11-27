@@ -299,7 +299,7 @@ class MaterialComboBox(qt.QComboBox):
             self.addItem(item)
 
     def getCurrent(self):
-        return   self.currentItem(),str(self.currentText())
+        return   self.currentIndex(),str(self.currentText())
 
     def _mySignal(self, qstring0):
         qstring = qstring0

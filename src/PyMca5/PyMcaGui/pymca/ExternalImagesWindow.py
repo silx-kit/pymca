@@ -33,7 +33,6 @@ import os
 import numpy
 
 from PyMca5.PyMcaGui import PyMcaQt as qt
-QString = str
 from PyMca5.PyMcaGui.plotting.PyMca_Icons import IconDict
 from PyMca5.PyMcaGui.plotting import MaskImageWidget
 from PyMca5.PyMcaIO import EdfFile
@@ -72,11 +71,11 @@ class ExternalImagesWindow(MaskImageWidget.MaskImageWidget):
             self.graphWidget.saveToolButton.clicked.connect(\
                          self._saveToolButtonSignal)
             self._saveMenu = qt.QMenu()
-            self._saveMenu.addAction(QString("Image Data"),
+            self._saveMenu.addAction("Image Data",
                                      self.saveImageList)
-            self._saveMenu.addAction(QString("Standard Graphics"),
+            self._saveMenu.addAction("Standard Graphics",
                                      self.graphWidget._saveIconSignal)
-            self._saveMenu.addAction(QString("Matplotlib") ,
+            self._saveMenu.addAction("Matplotlib" ,
                                      self._saveMatplotlibImage)
 
         dynamic = kw.get("dynamic", False)
@@ -100,11 +99,11 @@ class ExternalImagesWindow(MaskImageWidget.MaskImageWidget):
             infotext = "Flip image and data, not the scale."
             self.graphWidget.hFlipToolButton.setToolTip('Flip image')
             self._flipMenu = qt.QMenu()
-            self._flipMenu.addAction(QString("Flip Image and Vertical Scale"),
+            self._flipMenu.addAction("Flip Image and Vertical Scale",
                                      self.__hFlipIconSignal)
-            self._flipMenu.addAction(QString("Flip Image Left-Right"),
+            self._flipMenu.addAction("Flip Image Left-Right",
                                      self._flipLeftRight)
-            self._flipMenu.addAction(QString("Flip Image Up-Down"),
+            self._flipMenu.addAction("Flip Image Up-Down",
                                      self._flipUpDown)
         else:
             self.graphWidget.hFlipToolButton.clicked.connect(\
