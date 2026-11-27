@@ -63,7 +63,7 @@ class LispixMap(DataObject.DataObject):
         dynamic : boolean (default None)
             If None, it will attempt to use dynamic loading of data only in case of memory issues
             If False, it will not use dynamic loading. Raising errors in case of memory limitations
-            If True, it will always try to use dynamic loading. It will not raise exceptions if it cannot.
+            If True, it will use dynamic loading. Raising errors if it cannot.
         '''
         dataFile, headerFile = _getDataAndDescriptionFileName(filename)
         description = _parseHeaderFile(headerFile)
@@ -89,6 +89,10 @@ class LispixMap(DataObject.DataObject):
             raise IOError("Missing height field")
         offset = description["offset"]
         channels = description["depth"]
+        if dynamic and ((description["record-by"] == "image") or \
+                        (offset != 0) or (not safememmap)):
+            raise ValueError("Dynamic loading needs data stored as spectra, "
+                             "without offset and in the native byte order")
         if description["data-type"] in ["float", "double"]:
             if description["data-length"] == 4:
                 dtype = numpy.float32
